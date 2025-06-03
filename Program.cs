@@ -1,4 +1,8 @@
 
+using Microsoft.EntityFrameworkCore;
+using System;
+using TourManagement_BE.Data.Context;
+
 namespace TourManagement_BE
 {
     public class Program
@@ -6,7 +10,9 @@ namespace TourManagement_BE
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-
+            // Add DbContext
+            builder.Services.AddDbContext<MyDBContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             // Add services to the container.
 
             builder.Services.AddControllers();
