@@ -24,17 +24,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-    <Folder Include="Data\DTO\Response\" />
-    <Folder Include="Data\DTO\Request\" />
-    <Folder Include="Helper\Common\" />
-    <Folder Include="Mapping\" />
-    <Folder Include="Midderware\" />
-    <Folder Include="Helper\Constant\" />
-    <Folder Include="Helper\Validator\" />
-    <Folder Include="Repository\Interface\" />
-    <Folder Include="Repository\Imple\" />
-    <Folder Include="Service\" />
+    <Folder Include="Helper\Common\NewFolder\" />
+    <Folder Include="Helper\Constant\NewFolder\" />
+    <Folder Include="Helper\Validator\NewFolder\" />
+    <Folder Include="Mapping\NewFolder\" />
+    <Folder Include="Midderware\NewFolder\" />
+    <Folder Include="Repository\Imple\NewFolder\" />
+    <Folder Include="Repository\Interface\NewFolder\" />
+    <Folder Include="Service\NewFolder\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

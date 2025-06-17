@@ -5,11 +5,13 @@ namespace TourManagement_BE.Data.Models;
 
 public partial class GuideLanguage
 {
-    public Guid Id { get; set; }
+    public int Id { get; set; }
 
-    public Guid? GuideId { get; set; }
+    public int? GuideId { get; set; }
 
-    public Guid? LanguageId { get; set; }
+    public int? LanguageId { get; set; }
+
+    public bool IsActive { get; set; }
 
     public virtual TourGuide? Guide { get; set; }
 

@@ -5,7 +5,7 @@ namespace TourManagement_BE.Data.Models;
 
 public partial class Tour
 {
-    public Guid TourId { get; set; }
+    public int TourId { get; set; }
 
     public string Title { get; set; } = null!;
 
@@ -15,13 +15,11 @@ public partial class Tour
 
     public string DurationInDays { get; set; } = null!;
 
-    public string? ImageUrl { get; set; }
-
     public string? StartPoint { get; set; }
 
     public string? Transportation { get; set; }
 
-    public Guid TourOperatorId { get; set; }
+    public int TourOperatorId { get; set; }
 
     public int MaxSlots { get; set; }
 
@@ -29,11 +27,13 @@ public partial class Tour
 
     public DateTime? CreatedAt { get; set; }
 
+    public string TourType { get; set; } = null!;
+
     public string? Note { get; set; }
 
     public string? TourStatus { get; set; }
 
-    public bool? IsActive { get; set; }
+    public bool IsActive { get; set; }
 
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
@@ -45,9 +45,9 @@ public partial class Tour
 
     public virtual ICollection<TourExperience> TourExperiences { get; set; } = new List<TourExperience>();
 
-    public virtual ICollection<TourGuideAssignment> TourGuideAssignments { get; set; } = new List<TourGuideAssignment>();
+    public virtual ICollection<TourItinerary> TourItineraries { get; set; } = new List<TourItinerary>();
 
-    public virtual ICollection<TourImage> TourImages { get; set; } = new List<TourImage>();
+    public virtual ICollection<TourMedia> TourMedia { get; set; } = new List<TourMedia>();
 
     public virtual TourOperator TourOperator { get; set; } = null!;
 

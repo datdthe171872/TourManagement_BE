@@ -5,7 +5,7 @@ namespace TourManagement_BE.Data.Models;
 
 public partial class ExtraCharge
 {
-    public Guid ExtraChargeId { get; set; }
+    public int ExtraChargeId { get; set; }
 
     public string Name { get; set; } = null!;
 
@@ -13,7 +13,7 @@ public partial class ExtraCharge
 
     public decimal Amount { get; set; }
 
-    public bool? IsActive { get; set; }
+    public bool IsActive { get; set; }
 
     public virtual ICollection<BookingExtraCharge> BookingExtraCharges { get; set; } = new List<BookingExtraCharge>();
 }

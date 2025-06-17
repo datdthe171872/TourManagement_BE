@@ -3,13 +3,15 @@ using System.Collections.Generic;
 
 namespace TourManagement_BE.Data.Models;
 
-public partial class TourExperience
+public partial class TourMedia
 {
     public int Id { get; set; }
 
     public int TourId { get; set; }
 
-    public string? Content { get; set; }
+    public string? MediaUrl { get; set; }
+
+    public string? MediaType { get; set; }
 
     public bool IsActive { get; set; }
 

@@ -5,11 +5,11 @@ namespace TourManagement_BE.Data.Models;
 
 public partial class PurchaseTransaction
 {
-    public Guid TransactionId { get; set; }
+    public int TransactionId { get; set; }
 
-    public Guid TourOperatorId { get; set; }
+    public int TourOperatorId { get; set; }
 
-    public Guid PackageId { get; set; }
+    public int PackageId { get; set; }
 
     public decimal Amount { get; set; }
 
@@ -18,6 +18,8 @@ public partial class PurchaseTransaction
     public string? PaymentStatus { get; set; }
 
     public DateTime? CreatedAt { get; set; }
+
+    public bool IsActive { get; set; }
 
     public virtual ServicePackage Package { get; set; } = null!;
 

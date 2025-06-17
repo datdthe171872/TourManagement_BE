@@ -5,11 +5,13 @@ namespace TourManagement_BE.Data.Models;
 
 public partial class DepartureDate
 {
-    public Guid Id { get; set; }
+    public int Id { get; set; }
 
-    public Guid TourId { get; set; }
+    public int TourId { get; set; }
 
-    public DateOnly DepartureDate1 { get; set; }
+    public DateTime DepartureDate1 { get; set; }
+
+    public bool IsActive { get; set; }
 
     public virtual Tour Tour { get; set; } = null!;
 }
