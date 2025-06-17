@@ -11,11 +11,9 @@
         public string RoleName { get; set; } = null!;
         public bool? IsActive { get; set; }
 
-        // Nếu là TourOperator
         public string? CompanyName { get; set; }
         public string? Description { get; set; }
 
-        // Nếu là TourGuide
         public int? HomeTourGuideId { get; set; }
     }
 

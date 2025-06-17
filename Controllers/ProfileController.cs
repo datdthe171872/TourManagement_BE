@@ -39,7 +39,6 @@ namespace TourManagement_BE.Controllers
                 return NotFound("User not found.");
             }
 
-            // Check nếu là TourOperator
             var tourOperator = context.TourOperators.FirstOrDefault(t => t.UserId == userId);
             if (tourOperator != null)
             {
@@ -47,7 +46,6 @@ namespace TourManagement_BE.Controllers
                 user.Description = tourOperator.Description;
             }
 
-            // Check nếu là TourGuide
             var tourGuide = context.TourGuides.FirstOrDefault(t => t.UserId == userId);
             if (tourGuide != null)
             {
