@@ -5,7 +5,7 @@ namespace TourManagement_BE.Data.Models;
 
 public partial class User
 {
-    public Guid UserId { get; set; }
+    public int UserId { get; set; }
 
     public string? UserName { get; set; }
 
@@ -19,9 +19,9 @@ public partial class User
 
     public string? Avatar { get; set; }
 
-    public Guid RoleId { get; set; }
+    public int RoleId { get; set; }
 
-    public bool? IsActive { get; set; }
+    public bool IsActive { get; set; }
 
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 

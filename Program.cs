@@ -1,4 +1,4 @@
-
+﻿
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -18,10 +18,20 @@ namespace TourManagement_BE
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-            // Add DbContext
+
             builder.Services.AddDbContext<MyDBContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-            // Add services to the container.
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll",
+                    policy =>
+                    {
+                        policy.AllowAnyOrigin()
+                              .AllowAnyHeader()
+                              .AllowAnyMethod();
+                    });
+            });
 
             builder.Services.AddControllers().AddFluentValidation(fv =>
             {
@@ -69,7 +79,6 @@ namespace TourManagement_BE
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();

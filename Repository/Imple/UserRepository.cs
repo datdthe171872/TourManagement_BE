@@ -18,14 +18,14 @@ namespace TourManagement_BE.Repository.Imple
         {
             return await _context.Users
                 .Include(u => u.Role)
-                .FirstOrDefaultAsync(u => u.Email == email && u.IsActive == true);
+                .FirstOrDefaultAsync(u => u.Email == email && u.IsActive);
         }
 
-        public async Task<User> GetUserByIdAsync(Guid userId)
+        public async Task<User> GetUserByIdAsync(int userId)
         {
             return await _context.Users
                 .Include(u => u.Role)
-                .FirstOrDefaultAsync(u => u.UserId == userId && u.IsActive == true);
+                .FirstOrDefaultAsync(u => u.UserId == userId && u.IsActive);
         }
 
         public async Task AddUserAsync(User user)
@@ -37,7 +37,7 @@ namespace TourManagement_BE.Repository.Imple
         public async Task<Role> GetRoleByNameAsync(string roleName)
         {
             return await _context.Roles
-                .FirstOrDefaultAsync(r => r.RoleName == roleName);
+                .FirstOrDefaultAsync(r => r.RoleName == roleName && r.IsActive);
         }
 
         

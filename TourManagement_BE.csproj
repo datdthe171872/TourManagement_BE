@@ -8,6 +8,37 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Helper\Common\NewFolder\**" />
+    <Compile Remove="Helper\Constant\NewFolder\**" />
+    <Compile Remove="Helper\Validator\NewFolder\**" />
+    <Compile Remove="Mapping\NewFolder\**" />
+    <Compile Remove="Repository\Imple\NewFolder\**" />
+    <Compile Remove="Repository\Interface\NewFolder\**" />
+    <Compile Remove="Service\NewFolder\**" />
+    <Content Remove="Helper\Common\NewFolder\**" />
+    <Content Remove="Helper\Constant\NewFolder\**" />
+    <Content Remove="Helper\Validator\NewFolder\**" />
+    <Content Remove="Mapping\NewFolder\**" />
+    <Content Remove="Repository\Imple\NewFolder\**" />
+    <Content Remove="Repository\Interface\NewFolder\**" />
+    <Content Remove="Service\NewFolder\**" />
+    <EmbeddedResource Remove="Helper\Common\NewFolder\**" />
+    <EmbeddedResource Remove="Helper\Constant\NewFolder\**" />
+    <EmbeddedResource Remove="Helper\Validator\NewFolder\**" />
+    <EmbeddedResource Remove="Mapping\NewFolder\**" />
+    <EmbeddedResource Remove="Repository\Imple\NewFolder\**" />
+    <EmbeddedResource Remove="Repository\Interface\NewFolder\**" />
+    <EmbeddedResource Remove="Service\NewFolder\**" />
+    <None Remove="Helper\Common\NewFolder\**" />
+    <None Remove="Helper\Constant\NewFolder\**" />
+    <None Remove="Helper\Validator\NewFolder\**" />
+    <None Remove="Mapping\NewFolder\**" />
+    <None Remove="Repository\Imple\NewFolder\**" />
+    <None Remove="Repository\Interface\NewFolder\**" />
+    <None Remove="Service\NewFolder\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.0" />
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="FluentValidation" Version="12.0.0" />
@@ -30,7 +61,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Midderware\" />
+    <Folder Include="Midderware\NewFolder\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

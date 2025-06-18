@@ -5,19 +5,27 @@ namespace TourManagement_BE.Data.Models;
 
 public partial class TourGuideAssignment
 {
-    public Guid Id { get; set; }
+    public int Id { get; set; }
 
-    public Guid TourId { get; set; }
+    public int TourId { get; set; }
 
-    public Guid TourGuideId { get; set; }
+    public int BookingId { get; set; }
+
+    public int TourGuideId { get; set; }
 
     public DateOnly? AssignedDate { get; set; }
 
-    public string? Notes { get; set; }
+    public int? NoteId { get; set; }
 
     public bool? IsLeadGuide { get; set; }
 
-    public virtual Tour Tour { get; set; } = null!;
+    public bool IsActive { get; set; }
+
+    public virtual Booking Booking { get; set; } = null!;
+
+    public virtual ICollection<GuideNote> GuideNotes { get; set; } = new List<GuideNote>();
+
+    public virtual ICollection<GuideRating> GuideRatings { get; set; } = new List<GuideRating>();
 
     public virtual TourGuide TourGuide { get; set; } = null!;
 }

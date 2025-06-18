@@ -5,11 +5,11 @@ namespace TourManagement_BE.Data.Models;
 
 public partial class Payment
 {
-    public Guid PaymentId { get; set; }
+    public int PaymentId { get; set; }
 
-    public Guid BookingId { get; set; }
+    public int BookingId { get; set; }
 
-    public Guid UserId { get; set; }
+    public int UserId { get; set; }
 
     public decimal Amount { get; set; }
 
@@ -21,9 +21,11 @@ public partial class Payment
 
     public DateTime? PaymentDate { get; set; }
 
-    public Guid PaymentTypeId { get; set; }
+    public int PaymentTypeId { get; set; }
 
     public string? PaymentReference { get; set; }
+
+    public bool IsActive { get; set; }
 
     public virtual Booking Booking { get; set; } = null!;
 

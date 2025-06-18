@@ -5,7 +5,7 @@ namespace TourManagement_BE.Data.Models;
 
 public partial class ServicePackage
 {
-    public Guid PackageId { get; set; }
+    public int PackageId { get; set; }
 
     public string Name { get; set; } = null!;
 
@@ -19,7 +19,7 @@ public partial class ServicePackage
 
     public int MaxTours { get; set; }
 
-    public bool? IsActive { get; set; }
+    public bool IsActive { get; set; }
 
     public virtual ICollection<PurchaseTransaction> PurchaseTransactions { get; set; } = new List<PurchaseTransaction>();
 

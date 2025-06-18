@@ -5,21 +5,21 @@ namespace TourManagement_BE.Data.Models;
 
 public partial class PurchasedServicePackage
 {
-    public Guid PurchaseId { get; set; }
+    public int PurchaseId { get; set; }
 
-    public Guid TourOperatorId { get; set; }
+    public int TourOperatorId { get; set; }
 
-    public Guid PackageId { get; set; }
+    public int PackageId { get; set; }
 
-    public Guid TransactionId { get; set; }
+    public int TransactionId { get; set; }
 
-    public DateOnly ActivationDate { get; set; }
+    public DateTime ActivationDate { get; set; }
 
-    public DateOnly EndDate { get; set; }
+    public DateTime EndDate { get; set; }
 
     public int? NumOfToursUsed { get; set; }
 
-    public bool? IsActive { get; set; }
+    public bool IsActive { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 

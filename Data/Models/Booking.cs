@@ -5,11 +5,13 @@ namespace TourManagement_BE.Data.Models;
 
 public partial class Booking
 {
-    public Guid BookingId { get; set; }
+    public int BookingId { get; set; }
 
-    public Guid UserId { get; set; }
+    public int UserId { get; set; }
 
-    public Guid TourId { get; set; }
+    public int TourId { get; set; }
+
+    public DateTime SelectedDepartureDate { get; set; }
 
     public DateTime? BookingDate { get; set; }
 
@@ -27,19 +29,23 @@ public partial class Booking
 
     public decimal? RemainingAmount { get; set; }
 
+    public string? Contract { get; set; }
+
     public string? BookingStatus { get; set; }
 
     public string? PaymentStatus { get; set; }
 
-    public virtual ICollection<BookingExtraCharge> BookingExtraCharges { get; set; } = new List<BookingExtraCharge>();
+    public bool IsActive { get; set; }
 
-    public virtual ICollection<Contract> Contracts { get; set; } = new List<Contract>();
+    public virtual ICollection<BookingExtraCharge> BookingExtraCharges { get; set; } = new List<BookingExtraCharge>();
 
     public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
 
     public virtual Tour Tour { get; set; } = null!;
 
-    public virtual ICollection<TourCompletionReport> TourCompletionReports { get; set; } = new List<TourCompletionReport>();
+    public virtual ICollection<TourAcceptanceReport> TourAcceptanceReports { get; set; } = new List<TourAcceptanceReport>();
+
+    public virtual ICollection<TourGuideAssignment> TourGuideAssignments { get; set; } = new List<TourGuideAssignment>();
 
     public virtual User User { get; set; } = null!;
 }

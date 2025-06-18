@@ -5,13 +5,17 @@ namespace TourManagement_BE.Data.Models;
 
 public partial class BookingExtraCharge
 {
-    public Guid Id { get; set; }
+    public int Id { get; set; }
 
-    public Guid BookingId { get; set; }
+    public int BookingId { get; set; }
 
-    public Guid ExtraChargeId { get; set; }
+    public int ExtraChargeId { get; set; }
+
+    public string? Content { get; set; }
 
     public int? Quantity { get; set; }
+
+    public bool IsActive { get; set; }
 
     public virtual Booking Booking { get; set; } = null!;
 

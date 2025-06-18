@@ -61,10 +61,10 @@ namespace TourManagement_BE.Service
             }
 
             var user = _mapper.Map<User>(request);
-            user.UserId = Guid.NewGuid();
+            user.UserId = user.UserId;
             user.Password = PasswordHelper.HashPassword(request.Password);
             user.RoleId = role.RoleId;
-
+            user.IsActive = true;
             await _userRepository.AddUserAsync(user);
         }
 
