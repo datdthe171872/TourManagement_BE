@@ -5,15 +5,17 @@ namespace TourManagement_BE.Data.Models;
 
 public partial class TourCancellation
 {
-    public Guid CancellationId { get; set; }
+    public int CancellationId { get; set; }
 
-    public Guid TourId { get; set; }
+    public int TourId { get; set; }
 
-    public Guid CancelledBy { get; set; }
+    public int CancelledBy { get; set; }
 
     public DateTime? CancelledAt { get; set; }
 
     public string? Reason { get; set; }
+
+    public bool IsActive { get; set; }
 
     public virtual User CancelledByNavigation { get; set; } = null!;
 

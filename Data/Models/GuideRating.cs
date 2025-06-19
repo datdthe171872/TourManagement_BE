@@ -5,21 +5,25 @@ namespace TourManagement_BE.Data.Models;
 
 public partial class GuideRating
 {
-    public Guid RatingId { get; set; }
+    public int RatingId { get; set; }
 
-    public Guid TourGuideId { get; set; }
+    public int UserId { get; set; }
 
-    public Guid UserId { get; set; }
+    public int TourGuideId { get; set; }
+
+    public int AssignmentId { get; set; }
 
     public int? Rating { get; set; }
 
     public string? Comment { get; set; }
 
-    public string? ImageUrl { get; set; }
+    public string? MediaUrl { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 
-    public virtual TourGuide TourGuide { get; set; } = null!;
+    public bool IsActive { get; set; }
+
+    public virtual TourGuideAssignment Assignment { get; set; } = null!;
 
     public virtual User User { get; set; } = null!;
 }

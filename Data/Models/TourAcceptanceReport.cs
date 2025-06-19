@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 namespace TourManagement_BE.Data.Models;
 
-public partial class TourCompletionReport
+public partial class TourAcceptanceReport
 {
-    public Guid ReportId { get; set; }
+    public int ReportId { get; set; }
 
-    public Guid BookingId { get; set; }
+    public int BookingId { get; set; }
 
-    public Guid TourGuideId { get; set; }
+    public int TourGuideId { get; set; }
 
     public DateTime? ReportDate { get; set; }
 
@@ -21,7 +21,7 @@ public partial class TourCompletionReport
 
     public string? AttachmentUrl { get; set; }
 
-    public string? AttachmentType { get; set; }
+    public bool IsActive { get; set; }
 
     public virtual Booking Booking { get; set; } = null!;
 
