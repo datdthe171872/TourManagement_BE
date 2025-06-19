@@ -1,6 +1,6 @@
-﻿namespace TourManagement_BE.Data.DTO.Response.ProfileResponse
+﻿namespace TourManagement_BE.Data.DTO.Response.AccountResponse
 {
-    public class UserProfileResponse
+    public class ListAccountResponse
     {
         public int? UserId { get; set; }
         public string? UserName { get; set; } = null!;
@@ -10,11 +10,5 @@
         public string? Avatar { get; set; }
         public string RoleName { get; set; } = null!;
         public bool? IsActive { get; set; }
-
-        public string? CompanyName { get; set; }
-        public string? Description { get; set; }
-
-        public int? HomeTourGuideId { get; set; }
     }
-
 }
