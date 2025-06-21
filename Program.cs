@@ -53,6 +53,7 @@ namespace TourManagement_BE
             {
                 throw new InvalidOperationException("JWT SecretKey is missing in configuration.");
             }
+
             var issuer = builder.Configuration["Jwt:Issuer"];
             var audience = builder.Configuration["Jwt:Audience"];
 
