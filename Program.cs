@@ -1,5 +1,4 @@
-﻿
-using FluentValidation.AspNetCore;
+﻿using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -46,6 +45,7 @@ namespace TourManagement_BE
             // Register repositories and services
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<ITourOperatorService, TourOperatorService>();
 
             // Configure JWT Authentication
             var secretKey = builder.Configuration["Jwt:SecretKey"];
