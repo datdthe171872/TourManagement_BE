@@ -76,11 +76,7 @@ namespace TourManagement_BE.Service
                 throw new Exception("Email not found");
             }
 
-            // Giả lập gửi email với link reset password
             var resetToken = Guid.NewGuid().ToString();
-            // TODO: Lưu resetToken vào database hoặc cache với thời gian hết hạn
-            // Gửi email chứa link: https://your-app.com/reset-password?token={resetToken}
-            // Ví dụ: await _emailService.SendResetPasswordEmail(user.Email, resetToken);
             throw new NotImplementedException("Email service not implemented");
         }
     }

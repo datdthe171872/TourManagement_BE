@@ -1,0 +1,11 @@
+### Lấy danh sách tất cả tour operator
+GET https://localhost:7001/api/TourOperator
+
+### Lấy danh sách tour operator với search theo tên
+GET https://localhost:7001/api/TourOperator?CompanyName=Vietnam
+
+### Lấy danh sách tour operator với pagination
+GET https://localhost:7001/api/TourOperator?PageNumber=1&PageSize=5
+
+### Lấy danh sách tour operator với search và pagination
+GET https://localhost:7001/api/TourOperator?CompanyName=Travel&PageNumber=1&PageSize=10 
