@@ -57,6 +57,20 @@ namespace TourManagement_BE.Controllers
             return BadRequest(ex.Message);
         }
     }
+
+    [HttpPost("reset-password")]
+    public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+    {
+        try
+        {
+            await _authService.ResetPasswordAsync(request);
+            return Ok("Password has been reset successfully");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
 }
     }
 

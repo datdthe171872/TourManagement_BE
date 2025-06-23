@@ -77,7 +77,38 @@ namespace TourManagement_BE.Service
             }
 
             var resetToken = Guid.NewGuid().ToString();
-            throw new NotImplementedException("Email service not implemented");
+            var expiry = DateTime.UtcNow.AddHours(1);
+            var tokenEntity = new ResetPasswordToken
+            {
+                UserId = user.UserId,
+                Token = resetToken,
+                ExpiryDate = expiry,
+                IsUsed = false
+            };
+            await _userRepository.AddResetPasswordTokenAsync(tokenEntity);
+
+            var resetLink = $"http://localhost:3000/reset-password?token={resetToken}";
+            var subject = "Password Reset Request";
+            var body = $"<p>Click the link below to reset your password:</p><p><a href='{resetLink}'>Reset Password</a></p>";
+            var emailHelper = new EmailHelper(_configuration);
+            await emailHelper.SendEmailAsync(user.Email, subject, body);
+        }
+
+        public async Task ResetPasswordAsync(ResetPasswordRequest request)
+        {
+            var tokenEntity = await _userRepository.GetResetPasswordTokenAsync(request.Token);
+            if (tokenEntity == null)
+            {
+                throw new Exception("Invalid or expired token");
+            }
+            var user = await _userRepository.GetUserByIdAsync(tokenEntity.UserId);
+            if (user == null)
+            {
+                throw new Exception("User not found");
+            }
+            user.Password = PasswordHelper.HashPassword(request.NewPassword);
+            await _userRepository.SetResetPasswordTokenUsedAsync(tokenEntity.Id);
+            await _userRepository.UpdateUserAsync(user); // Save password change
         }
     }
 }

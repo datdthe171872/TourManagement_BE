@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TourManagement_BE.Data.Context;
 
@@ -11,9 +12,11 @@ using TourManagement_BE.Data.Context;
 namespace TourManagement_BE.Migrations
 {
     [DbContext(typeof(MyDBContext))]
-    partial class MyDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250623094657_AddResetPasswordToken")]
+    partial class AddResetPasswordToken
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -598,34 +601,6 @@ namespace TourManagement_BE.Migrations
                     b.HasIndex("TransactionId");
 
                     b.ToTable("PurchasedServicePackages");
-                });
-
-            modelBuilder.Entity("TourManagement_BE.Data.Models.ResetPasswordToken", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("ExpiryDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsUsed")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Token")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("ResetPasswordTokens");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.Role", b =>
@@ -1469,17 +1444,6 @@ namespace TourManagement_BE.Migrations
                     b.Navigation("TourOperator");
 
                     b.Navigation("Transaction");
-                });
-
-            modelBuilder.Entity("TourManagement_BE.Data.Models.ResetPasswordToken", b =>
-                {
-                    b.HasOne("TourManagement_BE.Data.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.SavedTour", b =>

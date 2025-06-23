@@ -46,6 +46,7 @@ public partial class MyDBContext : DbContext
 
     public virtual DbSet<Role> Roles { get; set; }
 
+    public DbSet<ResetPasswordToken> ResetPasswordTokens { get; set; }
     public virtual DbSet<SavedTour> SavedTours { get; set; }
 
     public virtual DbSet<ServicePackage> ServicePackages { get; set; }
@@ -357,7 +358,10 @@ public partial class MyDBContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Purchased__Trans__503BEA1C");
         });
-
+        modelBuilder.Entity<ResetPasswordToken>()
+            .HasOne(r => r.User)
+            .WithMany() 
+            .HasForeignKey(r => r.UserId);
         modelBuilder.Entity<Role>(entity =>
         {
             entity.HasKey(e => e.RoleId).HasName("PK__Roles__8AFACE1A793714B3");
