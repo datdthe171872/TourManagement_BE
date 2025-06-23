@@ -77,6 +77,7 @@ namespace TourManagement_BE
 
             // Configure AutoMapper
             builder.Services.AddAutoMapper(typeof(MappingProfile));
+            builder.Services.AddAutoMapper(typeof(Program));
 
             var app = builder.Build();
 
