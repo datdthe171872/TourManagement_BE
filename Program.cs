@@ -1,5 +1,4 @@
-﻿
-using FluentValidation.AspNetCore;
+﻿using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -10,6 +9,8 @@ using TourManagement_BE.Mapping;
 using TourManagement_BE.Repository.Imple;
 using TourManagement_BE.Repository.Interface;
 using TourManagement_BE.Service;
+using TourManagement_BE.Helper;
+using Microsoft.Extensions.Options;
 
 namespace TourManagement_BE
 {
@@ -35,9 +36,9 @@ namespace TourManagement_BE
 
             builder.Services.AddControllers().AddFluentValidation(fv =>
             {
-                fv.RegisterValidatorsFromAssemblyContaining<TourManagement_BE.Helper.Validator.LoginRequestValidator>();
-                fv.RegisterValidatorsFromAssemblyContaining<TourManagement_BE.Helper.Validator.RegisterRequestValidator>();
-                fv.RegisterValidatorsFromAssemblyContaining<TourManagement_BE.Helper.Validator.ForgotPasswordRequestValidator>();
+                fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.LoginRequestValidator>();
+                fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.RegisterRequestValidator>();
+                fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.ForgotPasswordRequestValidator>();
             });
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -77,6 +78,24 @@ namespace TourManagement_BE
             // Configure AutoMapper
             builder.Services.AddAutoMapper(typeof(MappingProfile));
             builder.Services.AddAutoMapper(typeof(Program));
+
+
+            // Bind CloudinarySettings
+            builder.Services.Configure<CloudinarySettings>(
+                builder.Configuration.GetSection("CloudinarySettings"));
+
+            // Register Cloudinary client as singleton
+            builder.Services.AddSingleton(sp =>
+            {
+                var settings = sp.GetRequiredService<IOptions<CloudinarySettings>>().Value;
+                var account = new CloudinaryDotNet.Account(
+                    settings.CloudName,
+                    settings.ApiKey,
+                    settings.ApiSecret
+                );
+                return new CloudinaryDotNet.Cloudinary(account);
+            });
+
 
             var app = builder.Build();
 

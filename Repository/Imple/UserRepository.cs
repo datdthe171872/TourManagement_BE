@@ -39,7 +39,5 @@ namespace TourManagement_BE.Repository.Imple
             return await _context.Roles
                 .FirstOrDefaultAsync(r => r.RoleName == roleName && r.IsActive);
         }
-
-        
     }
 }

@@ -30,6 +30,8 @@
 
         public string? TourStatus { get; set; }
 
+        public double? AverageRating { get; set; }
+
         public bool IsActive { get; set; }
 
         public string? CompanyName { get; set; }

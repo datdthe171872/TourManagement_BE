@@ -11,7 +11,12 @@ namespace TourManagement_BE.Mapping
         {
             CreateMap<Tour, ListTourResponse>()
             .ForMember(dest => dest.CompanyName, opt => opt.MapFrom(src => src.TourOperator.CompanyName))
-            .ForMember(dest => dest.CompanyDescription, opt => opt.MapFrom(src => src.TourOperator.Description));
+            .ForMember(dest => dest.CompanyDescription, opt => opt.MapFrom(src => src.TourOperator.Description))
+            .ForMember(dest => dest.AverageRating, opt => opt.MapFrom(src =>
+                src.TourRatings != null && src.TourRatings.Any(r => r.Rating.HasValue)
+                    ? Math.Round(src.TourRatings.Where(r => r.Rating.HasValue).Average(r => r.Rating.Value), 1)
+                    : (double?)null
+            ));
 
 
             CreateMap<Tour, TourDetailResponse>()
@@ -19,7 +24,12 @@ namespace TourManagement_BE.Mapping
             .ForMember(dest => dest.CompanyName, opt => opt.MapFrom(src => src.TourOperator.CompanyName))
             .ForMember(dest => dest.CompanyDescription, opt => opt.MapFrom(src => src.TourOperator.Description))
             .ForMember(dest => dest.CompanyLogo, opt => opt.MapFrom(src => src.TourOperator.CompanyLogo))
-            .ForMember(dest => dest.CompanyHotline, opt => opt.MapFrom(src => src.TourOperator.Hotline));
+            .ForMember(dest => dest.CompanyHotline, opt => opt.MapFrom(src => src.TourOperator.Hotline))
+            .ForMember(dest => dest.AverageRating, opt => opt.MapFrom(src =>
+                src.TourRatings != null && src.TourRatings.Any(r => r.Rating.HasValue)
+                    ? Math.Round(src.TourRatings.Where(r => r.Rating.HasValue).Average(r => r.Rating.Value), 1)
+                    : (double?)null
+            ));
 
             CreateMap<TourExperience, TourExperienceDto>();
             CreateMap<DepartureDate, DepartureDateDto>();
