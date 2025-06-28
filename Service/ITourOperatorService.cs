@@ -7,4 +7,7 @@ public interface ITourOperatorService
 {
     Task<TourOperatorListResponse> GetTourOperatorsAsync(TourOperatorSearchRequest request);
     Task<TourOperatorDetailResponse?> GetTourOperatorDetailAsync(int id);
+    Task<TourOperatorDetailResponse> CreateTourOperatorAsync(CreateTourOperatorRequest request);
+    Task<TourOperatorDetailResponse?> UpdateTourOperatorAsync(int id, UpdateTourOperatorRequest request);
+    Task<bool> SoftDeleteTourOperatorAsync(int id);
 }

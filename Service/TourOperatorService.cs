@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using TourManagement_BE.Data.Context;
 using TourManagement_BE.Data.DTO.Request;
 using TourManagement_BE.Data.DTO.Response;
+using TourManagement_BE.Data.Models;
 
 namespace TourManagement_BE.Service;
 
@@ -18,6 +19,7 @@ public class TourOperatorService : ITourOperatorService
     {
         var query = _context.TourOperators
             .Where(to => to.IsActive)
+            .Include(to => to.TourOperatorMedia.Where(tom => tom.IsActive))
             .AsQueryable();
 
         // Apply search filter
@@ -41,7 +43,16 @@ public class TourOperatorService : ITourOperatorService
                 Description = to.Description,
                 CompanyLogo = to.CompanyLogo,
                 Address = to.Address,
-                IsActive = to.IsActive
+                IsActive = to.IsActive,
+                Media = to.TourOperatorMedia.Select(tom => new TourOperatorMediaResponse
+                {
+                    Id = tom.Id,
+                    TourOperatorId = tom.TourOperatorId,
+                    MediaUrl = tom.MediaUrl,
+                    Caption = tom.Caption,
+                    UploadedAt = tom.UploadedAt,
+                    IsActive = tom.IsActive
+                }).ToList()
             })
             .ToListAsync();
 
@@ -62,8 +73,12 @@ public class TourOperatorService : ITourOperatorService
 
     public async Task<TourOperatorDetailResponse?> GetTourOperatorDetailAsync(int id)
     {
-        var to = await _context.TourOperators.FirstOrDefaultAsync(x => x.TourOperatorId == id);
+        var to = await _context.TourOperators
+            .Include(t => t.TourOperatorMedia.Where(tom => tom.IsActive))
+            .FirstOrDefaultAsync(x => x.TourOperatorId == id);
+            
         if (to == null) return null;
+        
         return new TourOperatorDetailResponse
         {
             TourOperatorId = to.TourOperatorId,
@@ -81,7 +96,193 @@ public class TourOperatorService : ITourOperatorService
             Instagram = to.Instagram,
             Address = to.Address,
             WorkingHours = to.WorkingHours,
-            IsActive = to.IsActive
+            IsActive = to.IsActive,
+            Media = to.TourOperatorMedia.Select(tom => new TourOperatorMediaResponse
+            {
+                Id = tom.Id,
+                TourOperatorId = tom.TourOperatorId,
+                MediaUrl = tom.MediaUrl,
+                Caption = tom.Caption,
+                UploadedAt = tom.UploadedAt,
+                IsActive = tom.IsActive
+            }).ToList()
         };
+    }
+
+    public async Task<TourOperatorDetailResponse> CreateTourOperatorAsync(CreateTourOperatorRequest request)
+    {
+        // Kiểm tra xem UserId đã tồn tại tour operator chưa
+        var existingTourOperator = await _context.TourOperators
+            .FirstOrDefaultAsync(to => to.UserId == request.UserId && to.IsActive);
+        
+        if (existingTourOperator != null)
+        {
+            throw new InvalidOperationException("User này đã có tour operator rồi.");
+        }
+
+        // Kiểm tra xem tên công ty đã tồn tại chưa
+        var existingCompanyName = await _context.TourOperators
+            .FirstOrDefaultAsync(to => to.CompanyName == request.CompanyName && to.IsActive);
+        
+        if (existingCompanyName != null)
+        {
+            throw new InvalidOperationException("Tên công ty này đã tồn tại.");
+        }
+
+        var tourOperator = new TourOperator
+        {
+            UserId = request.UserId,
+            CompanyName = request.CompanyName,
+            Description = request.Description,
+            CompanyLogo = request.CompanyLogo,
+            LicenseNumber = request.LicenseNumber,
+            LicenseIssuedDate = request.LicenseIssuedDate.HasValue ? DateOnly.FromDateTime(request.LicenseIssuedDate.Value) : null,
+            TaxCode = request.TaxCode,
+            EstablishedYear = request.EstablishedYear,
+            Hotline = request.Hotline,
+            Website = request.Website,
+            Facebook = request.Facebook,
+            Instagram = request.Instagram,
+            Address = request.Address,
+            WorkingHours = request.WorkingHours,
+            IsActive = true
+        };
+
+        _context.TourOperators.Add(tourOperator);
+        await _context.SaveChangesAsync();
+
+        // Xử lý thêm media nếu có MediaUrl
+        var mediaList = new List<TourOperatorMediaResponse>();
+        if (!string.IsNullOrWhiteSpace(request.MediaUrl))
+        {
+            var tourOperatorMedia = new TourOperatorMedia
+            {
+                TourOperatorId = tourOperator.TourOperatorId,
+                MediaUrl = request.MediaUrl,
+                Caption = "Ảnh công ty",
+                UploadedAt = DateTime.UtcNow,
+                IsActive = true
+            };
+
+            _context.TourOperatorMedia.Add(tourOperatorMedia);
+            await _context.SaveChangesAsync();
+
+            mediaList.Add(new TourOperatorMediaResponse
+            {
+                Id = tourOperatorMedia.Id,
+                TourOperatorId = tourOperatorMedia.TourOperatorId,
+                MediaUrl = tourOperatorMedia.MediaUrl,
+                Caption = tourOperatorMedia.Caption,
+                UploadedAt = tourOperatorMedia.UploadedAt,
+                IsActive = tourOperatorMedia.IsActive
+            });
+        }
+
+        return new TourOperatorDetailResponse
+        {
+            TourOperatorId = tourOperator.TourOperatorId,
+            UserId = tourOperator.UserId,
+            CompanyName = tourOperator.CompanyName,
+            Description = tourOperator.Description,
+            CompanyLogo = tourOperator.CompanyLogo,
+            LicenseNumber = tourOperator.LicenseNumber,
+            LicenseIssuedDate = tourOperator.LicenseIssuedDate,
+            TaxCode = tourOperator.TaxCode,
+            EstablishedYear = tourOperator.EstablishedYear,
+            Hotline = tourOperator.Hotline,
+            Website = tourOperator.Website,
+            Facebook = tourOperator.Facebook,
+            Instagram = tourOperator.Instagram,
+            Address = tourOperator.Address,
+            WorkingHours = tourOperator.WorkingHours,
+            IsActive = tourOperator.IsActive,
+            Media = mediaList
+        };
+    }
+
+    public async Task<TourOperatorDetailResponse?> UpdateTourOperatorAsync(int id, UpdateTourOperatorRequest request)
+    {
+        var tourOperator = await _context.TourOperators
+            .Include(t => t.TourOperatorMedia.Where(tom => tom.IsActive))
+            .FirstOrDefaultAsync(to => to.TourOperatorId == id && to.IsActive);
+        
+        if (tourOperator == null)
+        {
+            return null;
+        }
+
+        // Kiểm tra xem tên công ty mới có trùng với tour operator khác không
+        var existingCompanyName = await _context.TourOperators
+            .FirstOrDefaultAsync(to => to.CompanyName == request.CompanyName && 
+                                     to.TourOperatorId != id && 
+                                     to.IsActive);
+        
+        if (existingCompanyName != null)
+        {
+            throw new InvalidOperationException("Tên công ty này đã tồn tại.");
+        }
+
+        // Cập nhật thông tin
+        tourOperator.CompanyName = request.CompanyName;
+        tourOperator.Description = request.Description;
+        tourOperator.CompanyLogo = request.CompanyLogo;
+        tourOperator.LicenseNumber = request.LicenseNumber;
+        tourOperator.LicenseIssuedDate = request.LicenseIssuedDate.HasValue ? DateOnly.FromDateTime(request.LicenseIssuedDate.Value) : null;
+        tourOperator.TaxCode = request.TaxCode;
+        tourOperator.EstablishedYear = request.EstablishedYear;
+        tourOperator.Hotline = request.Hotline;
+        tourOperator.Website = request.Website;
+        tourOperator.Facebook = request.Facebook;
+        tourOperator.Instagram = request.Instagram;
+        tourOperator.Address = request.Address;
+        tourOperator.WorkingHours = request.WorkingHours;
+
+        await _context.SaveChangesAsync();
+
+        return new TourOperatorDetailResponse
+        {
+            TourOperatorId = tourOperator.TourOperatorId,
+            UserId = tourOperator.UserId,
+            CompanyName = tourOperator.CompanyName,
+            Description = tourOperator.Description,
+            CompanyLogo = tourOperator.CompanyLogo,
+            LicenseNumber = tourOperator.LicenseNumber,
+            LicenseIssuedDate = tourOperator.LicenseIssuedDate,
+            TaxCode = tourOperator.TaxCode,
+            EstablishedYear = tourOperator.EstablishedYear,
+            Hotline = tourOperator.Hotline,
+            Website = tourOperator.Website,
+            Facebook = tourOperator.Facebook,
+            Instagram = tourOperator.Instagram,
+            Address = tourOperator.Address,
+            WorkingHours = tourOperator.WorkingHours,
+            IsActive = tourOperator.IsActive,
+            Media = tourOperator.TourOperatorMedia.Select(tom => new TourOperatorMediaResponse
+            {
+                Id = tom.Id,
+                TourOperatorId = tom.TourOperatorId,
+                MediaUrl = tom.MediaUrl,
+                Caption = tom.Caption,
+                UploadedAt = tom.UploadedAt,
+                IsActive = tom.IsActive
+            }).ToList()
+        };
+    }
+
+    public async Task<bool> SoftDeleteTourOperatorAsync(int id)
+    {
+        var tourOperator = await _context.TourOperators
+            .FirstOrDefaultAsync(to => to.TourOperatorId == id && to.IsActive);
+        
+        if (tourOperator == null)
+        {
+            return false;
+        }
+
+        // Thực hiện xóa mềm bằng cách set IsActive = false
+        tourOperator.IsActive = false;
+        await _context.SaveChangesAsync();
+
+        return true;
     }
 }

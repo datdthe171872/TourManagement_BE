@@ -37,9 +37,11 @@ namespace TourManagement_BE
 
             builder.Services.AddControllers().AddFluentValidation(fv =>
             {
-                fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.LoginRequestValidator>();
-                fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.RegisterRequestValidator>();
-                fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.ForgotPasswordRequestValidator>();
+                fv.RegisterValidatorsFromAssemblyContaining<TourManagement_BE.Helper.Validator.LoginRequestValidator>();
+                fv.RegisterValidatorsFromAssemblyContaining<TourManagement_BE.Helper.Validator.RegisterRequestValidator>();
+                fv.RegisterValidatorsFromAssemblyContaining<TourManagement_BE.Helper.Validator.ForgotPasswordRequestValidator>();
+                fv.RegisterValidatorsFromAssemblyContaining<TourManagement_BE.Helper.Validator.CreateTourOperatorRequestValidator>();
+                fv.RegisterValidatorsFromAssemblyContaining<TourManagement_BE.Helper.Validator.UpdateTourOperatorRequestValidator>();
             });
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -49,6 +51,7 @@ namespace TourManagement_BE
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<ITourOperatorService, TourOperatorService>();
+            builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 
             // Configure JWT Authentication
             var secretKey = builder.Configuration["Jwt:SecretKey"];
