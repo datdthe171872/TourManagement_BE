@@ -40,6 +40,30 @@ namespace TourManagement_BE.Repository.Imple
                 .FirstOrDefaultAsync(r => r.RoleName == roleName && r.IsActive);
         }
 
-        
+        public async Task AddResetPasswordTokenAsync(ResetPasswordToken token)
+        {
+            await _context.ResetPasswordTokens.AddAsync(token);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<ResetPasswordToken> GetResetPasswordTokenAsync(string token)
+        {
+            return await _context.ResetPasswordTokens.Include(t => t.User).FirstOrDefaultAsync(t => t.Token == token && !t.IsUsed && t.ExpiryDate > System.DateTime.UtcNow);
+        }
+
+        public async Task SetResetPasswordTokenUsedAsync(int tokenId)
+        {
+            var token = await _context.ResetPasswordTokens.FindAsync(tokenId);
+            if (token != null)
+            {
+                token.IsUsed = true;
+                await _context.SaveChangesAsync();
+            }
+        }
+        public async Task UpdateUserAsync(User user)
+        {
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+        }
     }
 }
