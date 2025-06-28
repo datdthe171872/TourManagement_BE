@@ -58,6 +58,9 @@ namespace TourManagement_BE.Controllers
             return Ok(user);
         }
 
+
+        //using file
+
         /*[HttpPut("UpdateProfile")]
         public async Task<IActionResult> UpdateProfile([FromForm] UpdateProfileRequest request)
         {
@@ -98,7 +101,7 @@ namespace TourManagement_BE.Controllers
             return Ok(new { message = "Profile updated successfully." });
         }*/
 
-
+        //using cloundinary
 
         [HttpPut("UpdateProfile")]
         public async Task<IActionResult> UpdateProfile([FromForm] UpdateProfileRequest request)
