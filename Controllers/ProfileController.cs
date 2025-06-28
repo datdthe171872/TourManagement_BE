@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 using TourManagement_BE.Data.Context;
 using TourManagement_BE.Data.DTO.Request.ProfileRequest;
 using TourManagement_BE.Data.DTO.Response.ProfileResponse;
@@ -10,10 +12,11 @@ namespace TourManagement_BE.Controllers
     public class ProfileController : Controller
     {
         private readonly MyDBContext context;
-
-        public ProfileController(MyDBContext context)
+        private readonly CloudinaryDotNet.Cloudinary _cloudinary;
+        public ProfileController(MyDBContext context, CloudinaryDotNet.Cloudinary cloudinary)
         {
             this.context = context;
+            _cloudinary = cloudinary;
         }
 
         [HttpGet("ViewProfile/{userId}")]
@@ -55,7 +58,7 @@ namespace TourManagement_BE.Controllers
             return Ok(user);
         }
 
-        [HttpPut("UpdateProfile")]
+        /*[HttpPut("UpdateProfile")]
         public async Task<IActionResult> UpdateProfile([FromForm] UpdateProfileRequest request)
         {
             var user = context.Users.FirstOrDefault(u => u.UserId == request.UserId);
@@ -85,7 +88,7 @@ namespace TourManagement_BE.Controllers
                     await request.AvatarFile.CopyToAsync(stream);
                 }
 
-                /*user.Avatar = $"/uploads/{fileName}";*/
+                *//*user.Avatar = $"/uploads/{fileName}";*//*
                 var baseUrl = $"{Request.Scheme}://{Request.Host}";
                 user.Avatar = $"{baseUrl}/uploads/{fileName}";
             }
@@ -93,6 +96,49 @@ namespace TourManagement_BE.Controllers
             await context.SaveChangesAsync();
 
             return Ok(new { message = "Profile updated successfully." });
+        }*/
+
+
+
+        [HttpPut("UpdateProfile")]
+        public async Task<IActionResult> UpdateProfile([FromForm] UpdateProfileRequest request)
+        {
+            var user = context.Users.FirstOrDefault(u => u.UserId == request.UserId);
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.UserName))
+                user.UserName = request.UserName;
+
+            if (!string.IsNullOrWhiteSpace(request.Email))
+                user.Email = request.Email;
+
+            if (!string.IsNullOrWhiteSpace(request.Address))
+                user.Address = request.Address;
+
+            if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
+                user.PhoneNumber = request.PhoneNumber;
+
+            if (request.AvatarFile != null && request.AvatarFile.Length > 0)
+            {
+                await using var stream = request.AvatarFile.OpenReadStream();
+                var uploadParams = new ImageUploadParams
+                {
+                    File = new FileDescription(request.AvatarFile.FileName, stream),
+                    Folder = "user_avatars"
+                };
+
+                var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+                user.Avatar = uploadResult.SecureUrl.ToString();
+            }
+
+            await context.SaveChangesAsync();
+
+            return Ok(new { message = "Profile updated successfully." });
         }
+
+
     }
 }

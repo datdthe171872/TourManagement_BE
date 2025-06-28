@@ -18,7 +18,9 @@ namespace TourManagement_BE.Data.DTO.Response.TourResponse
         public string? StartPoint { get; set; }
 
         public string? Transportation { get; set; }
-     
+
+        public double? AverageRating { get; set; }
+
         public int TourOperatorId { get; set; }
 
         public string? TourOperatorName { get; set; }
