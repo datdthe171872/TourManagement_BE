@@ -16,4 +16,5 @@ public class CreateTourOperatorRequest
     public string? Instagram { get; set; }
     public string? Address { get; set; }
     public string? WorkingHours { get; set; }
+    public string? MediaUrl { get; set; }
 } 

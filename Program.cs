@@ -49,6 +49,7 @@ namespace TourManagement_BE
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<ITourOperatorService, TourOperatorService>();
+            builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 
             // Configure JWT Authentication
             var secretKey = builder.Configuration["Jwt:SecretKey"];

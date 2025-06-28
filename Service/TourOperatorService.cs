@@ -151,6 +151,33 @@ public class TourOperatorService : ITourOperatorService
         _context.TourOperators.Add(tourOperator);
         await _context.SaveChangesAsync();
 
+        // Xử lý thêm media nếu có MediaUrl
+        var mediaList = new List<TourOperatorMediaResponse>();
+        if (!string.IsNullOrWhiteSpace(request.MediaUrl))
+        {
+            var tourOperatorMedia = new TourOperatorMedia
+            {
+                TourOperatorId = tourOperator.TourOperatorId,
+                MediaUrl = request.MediaUrl,
+                Caption = "Ảnh công ty",
+                UploadedAt = DateTime.UtcNow,
+                IsActive = true
+            };
+
+            _context.TourOperatorMedia.Add(tourOperatorMedia);
+            await _context.SaveChangesAsync();
+
+            mediaList.Add(new TourOperatorMediaResponse
+            {
+                Id = tourOperatorMedia.Id,
+                TourOperatorId = tourOperatorMedia.TourOperatorId,
+                MediaUrl = tourOperatorMedia.MediaUrl,
+                Caption = tourOperatorMedia.Caption,
+                UploadedAt = tourOperatorMedia.UploadedAt,
+                IsActive = tourOperatorMedia.IsActive
+            });
+        }
+
         return new TourOperatorDetailResponse
         {
             TourOperatorId = tourOperator.TourOperatorId,
@@ -169,7 +196,7 @@ public class TourOperatorService : ITourOperatorService
             Address = tourOperator.Address,
             WorkingHours = tourOperator.WorkingHours,
             IsActive = tourOperator.IsActive,
-            Media = new List<TourOperatorMediaResponse>() // Empty list for new tour operator
+            Media = mediaList
         };
     }
 
