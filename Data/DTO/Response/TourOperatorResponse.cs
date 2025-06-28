@@ -8,4 +8,5 @@ public class TourOperatorResponse
     public string? CompanyLogo { get; set; }
     public string? Address { get; set; }
     public bool IsActive { get; set; }
+    public List<TourOperatorMediaResponse> Media { get; set; } = new List<TourOperatorMediaResponse>();
 }

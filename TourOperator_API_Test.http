@@ -8,4 +8,124 @@ GET https://localhost:7001/api/TourOperator?CompanyName=Vietnam
 GET https://localhost:7001/api/TourOperator?PageNumber=1&PageSize=5
 
 ### Lấy danh sách tour operator với search và pagination
-GET https://localhost:7001/api/TourOperator?CompanyName=Travel&PageNumber=1&PageSize=10 
+GET https://localhost:7001/api/TourOperator?CompanyName=Travel&PageNumber=1&PageSize=10
+
+### TourOperator API Tests
+
+### 1. Lấy danh sách tour operators (bao gồm media)
+GET {{baseUrl}}/api/TourOperator?pageNumber=1&pageSize=10&companyName=
+Content-Type: application/json
+
+### Response sẽ bao gồm:
+### {
+###   "tourOperators": [
+###     {
+###       "tourOperatorId": 1,
+###       "companyName": "Công ty Du lịch ABC",
+###       "description": "Công ty du lịch hàng đầu Việt Nam",
+###       "companyLogo": "https://example.com/logo.png",
+###       "address": "123 Đường ABC, Quận 1, TP.HCM",
+###       "isActive": true,
+###       "media": [
+###         {
+###           "id": 1,
+###           "tourOperatorId": 1,
+###           "mediaUrl": "https://example.com/image1.jpg",
+###           "caption": "Ảnh văn phòng công ty",
+###           "uploadedAt": "2024-01-15T10:30:00",
+###           "isActive": true
+###         }
+###       ]
+###     }
+###   ],
+###   "totalCount": 1,
+###   "pageNumber": 1,
+###   "pageSize": 10,
+###   "totalPages": 1,
+###   "hasNextPage": false,
+###   "hasPreviousPage": false
+### }
+
+### 2. Lấy chi tiết tour operator theo ID (bao gồm media)
+GET {{baseUrl}}/api/TourOperator/1
+Content-Type: application/json
+
+### 3. Tạo mới tour operator
+POST {{baseUrl}}/api/TourOperator
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "companyName": "Công ty Du lịch ABC",
+  "description": "Công ty du lịch hàng đầu Việt Nam",
+  "companyLogo": "https://example.com/logo.png",
+  "licenseNumber": "GP123456789",
+  "licenseIssuedDate": "2020-01-01T00:00:00",
+  "taxCode": "0123456789",
+  "establishedYear": 2015,
+  "hotline": "1900-1234",
+  "website": "https://www.abctravel.com",
+  "facebook": "https://facebook.com/abctravel",
+  "instagram": "https://instagram.com/abctravel",
+  "address": "123 Đường ABC, Quận 1, TP.HCM",
+  "workingHours": "8:00 - 18:00 (Thứ 2 - Thứ 6)"
+}
+
+### 4. Cập nhật tour operator (response sẽ bao gồm media hiện tại)
+PUT {{baseUrl}}/api/TourOperator/1
+Content-Type: application/json
+
+{
+  "companyName": "Công ty Du lịch ABC - Cập nhật",
+  "description": "Công ty du lịch hàng đầu Việt Nam - Mô tả cập nhật",
+  "companyLogo": "https://example.com/logo-updated.png",
+  "licenseNumber": "GP123456789-UPDATED",
+  "licenseIssuedDate": "2020-01-01T00:00:00",
+  "taxCode": "0123456789",
+  "establishedYear": 2015,
+  "hotline": "1900-1234",
+  "website": "https://www.abctravel-updated.com",
+  "facebook": "https://facebook.com/abctravel-updated",
+  "instagram": "https://instagram.com/abctravel-updated",
+  "address": "456 Đường XYZ, Quận 2, TP.HCM",
+  "workingHours": "8:00 - 19:00 (Thứ 2 - Thứ 7)"
+}
+
+### 5. Xóa mềm tour operator
+DELETE {{baseUrl}}/api/TourOperator/1
+Content-Type: application/json
+
+### 6. Test tạo tour operator với tên công ty trùng lặp (sẽ báo lỗi)
+POST {{baseUrl}}/api/TourOperator
+Content-Type: application/json
+
+{
+  "userId": 2,
+  "companyName": "Công ty Du lịch ABC",
+  "description": "Công ty du lịch khác",
+  "address": "789 Đường DEF, Quận 3, TP.HCM"
+}
+
+### 7. Test tạo tour operator với UserId đã tồn tại (sẽ báo lỗi)
+POST {{baseUrl}}/api/TourOperator
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "companyName": "Công ty Du lịch XYZ",
+  "description": "Công ty du lịch mới",
+  "address": "999 Đường GHI, Quận 4, TP.HCM"
+}
+
+### 8. Test cập nhật tour operator không tồn tại (sẽ báo lỗi)
+PUT {{baseUrl}}/api/TourOperator/999
+Content-Type: application/json
+
+{
+  "companyName": "Công ty Du lịch Test",
+  "description": "Test cập nhật"
+}
+
+### 9. Test xóa tour operator không tồn tại (sẽ báo lỗi)
+DELETE {{baseUrl}}/api/TourOperator/999
+Content-Type: application/json 

@@ -38,6 +38,8 @@ namespace TourManagement_BE
                 fv.RegisterValidatorsFromAssemblyContaining<TourManagement_BE.Helper.Validator.LoginRequestValidator>();
                 fv.RegisterValidatorsFromAssemblyContaining<TourManagement_BE.Helper.Validator.RegisterRequestValidator>();
                 fv.RegisterValidatorsFromAssemblyContaining<TourManagement_BE.Helper.Validator.ForgotPasswordRequestValidator>();
+                fv.RegisterValidatorsFromAssemblyContaining<TourManagement_BE.Helper.Validator.CreateTourOperatorRequestValidator>();
+                fv.RegisterValidatorsFromAssemblyContaining<TourManagement_BE.Helper.Validator.UpdateTourOperatorRequestValidator>();
             });
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
