@@ -37,13 +37,13 @@ namespace TourManagement_BE
 
             builder.Services.AddControllers().AddFluentValidation(fv =>
             {
-                fv.RegisterValidatorsFromAssemblyContaining<TourManagement_BE.Helper.Validator.LoginRequestValidator>();
-                fv.RegisterValidatorsFromAssemblyContaining<TourManagement_BE.Helper.Validator.RegisterRequestValidator>();
-                fv.RegisterValidatorsFromAssemblyContaining<TourManagement_BE.Helper.Validator.ForgotPasswordRequestValidator>();
-                fv.RegisterValidatorsFromAssemblyContaining<TourManagement_BE.Helper.Validator.CreateTourOperatorRequestValidator>();
-                fv.RegisterValidatorsFromAssemblyContaining<TourManagement_BE.Helper.Validator.UpdateTourOperatorRequestValidator>();
+                fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.LoginRequestValidator>();
+                fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.RegisterRequestValidator>();
+                fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.ForgotPasswordRequestValidator>();
+                fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.CreateTourOperatorRequestValidator>();
+                fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.UpdateTourOperatorRequestValidator>();
             });
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+           
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
