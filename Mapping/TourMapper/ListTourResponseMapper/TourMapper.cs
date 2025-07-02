@@ -3,7 +3,7 @@ using TourManagement_BE.Data.Models;
 using AutoMapper;
 using TourManagement_BE.Data.DTO.Response.TourResponse.TourDetailDTO;
 
-namespace TourManagement_BE.Mapping
+namespace TourManagement_BE.Mapping.TourMapper.ListTourResponseMapper
 {
     public class TourMapper : Profile
     {
@@ -38,6 +38,10 @@ namespace TourManagement_BE.Mapping
             CreateMap<TourRating, TourRatingDto>()
             .ForMember(dest => dest.TourRating_Username, opt => opt.MapFrom(src => src.User.UserName));
             CreateMap<ItineraryMedia, ItineraryMediaDto>();
+
+
+
+
         }
     }
 }

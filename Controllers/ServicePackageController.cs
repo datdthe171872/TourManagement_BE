@@ -5,6 +5,7 @@ using System.Numerics;
 using TourManagement_BE.Data.Context;
 using TourManagement_BE.Data.DTO.Request.ProfileRequest;
 using TourManagement_BE.Data.DTO.Request.ServicePackageRequest;
+using TourManagement_BE.Data.DTO.Response.ProfileResponse;
 using TourManagement_BE.Data.DTO.Response.ServicePackage;
 using TourManagement_BE.Data.DTO.Response.TourResponse;
 using TourManagement_BE.Data.Models;
@@ -118,6 +119,32 @@ namespace TourManagement_BE.Controllers
             await context.SaveChangesAsync();
 
             return Ok(new { message = "Service package has been deactivated (soft deleted)." });
+        }
+
+        [HttpGet("ViewDetailPackageService/{packageid}")]
+        public IActionResult ViewDetailPackageService(int packageid)
+        {
+            var services = context.ServicePackages
+                .Where(u => u.PackageId == packageid)
+                .Select(u => new ListServicePackageResponse
+                {
+                    PackageId = u.PackageId,
+                    Name = u.Name,
+                    Description = u.Description,
+                    Price = u.Price,
+                    DiscountPercentage = u.DiscountPercentage,
+                    DurationInYears = u.DurationInYears,
+                    MaxTours = u.MaxTours,
+                    IsActive = u.IsActive,
+                })
+                .FirstOrDefault();
+
+            if (services == null)
+            {
+                return NotFound("Not found.");
+            }
+
+            return Ok(services);
         }
     }
 }
