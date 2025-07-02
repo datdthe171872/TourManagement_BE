@@ -143,4 +143,23 @@ public class TourOperatorController : ControllerBase
             return StatusCode(500, new { message = "Có lỗi xảy ra khi xóa tour operator", error = ex.Message });
         }
     }
+
+    /// <summary>
+    /// Lấy thống kê dashboard cho tour operator
+    /// </summary>
+    /// <param name="id">ID của tour operator</param>
+    /// <returns>Thống kê dashboard</returns>
+    [HttpGet("{id}/dashboard")]
+    public async Task<IActionResult> GetDashboard(int id)
+    {
+        try
+        {
+            var result = await _tourOperatorService.GetDashboardStats(id);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Có lỗi xảy ra khi lấy thống kê dashboard", error = ex.Message });
+        }
+    }
 } 

@@ -1,3 +1,4 @@
+using Data.DTO.Response;
 using Microsoft.EntityFrameworkCore;
 using TourManagement_BE.Data.Context;
 using TourManagement_BE.Data.DTO.Request;
@@ -284,5 +285,91 @@ public class TourOperatorService : ITourOperatorService
         await _context.SaveChangesAsync();
 
         return true;
+    }
+
+    public async Task<TourOperatorDashboardResponse> GetDashboardStats(int operatorId)
+    {
+        var response = new TourOperatorDashboardResponse();
+
+        // Tổng số tour của operator
+        response.TotalTours = await _context.Tours.CountAsync(t => t.TourOperatorId == operatorId);
+
+        // Lấy danh sách tourId của operator
+        var tourIds = await _context.Tours
+            .Where(t => t.TourOperatorId == operatorId)
+            .Select(t => t.TourId)
+            .ToListAsync();
+
+        // Tổng số booking
+        response.TotalBookings = await _context.Bookings.CountAsync(b => tourIds.Contains(b.TourId));
+
+        // Tổng doanh thu (chỉ tính booking đã thanh toán)
+      
+
+        // Không thống kê feedback
+        response.TotalFeedbacks = 0;
+
+        // Điểm rating trung bình
+        response.AverageRating = await _context.TourRatings
+      .Where(r => tourIds.Contains(r.Tour.TourId) && r.Rating.HasValue)
+      .AverageAsync(r => (double?)r.Rating) ?? 0.0;
+
+        // Thống kê booking theo tháng (12 tháng gần nhất)
+        var now = DateTime.UtcNow;
+        var fromMonth = new DateTime(now.Year, now.Month, 1).AddMonths(-11);
+        var monthlyBookings = await _context.Bookings
+            .Where(b => tourIds.Contains(b.TourId) && b.BookingDate.HasValue && b.BookingDate.Value >= fromMonth)
+            .GroupBy(b => new { b.BookingDate.Value.Year, b.BookingDate.Value.Month })
+            .Select(g => new
+            {
+                Month = g.Key.Year.ToString() + "-" + g.Key.Month.ToString("D2"),
+                Value = g.Count()
+            })
+            .ToListAsync();
+        response.MonthlyBookingStats = monthlyBookings
+            .OrderBy(x => x.Month)
+            .Select(x => new MonthlyStat { Month = x.Month, Value = x.Value })
+            .ToList();
+
+        // Thống kê doanh thu theo tháng (12 tháng gần nhất)
+        var monthlyRevenue = await _context.Bookings
+            .Where(b => tourIds.Contains(b.TourId) && b.PaymentStatus == "Paid" && b.BookingDate.HasValue && b.BookingDate.Value >= fromMonth)
+            .GroupBy(b => new { b.BookingDate.Value.Year, b.BookingDate.Value.Month })
+            .Select(g => new
+            {
+                Month = g.Key.Year.ToString() + "-" + g.Key.Month.ToString("D2"),
+                Value = g.Sum(b => b.TotalPrice ?? 0)
+            })
+            .ToListAsync();
+        response.MonthlyRevenueStats = monthlyRevenue
+            .OrderBy(x => x.Month)
+            .Select(x => new MonthlyStat { Month = x.Month, Value = (int)x.Value })
+            .ToList();
+
+        // Top 5 tour có nhiều booking nhất
+        var topTours = await _context.Bookings
+            .Where(b => tourIds.Contains(b.TourId))
+            .GroupBy(b => b.TourId)
+            .Select(g => new
+            {
+                TourId = g.Key,
+                Bookings = g.Count()
+            })
+            .OrderByDescending(x => x.Bookings)
+            .Take(5)
+            .ToListAsync();
+        var tourNames = await _context.Tours
+            .Where(t => topTours.Select(tt => tt.TourId).Contains(t.TourId))
+            .ToDictionaryAsync(t => t.TourId, t => t.Title);
+        response.TopTours = topTours
+            .Select(x => new TopTourStat
+            {
+                TourId = x.TourId,
+                Name = tourNames.ContainsKey(x.TourId) ? tourNames[x.TourId] : "",
+                Bookings = x.Bookings
+            })
+            .ToList();
+
+        return response;
     }
 }
