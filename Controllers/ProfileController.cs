@@ -130,7 +130,7 @@ namespace TourManagement_BE.Controllers
                 var uploadParams = new ImageUploadParams
                 {
                     File = new FileDescription(request.AvatarFile.FileName, stream),
-                    Folder = "user_avatars"
+                    Folder = "ProjectSEP490/Profile/user_avatars"
                 };
 
                 var uploadResult = await _cloudinary.UploadAsync(uploadParams);
