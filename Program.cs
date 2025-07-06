@@ -40,6 +40,10 @@ namespace TourManagement_BE
                 fv.RegisterValidatorsFromAssemblyContaining<TourManagement_BE.Helper.Validator.ForgotPasswordRequestValidator>();
                 fv.RegisterValidatorsFromAssemblyContaining<TourManagement_BE.Helper.Validator.CreateTourOperatorRequestValidator>();
                 fv.RegisterValidatorsFromAssemblyContaining<TourManagement_BE.Helper.Validator.UpdateTourOperatorRequestValidator>();
+                fv.RegisterValidatorsFromAssemblyContaining<TourManagement_BE.Helper.Validator.CreateBookingRequestValidator>();
+                fv.RegisterValidatorsFromAssemblyContaining<TourManagement_BE.Helper.Validator.UpdateBookingRequestValidator>();
+                fv.RegisterValidatorsFromAssemblyContaining<TourManagement_BE.Helper.Validator.CreateExtraChargeRequestValidator>();
+                fv.RegisterValidatorsFromAssemblyContaining<TourManagement_BE.Helper.Validator.UpdateExtraChargeRequestValidator>();
             });
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -50,6 +54,8 @@ namespace TourManagement_BE
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<ITourOperatorService, TourOperatorService>();
             builder.Services.AddScoped<IFeedbackService, FeedbackService>();
+            builder.Services.AddScoped<IBookingService, BookingService>();
+            builder.Services.AddScoped<IExtraChargeService, ExtraChargeService>();
 
             // Configure JWT Authentication
             var secretKey = builder.Configuration["Jwt:SecretKey"];

@@ -1,0 +1,38 @@
+### Lấy danh sách Booking theo UserId
+GET http://localhost:5000/api/Booking?UserId=1&IsActive=true
+Accept: application/json
+
+### Tạo mới Booking
+POST http://localhost:5000/api/Booking
+Content-Type: application/json
+Accept: application/json
+
+{
+  "userId": 1,
+  "tourId": 2,
+  "selectedDepartureDate": "2024-07-01T00:00:00",
+  "numberOfAdults": 2,
+  "numberOfChildren": 1,
+  "numberOfInfants": 0,
+  "noteForTour": "Yêu cầu xe riêng",
+  "totalPrice": 5000000,
+  "depositAmount": 1000000,
+  "remainingAmount": 4000000,
+  "contract": "Hop dong so 01"
+}
+
+### Cập nhật Booking
+PUT http://localhost:5000/api/Booking
+Content-Type: application/json
+Accept: application/json
+
+{
+  "bookingId": 1,
+  "numberOfAdults": 3,
+  "noteForTour": "Cập nhật số lượng người lớn",
+  "totalPrice": 6000000
+}
+
+### Xoá mềm Booking
+PATCH http://localhost:5000/api/Booking/soft-delete/1?userId=1
+Accept: application/json 
