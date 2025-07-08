@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using TourManagement_BE.Data.Context;
 using TourManagement_BE.Data.DTO.Request;
+using TourManagement_BE.Repository.Interface;
 using TourManagement_BE.Service;
 
 namespace TourManagement_BE.Controllers
@@ -10,9 +12,14 @@ namespace TourManagement_BE.Controllers
     public class BookingController : ControllerBase
     {
         private readonly IBookingService _bookingService;
-        public BookingController(IBookingService bookingService)
+        private readonly IUserRepository _userRepository;
+        private readonly MyDBContext _dbContext;
+
+        public BookingController(IBookingService bookingService, IUserRepository userRepository, MyDBContext dbContext)
         {
             _bookingService = bookingService;
+            _userRepository = userRepository;
+            _dbContext = dbContext;
         }
 
         [HttpGet]

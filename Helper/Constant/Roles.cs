@@ -3,10 +3,10 @@
     public class Roles
     {
         public const string Customer = "Customer";
-        public const string Operator = "Operator";
         public const string Admin = "Admin";
-        public const string TourGuide = "TourGuide";
+        public const string TourOperator = "Tour Operator";
+        public const string TourGuide = "Tour Guide";
 
-        public static readonly string[] AllRoles = { Customer, Operator, Admin, TourGuide };
+        public static readonly List<string> AllRoles = new List<string> { Customer, Admin, TourOperator, TourGuide };
     }
 }
