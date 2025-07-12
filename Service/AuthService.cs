@@ -8,6 +8,8 @@ using TourManagement_BE.Repository.Interface;
 using TourManagement_BE.Data.DTO.Request;
 using System;
 using System.Threading.Tasks;
+using TourManagement_BE.Data.Context;
+using Microsoft.EntityFrameworkCore;
 namespace TourManagement_BE.Service
 {
     public class AuthService : IAuthService
@@ -16,12 +18,14 @@ namespace TourManagement_BE.Service
         private readonly IMapper _mapper;
         private readonly JwtHelper _jwtHelper;
         private readonly IConfiguration _configuration;
+        private readonly MyDBContext _context;
 
-        public AuthService(IUserRepository userRepository, IMapper mapper, IConfiguration configuration)
+        public AuthService(IUserRepository userRepository, IMapper mapper, IConfiguration configuration, MyDBContext context)
         {
             _userRepository = userRepository;
             _mapper = mapper;
             _configuration = configuration;
+            _context = context;
             _jwtHelper = new JwtHelper(
                 _configuration["Jwt:SecretKey"],
                 _configuration["Jwt:Issuer"],
@@ -46,7 +50,7 @@ namespace TourManagement_BE.Service
             };
         }
 
-        public async Task RegisterAsync(RegisterRequest request)
+        public async Task RegisterAsync(RegisterRequest request, int? tourOperatorId = null)
         {
             var existingUser = await _userRepository.GetUserByEmailAsync(request.Email);
             if (existingUser != null)
@@ -61,11 +65,26 @@ namespace TourManagement_BE.Service
             }
 
             var user = _mapper.Map<User>(request);
-            user.UserId = user.UserId;
             user.Password = PasswordHelper.HashPassword(request.Password);
             user.RoleId = role.RoleId;
             user.IsActive = true;
-            await _userRepository.AddUserAsync(user);
+            await _context.Users.AddAsync(user);
+            await _context.SaveChangesAsync();
+
+            // Lấy lại userId vừa tạo
+            var createdUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email && u.IsActive);
+
+            if (request.RoleName == Roles.TourGuide)
+            {
+                var tourGuide = new TourGuide
+                {
+                    UserId = createdUser.UserId,
+                    TourOperatorId = tourOperatorId,
+                    IsActive = true
+                };
+                _context.TourGuides.Add(tourGuide);
+                await _context.SaveChangesAsync();
+            }
         }
 
         public async Task ForgotPasswordAsync(ForgotPasswordRequest request)

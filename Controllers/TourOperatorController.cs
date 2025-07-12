@@ -1,7 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using TourManagement_BE.Data.DTO.Request;
 using TourManagement_BE.Data.DTO.Response;
 using TourManagement_BE.Service;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
+using TourManagement_BE.Data.Context;
 
 namespace TourManagement_BE.Controllers;
 
@@ -10,10 +16,14 @@ namespace TourManagement_BE.Controllers;
 public class TourOperatorController : ControllerBase
 {
     private readonly ITourOperatorService _tourOperatorService;
+    private readonly IAuthService _authService;
+    private readonly MyDBContext _context;
 
-    public TourOperatorController(ITourOperatorService tourOperatorService)
+    public TourOperatorController(ITourOperatorService tourOperatorService, IAuthService authService, MyDBContext context)
     {
         _tourOperatorService = tourOperatorService;
+        _authService = authService;
+        _context = context;
     }
 
     /// <summary>
@@ -141,6 +151,37 @@ public class TourOperatorController : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(500, new { message = "Có lỗi xảy ra khi xóa tour operator", error = ex.Message });
+        }
+    }
+
+    [HttpPost("register-tourguide")]
+    [Authorize(Roles = "Tour Operator")]
+    public async Task<IActionResult> RegisterTourGuide([FromBody] CreateTourGuideRequest request)
+    {
+        try
+        {
+            var operatorUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            // Lấy TourOperatorId của operator hiện tại
+            var tourOperator = await _context.TourOperators.FirstOrDefaultAsync(o => o.UserId == operatorUserId && o.IsActive);
+            if (tourOperator == null)
+                return BadRequest("Bạn cần tạo thông tin TourOperator trước khi đăng ký TourGuide.");
+
+            var registerRequest = new RegisterRequest
+            {
+                UserName = request.UserName,
+                Email = request.Email,
+                Password = request.Password,
+                Address = request.Address,
+                PhoneNumber = request.PhoneNumber,
+                Avatar = request.Avatar,
+                RoleName = "Tour Guide"
+            };
+            await _authService.RegisterAsync(registerRequest, tourOperator.TourOperatorId);
+            return Ok("TourGuide registration successful");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
         }
     }
 } 

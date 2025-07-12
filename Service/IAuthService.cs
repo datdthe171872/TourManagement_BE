@@ -7,7 +7,7 @@ namespace TourManagement_BE.Service
     public interface IAuthService
     {
         Task<LoginResponse> LoginAsync(LoginRequest request);
-        Task RegisterAsync(RegisterRequest request);
+        Task RegisterAsync(RegisterRequest request, int? tourOperatorId = null);
         Task ForgotPasswordAsync(ForgotPasswordRequest request);
         Task ResetPasswordAsync(ResetPasswordRequest request);
     }
