@@ -10,8 +10,10 @@ using TourManagement_BE.Data.DTO.Request.TourExperienceRequest;
 using TourManagement_BE.Data.DTO.Request.TourItineraryRequest;
 using TourManagement_BE.Data.DTO.Request.TourMediaRequest;
 using TourManagement_BE.Data.DTO.Request.TourRequest;
+using TourManagement_BE.Data.DTO.Response.PaymentResponse;
 using TourManagement_BE.Data.DTO.Response.TourResponse;
 using TourManagement_BE.Data.Models;
+using TourManagement_BE.Repository.Interface;
 
 namespace TourManagement_BE.Controllers
 {
@@ -22,12 +24,14 @@ namespace TourManagement_BE.Controllers
         private readonly MyDBContext context;
         private readonly IMapper _mapper;
         private readonly Cloudinary _cloudinary;
+        private readonly ISlotCheckService _slotCheckService;
 
-        public TourController(MyDBContext context, IMapper mapper, Cloudinary cloudinary)
+        public TourController(MyDBContext context, IMapper mapper, Cloudinary cloudinary, ISlotCheckService slotCheckService)
         {
             this.context = context;
             _mapper = mapper;
-            this._cloudinary = cloudinary;
+            _cloudinary = cloudinary;
+            _slotCheckService = slotCheckService;
         }
 
         [HttpGet("listAllTours")]
@@ -268,6 +272,15 @@ namespace TourManagement_BE.Controllers
         [HttpPost("CreateTour")]
         public async Task<IActionResult> CreateTour([FromForm] TourCreateRequest request)
         {
+
+            var slotInfo = await _slotCheckService.CheckRemainingSlotsAsync(request.TourOperatorId);
+
+            if (slotInfo == null)
+                return BadRequest("Tour operator does not have an active service package.");
+
+            if (slotInfo.RemainingTours <= 0)
+                return BadRequest("No remaining tour slots available. Please purchase a PackageService to create more Tours");
+
             var tour = new Tour
             {
                 Title = request.Title,
@@ -356,7 +369,7 @@ namespace TourManagement_BE.Controllers
                                 var uploadResult = await _cloudinary.UploadAsync(uploadParams);
                                 uploadedUrl = uploadResult.SecureUrl.ToString();
                             }
-                            else // Default to Image
+                            else
                             {
                                 var uploadParams = new ImageUploadParams
                                 {
@@ -407,7 +420,7 @@ namespace TourManagement_BE.Controllers
                         var uploadResult = await _cloudinary.UploadAsync(uploadParams);
                         uploadedUrl = uploadResult.SecureUrl.ToString();
                     }
-                    else // Default to Image
+                    else
                     {
                         var uploadParams = new ImageUploadParams
                         {
@@ -429,9 +442,27 @@ namespace TourManagement_BE.Controllers
 
 
             context.Tours.Add(tour);
-            await context.SaveChangesAsync();
 
-            return Ok(new { message = "Tour created successfully.", tourId = tour.TourId });
+            try
+            {
+                await context.SaveChangesAsync();
+                var activePackage = context.PurchasedServicePackages
+                    .Where(p => p.TourOperatorId == request.TourOperatorId && p.EndDate > DateTime.UtcNow && p.IsActive)
+                    .OrderByDescending(p => p.ActivationDate)
+                    .FirstOrDefault();
+
+                if (activePackage != null)
+                {
+                    activePackage.NumOfToursUsed += 1;
+                    await context.SaveChangesAsync();
+                }
+
+                return Ok(new { message = "Tour created successfully.", tourId = tour.TourId });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
 
@@ -470,14 +501,14 @@ namespace TourManagement_BE.Controllers
                     {
                         if (d.DepartureDate1.Date < DateTime.UtcNow.Date)
                         {
-                            return BadRequest($"Ngày khởi hành (DepartureDate1) của ID {d.Id} không được nhỏ hơn ngày hiện tại.");
+                            return BadRequest($"The departure date (DepartureDate1) of ID {d.Id} cannot be less than the current date.");
                         }
                         existing.DepartureDate1 = d.DepartureDate1;
                         existing.IsActive = d.IsActive;
                     }
                     else
                     {
-                        return BadRequest($"DepartureDate với ID {d.Id} không tồn tại.");
+                        return BadRequest($"DepartureDate with ID {d.Id} not exist.");
                     }
                 }
             }

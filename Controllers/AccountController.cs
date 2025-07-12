@@ -2,6 +2,7 @@
 using TourManagement_BE.Data.Context;
 using TourManagement_BE.Data.DTO.Request.AccountRequest;
 using TourManagement_BE.Data.DTO.Response.AccountResponse;
+using TourManagement_BE.Repository.Interface;
 
 namespace TourManagement_BE.Controllers
 {
@@ -10,10 +11,12 @@ namespace TourManagement_BE.Controllers
     public class AccountController : Controller
     {
         private readonly MyDBContext context;
+        private readonly IAccountRepository _account;
 
-        public AccountController(MyDBContext context)
+        public AccountController(MyDBContext context, IAccountRepository account)
         {
             this.context = context;
+            _account = account;
         }
 
         [HttpGet("View All Account")]
@@ -38,6 +41,12 @@ namespace TourManagement_BE.Controllers
 
             return Ok(user);
         }
+
+        /*public async Task<IActionResult> ListAllAccount()
+        {
+            var result = await _account.ListAllAccount();
+            return Ok(result);
+        }*/
 
         [HttpGet("Search Account By Name or ID or Email")]
         public IActionResult SearchAccount(string? keyword)

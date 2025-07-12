@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TourManagement_BE.Data.Context;
 using TourManagement_BE.Data.DTO.Response.PaymentResponse;
 
@@ -16,6 +18,34 @@ namespace TourManagement_BE.Controllers
         {
             this.context = context;
             _mapper = mapper;
+        }
+
+        [HttpGet("ViewAllUserPaymentHistory")]
+        public async Task<IActionResult> ViewAllUserPaymentHistory()
+        {
+            var payment = await context.Payments.Where(u => u.User.Role.RoleName == "Customer")
+                .ProjectTo<ViewAllPaymentHistory>(_mapper.ConfigurationProvider).ToListAsync();
+
+            if (!payment.Any())
+            {
+                return NotFound("Not Found.");
+            }
+
+            return Ok(payment);
+        }
+
+        [HttpGet("ViewAllTourOperatorPaymentHistory")]
+        public async Task<IActionResult> ViewAllTourOperatorPaymentHistory()
+        {
+            var payment = await context.Payments.Where(u => u.User.Role.RoleName == "Tour Operator")
+                .ProjectTo<ViewAllPaymentHistory>(_mapper.ConfigurationProvider).ToListAsync();
+
+            if (!payment.Any())
+            {
+                return NotFound("Not Found.");
+            }
+
+            return Ok(payment);
         }
 
         [HttpGet("ViewPaymentPackageHistory/{tourOperatorId}")]
@@ -44,8 +74,8 @@ namespace TourManagement_BE.Controllers
             return Ok(history);
         }
 
-        [HttpGet("ViewPaymentHistory/{userId}")]
-        public IActionResult ViewPaymentHistory(int userId)
+        [HttpGet("ViewUserPaymentDetailHistory/{userId}")]
+        public IActionResult ViewUserPaymentDetailHistory(int userId)
         {
             var payments = context.Payments
                 .Where(p => p.UserId == userId && p.IsActive)
