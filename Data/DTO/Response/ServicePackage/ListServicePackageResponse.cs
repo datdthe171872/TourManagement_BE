@@ -16,6 +16,8 @@
 
         public int MaxTours { get; set; }
 
+        public decimal TotalPrice { get; set; }
+
         public bool IsActive { get; set; }
 
     }

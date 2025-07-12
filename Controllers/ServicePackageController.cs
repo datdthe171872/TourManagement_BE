@@ -1,14 +1,9 @@
 ﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Mvc;
-using System.Numerics;
 using TourManagement_BE.Data.Context;
-using TourManagement_BE.Data.DTO.Request.ProfileRequest;
 using TourManagement_BE.Data.DTO.Request.ServicePackageRequest;
-using TourManagement_BE.Data.DTO.Response.ProfileResponse;
+using TourManagement_BE.Data.DTO.Response.PaymentResponse;
 using TourManagement_BE.Data.DTO.Response.ServicePackage;
-using TourManagement_BE.Data.DTO.Response.TourResponse;
-using TourManagement_BE.Data.Models;
 using TourManagement_BE.Mapping.ServiceMapping;
 
 namespace TourManagement_BE.Controllers
@@ -39,6 +34,7 @@ namespace TourManagement_BE.Controllers
                     DiscountPercentage = u.DiscountPercentage,
                     DurationInYears = u.DurationInYears,
                     MaxTours = u.MaxTours,
+                    TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
                     IsActive = u.IsActive,
                 });
 
@@ -48,6 +44,43 @@ namespace TourManagement_BE.Controllers
             }
 
             return Ok(services);
+        }
+
+        [HttpGet("ListAllServicePackagePagging")]
+        public IActionResult ListAllServicePackagePagging(int pageNumber = 1, int pageSize = 10)
+        {
+            if (pageNumber <= 0) pageNumber = 1;
+            if (pageSize <= 0) pageSize = 10;
+
+            var totalRecords = context.ServicePackages.Count();
+
+            var services = context.ServicePackages.
+                Select(u => new ListServicePackageResponse
+                {
+                    PackageId = u.PackageId,
+                    Name = u.Name,
+                    Description = u.Description,
+                    Price = u.Price,
+                    DiscountPercentage = u.DiscountPercentage,
+                    DurationInYears = u.DurationInYears,
+                    MaxTours = u.MaxTours,
+                    TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
+                    IsActive = u.IsActive,
+                });
+
+            if (!services.Any())
+            {
+                return NotFound("Not Found.");
+            }
+
+            return Ok(new
+            {
+                TotalRecords = totalRecords,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
+                Data = services
+            });
         }
 
         [HttpPost("CreateServicePackage")]
@@ -135,6 +168,7 @@ namespace TourManagement_BE.Controllers
                     DiscountPercentage = u.DiscountPercentage,
                     DurationInYears = u.DurationInYears,
                     MaxTours = u.MaxTours,
+                    TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
                     IsActive = u.IsActive,
                 })
                 .FirstOrDefault();
@@ -145,6 +179,38 @@ namespace TourManagement_BE.Controllers
             }
 
             return Ok(services);
+        }
+
+        [HttpGet("CheckSlotTourOperatorPackageService/{touroperatorid}")]
+        public IActionResult CheckSlotTourOperatorPackageService(int touroperatorid)
+        {
+            var activePackage = context.PurchasedServicePackages
+                .Where(p => p.TourOperatorId == touroperatorid && p.EndDate > DateTime.UtcNow && p.IsActive)
+                .OrderByDescending(p => p.ActivationDate)
+                .Select(u => new CheckSlotTourOperatorResponse
+                {
+                    PurchaseId = u.PackageId,
+                    TourOperatorId = u.TourOperatorId,
+                    TourOperatorName = u.TourOperator.User.UserName,
+                    PackageId = u.PackageId,
+                    PackageName = u.Package.Name,
+                    TransactionId = u.TransactionId,
+                    ActivationDate = u.ActivationDate,
+                    EndDate = u.EndDate,
+                    NumOfToursUsed = u.NumOfToursUsed,
+                    MaxTour = u.Package.MaxTours,
+                    RemainingTours = u.Package.MaxTours - u.NumOfToursUsed,
+                    IsActive = u.IsActive,
+                    CreatedAt = u.CreatedAt
+                })
+                .FirstOrDefault();
+
+            if (activePackage == null)
+            {
+                return NotFound("Not found.");
+            }
+
+            return Ok(activePackage);
         }
     }
 }

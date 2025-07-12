@@ -50,6 +50,10 @@ namespace TourManagement_BE
             // Register repositories and services
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+            //new checkslot
+            builder.Services.AddScoped<ISlotCheckService, SlotCheckService>();
+            builder.Services.AddHostedService<ExpiredPackageCleanupService>();
             builder.Services.AddScoped<ITourOperatorService, TourOperatorService>();
             builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 
