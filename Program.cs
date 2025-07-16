@@ -11,6 +11,8 @@ using TourManagement_BE.Repository.Imple;
 using TourManagement_BE.Repository.Interface;
 using TourManagement_BE.Service;
 
+using Microsoft.Extensions.Options;
+
 namespace TourManagement_BE
 {
     public class Program
