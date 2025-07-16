@@ -4,11 +4,16 @@ using TourManagement_BE.Data.Context;
 using TourManagement_BE.Data.DTO.Request;
 using TourManagement_BE.Repository.Interface;
 using TourManagement_BE.Service;
+using TourManagement_BE.Helper.Constant;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
 namespace TourManagement_BE.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class BookingController : ControllerBase
     {
         private readonly IBookingService _bookingService;
@@ -50,6 +55,33 @@ namespace TourManagement_BE.Controllers
             var result = await _bookingService.SoftDeleteBookingAsync(bookingId, userId);
             if (!result) return NotFound();
             return Ok();
+        }
+
+        // API 1: Get bookings for Customer (Customer role only)
+        [HttpGet("customer")]
+        [Authorize(Roles = Roles.Customer)]
+        public async Task<IActionResult> GetCustomerBookings([FromQuery] BookingSearchRequest request)
+        {
+            var result = await _bookingService.GetCustomerBookingsAsync(request);
+            return Ok(result);
+        }
+
+        // API 2: Get bookings for Tour Operator (Tour Operator role only)
+        [HttpGet("tour-operator")]
+        [Authorize(Roles = Roles.TourOperator)]
+        public async Task<IActionResult> GetTourOperatorBookings([FromQuery] BookingSearchRequest request)
+        {
+            var result = await _bookingService.GetTourOperatorBookingsAsync(request);
+            return Ok(result);
+        }
+
+        // API 3: Get all bookings for Admin (Admin role only)
+        [HttpGet("admin")]
+        [Authorize(Roles = Roles.Admin)]
+        public async Task<IActionResult> GetAllBookingsForAdmin([FromQuery] BookingSearchRequest request)
+        {
+            var result = await _bookingService.GetAllBookingsForAdminAsync(request);
+            return Ok(result);
         }
     }
 } 

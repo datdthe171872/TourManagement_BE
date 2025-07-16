@@ -11,5 +11,10 @@ namespace TourManagement_BE.Service
         Task<BookingResponse> CreateBookingAsync(CreateBookingRequest request);
         Task<BookingResponse> UpdateBookingAsync(UpdateBookingRequest request);
         Task<bool> SoftDeleteBookingAsync(int bookingId, int userId);
+        
+        // New methods for role-based booking retrieval
+        Task<BookingListResponse> GetCustomerBookingsAsync(BookingSearchRequest request);
+        Task<BookingListResponse> GetTourOperatorBookingsAsync(BookingSearchRequest request);
+        Task<BookingListResponse> GetAllBookingsForAdminAsync(BookingSearchRequest request);
     }
 } 
