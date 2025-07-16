@@ -1,38 +1,63 @@
-### Lấy danh sách Booking theo UserId
-GET http://localhost:5000/api/Booking?UserId=1&IsActive=true
-Accept: application/json
+### Booking API Tests
 
-### Tạo mới Booking
-POST http://localhost:5000/api/Booking
+# Base URL
+@baseUrl = https://localhost:7001
+@authToken = your_jwt_token_here
+
+### 1. Get Customer Bookings (search by keyword)
+# Role: Customer
+# Description: Get all bookings for the authenticated customer, search by keyword (user name, tour title, company name)
+GET {{baseUrl}}/api/booking/customer?keyword=Hạ%20Long
+Authorization: Bearer {{authToken}}
 Content-Type: application/json
-Accept: application/json
 
-{
-  "userId": 1,
-  "tourId": 2,
-  "selectedDepartureDate": "2024-07-01T00:00:00",
-  "numberOfAdults": 2,
-  "numberOfChildren": 1,
-  "numberOfInfants": 0,
-  "noteForTour": "Yêu cầu xe riêng",
-  "totalPrice": 5000000,
-  "depositAmount": 1000000,
-  "remainingAmount": 4000000,
-  "contract": "Hop dong so 01"
-}
+###
 
-### Cập nhật Booking
-PUT http://localhost:5000/api/Booking
+### 2. Get Tour Operator Bookings (search by keyword)
+# Role: Tour Operator
+# Description: Get all bookings for tours created by the authenticated tour operator, search by keyword
+GET {{baseUrl}}/api/booking/tour-operator?keyword=Nguyen
+Authorization: Bearer {{authToken}}
 Content-Type: application/json
-Accept: application/json
 
-{
-  "bookingId": 1,
-  "numberOfAdults": 3,
-  "noteForTour": "Cập nhật số lượng người lớn",
-  "totalPrice": 6000000
-}
+###
 
-### Xoá mềm Booking
-PATCH http://localhost:5000/api/Booking/soft-delete/1?userId=1
-Accept: application/json 
+### 3. Get All Bookings (Admin, search by keyword)
+# Role: Admin
+# Description: Get all bookings in the system, search by keyword
+GET {{baseUrl}}/api/booking/admin?keyword=Travel%20Viet
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+###
+
+### 4. Get Bookings (no keyword, all results for role)
+# Description: Get all bookings for the role (no search)
+GET {{baseUrl}}/api/booking/customer
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+###
+
+## Test Instructions
+
+1. **Replace the auth token**: Replace `your_jwt_token_here` with a valid JWT token obtained from login
+2. **Test by role**: 
+   - Use endpoint 1 for Customer role (search by keyword)
+   - Use endpoint 2 for Tour Operator role (search by keyword)
+   - Use endpoint 3 for Admin role (search by keyword)
+3. **Expected responses**:
+   - 200 OK: Successful retrieval
+   - 401 Unauthorized: Invalid or missing token
+   - 403 Forbidden: Wrong role for the endpoint
+   - 404 Not Found: Tour Operator not found (for tour operator endpoint)
+
+## Notes
+
+- All endpoints require authentication
+- Role-based access is enforced
+- Only active bookings are returned
+- Customer can only see their own bookings
+- Tour Operator can only see bookings for their tours
+- Admin can see all bookings
+- The search is case-insensitive and matches any part of the name/title/company. 

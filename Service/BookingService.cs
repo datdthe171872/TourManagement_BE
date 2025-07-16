@@ -18,11 +18,7 @@ namespace TourManagement_BE.Service
 
         public async Task<BookingListResponse> GetBookingsAsync(BookingSearchRequest request)
         {
-            var query = _context.Bookings.AsQueryable();
-            if (request.UserId.HasValue)
-                query = query.Where(x => x.UserId == request.UserId.Value);
-            if (request.IsActive.HasValue)
-                query = query.Where(x => x.IsActive == request.IsActive.Value);
+            var query = _context.Bookings.AsQueryable();          
             var bookings = await query.ToListAsync();
             return new BookingListResponse
             {
@@ -43,7 +39,10 @@ namespace TourManagement_BE.Service
                     Contract = x.Contract,
                     BookingStatus = x.BookingStatus,
                     PaymentStatus = x.PaymentStatus,
-                    IsActive = x.IsActive
+                    IsActive = x.IsActive,
+                    UserName = x.User != null ? x.User.UserName : null,
+                    TourTitle = x.Tour != null ? x.Tour.Title : null,
+                    CompanyName = x.Tour != null && x.Tour.TourOperator != null ? x.Tour.TourOperator.CompanyName : null
                 }).ToList()
             };
         }
@@ -86,7 +85,10 @@ namespace TourManagement_BE.Service
                 Contract = booking.Contract,
                 BookingStatus = booking.BookingStatus,
                 PaymentStatus = booking.PaymentStatus,
-                IsActive = booking.IsActive
+                IsActive = booking.IsActive,
+                UserName = booking.User != null ? booking.User.UserName : null,
+                TourTitle = booking.Tour != null ? booking.Tour.Title : null,
+                CompanyName = booking.Tour != null && booking.Tour.TourOperator != null ? booking.Tour.TourOperator.CompanyName : null
             };
         }
 
@@ -134,7 +136,10 @@ namespace TourManagement_BE.Service
                 Contract = booking.Contract,
                 BookingStatus = booking.BookingStatus,
                 PaymentStatus = booking.PaymentStatus,
-                IsActive = booking.IsActive
+                IsActive = booking.IsActive,
+                UserName = booking.User != null ? booking.User.UserName : null,
+                TourTitle = booking.Tour != null ? booking.Tour.Title : null,
+                CompanyName = booking.Tour != null && booking.Tour.TourOperator != null ? booking.Tour.TourOperator.CompanyName : null
             };
         }
 
@@ -145,6 +150,151 @@ namespace TourManagement_BE.Service
             booking.IsActive = false;
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        // New methods for role-based booking retrieval
+        public async Task<BookingListResponse> GetCustomerBookingsAsync(BookingSearchRequest request)
+        {
+            var userId = int.Parse(System.Security.Claims.ClaimsPrincipal.Current?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var query = _context.Bookings
+                .Include(x => x.Tour)
+                .ThenInclude(t => t.TourOperator)
+                .Include(x => x.User)
+                .Where(x => x.UserId == userId && x.IsActive)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(request.Keyword))
+            {
+                var keyword = request.Keyword.ToLower();
+                query = query.Where(x =>
+                    (x.User != null && x.User.UserName.ToLower().Contains(keyword)) ||
+                    (x.Tour != null && x.Tour.Title.ToLower().Contains(keyword)) ||
+                    (x.Tour != null && x.Tour.TourOperator != null && x.Tour.TourOperator.CompanyName != null && x.Tour.TourOperator.CompanyName.ToLower().Contains(keyword))
+                );
+            }
+
+            var bookings = await query.ToListAsync();
+            return new BookingListResponse
+            {
+                Bookings = bookings.Select(x => new BookingResponse
+                {
+                    BookingId = x.BookingId,
+                    UserId = x.UserId,
+                    TourId = x.TourId,
+                    SelectedDepartureDate = x.SelectedDepartureDate,
+                    BookingDate = x.BookingDate,
+                    NumberOfAdults = x.NumberOfAdults,
+                    NumberOfChildren = x.NumberOfChildren,
+                    NumberOfInfants = x.NumberOfInfants,
+                    NoteForTour = x.NoteForTour,
+                    TotalPrice = x.TotalPrice,
+                    DepositAmount = x.DepositAmount,
+                    RemainingAmount = x.RemainingAmount,
+                    Contract = x.Contract,
+                    BookingStatus = x.BookingStatus,
+                    PaymentStatus = x.PaymentStatus,
+                    IsActive = x.IsActive,
+                    UserName = x.User != null ? x.User.UserName : null,
+                    TourTitle = x.Tour != null ? x.Tour.Title : null,
+                    CompanyName = x.Tour != null && x.Tour.TourOperator != null ? x.Tour.TourOperator.CompanyName : null
+                }).ToList()
+            };
+        }
+
+        public async Task<BookingListResponse> GetTourOperatorBookingsAsync(BookingSearchRequest request)
+        {
+            var userId = int.Parse(System.Security.Claims.ClaimsPrincipal.Current?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var tourOperatorId = _context.Users.Include(u => u.TourOperator).FirstOrDefault(u => u.UserId == userId)?.TourOperator?.TourOperatorId;
+            var query = _context.Bookings
+                .Include(x => x.Tour)
+                .ThenInclude(t => t.TourOperator)
+                .Include(x => x.User)
+                .Where(x => x.Tour.TourOperatorId == tourOperatorId && x.IsActive)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(request.Keyword))
+            {
+                var keyword = request.Keyword.ToLower();
+                query = query.Where(x =>
+                    (x.User != null && x.User.UserName.ToLower().Contains(keyword)) ||
+                    (x.Tour != null && x.Tour.Title.ToLower().Contains(keyword)) ||
+                    (x.Tour != null && x.Tour.TourOperator != null && x.Tour.TourOperator.CompanyName != null && x.Tour.TourOperator.CompanyName.ToLower().Contains(keyword))
+                );
+            }
+
+            var bookings = await query.ToListAsync();
+            return new BookingListResponse
+            {
+                Bookings = bookings.Select(x => new BookingResponse
+                {
+                    BookingId = x.BookingId,
+                    UserId = x.UserId,
+                    TourId = x.TourId,
+                    SelectedDepartureDate = x.SelectedDepartureDate,
+                    BookingDate = x.BookingDate,
+                    NumberOfAdults = x.NumberOfAdults,
+                    NumberOfChildren = x.NumberOfChildren,
+                    NumberOfInfants = x.NumberOfInfants,
+                    NoteForTour = x.NoteForTour,
+                    TotalPrice = x.TotalPrice,
+                    DepositAmount = x.DepositAmount,
+                    RemainingAmount = x.RemainingAmount,
+                    Contract = x.Contract,
+                    BookingStatus = x.BookingStatus,
+                    PaymentStatus = x.PaymentStatus,
+                    IsActive = x.IsActive,
+                    UserName = x.User != null ? x.User.UserName : null,
+                    TourTitle = x.Tour != null ? x.Tour.Title : null,
+                    CompanyName = x.Tour != null && x.Tour.TourOperator != null ? x.Tour.TourOperator.CompanyName : null
+                }).ToList()
+            };
+        }
+
+        public async Task<BookingListResponse> GetAllBookingsForAdminAsync(BookingSearchRequest request)
+        {
+            var query = _context.Bookings
+                .Include(x => x.Tour)
+                .ThenInclude(t => t.TourOperator)
+                .Include(x => x.User)
+                .Where(x => x.IsActive)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(request.Keyword))
+            {
+                var keyword = request.Keyword.ToLower();
+                query = query.Where(x =>
+                    (x.User != null && x.User.UserName.ToLower().Contains(keyword)) ||
+                    (x.Tour != null && x.Tour.Title.ToLower().Contains(keyword)) ||
+                    (x.Tour != null && x.Tour.TourOperator != null && x.Tour.TourOperator.CompanyName != null && x.Tour.TourOperator.CompanyName.ToLower().Contains(keyword))
+                );
+            }
+
+            var bookings = await query.ToListAsync();
+            return new BookingListResponse
+            {
+                Bookings = bookings.Select(x => new BookingResponse
+                {
+                    BookingId = x.BookingId,
+                    UserId = x.UserId,
+                    TourId = x.TourId,
+                    SelectedDepartureDate = x.SelectedDepartureDate,
+                    BookingDate = x.BookingDate,
+                    NumberOfAdults = x.NumberOfAdults,
+                    NumberOfChildren = x.NumberOfChildren,
+                    NumberOfInfants = x.NumberOfInfants,
+                    NoteForTour = x.NoteForTour,
+                    TotalPrice = x.TotalPrice,
+                    DepositAmount = x.DepositAmount,
+                    RemainingAmount = x.RemainingAmount,
+                    Contract = x.Contract,
+                    BookingStatus = x.BookingStatus,
+                    PaymentStatus = x.PaymentStatus,
+                    IsActive = x.IsActive,
+                    UserName = x.User != null ? x.User.UserName : null,
+                    TourTitle = x.Tour != null ? x.Tour.Title : null,
+                    CompanyName = x.Tour != null && x.Tour.TourOperator != null ? x.Tour.TourOperator.CompanyName : null
+                }).ToList()
+            };
         }
     }
 } 

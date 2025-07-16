@@ -20,5 +20,8 @@ namespace TourManagement_BE.Data.DTO.Response
         public string? BookingStatus { get; set; }
         public string? PaymentStatus { get; set; }
         public bool IsActive { get; set; }
+        public string? UserName { get; set; }
+        public string? TourTitle { get; set; }
+        public string? CompanyName { get; set; }
     }
 } 
