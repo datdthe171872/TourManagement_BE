@@ -2,9 +2,9 @@
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Mvc;
-using TourManagement_BE.Data.Context;
+using TourManagement_BE.Data;
 using TourManagement_BE.Data.DTO.Request.TourItineraryRequest;
-using TourManagement_BE.Data.Models;
+using TourManagement_BE.Models;
 
 namespace TourManagement_BE.Controllers
 {

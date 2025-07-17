@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TourManagement_BE.Data.Context;
-using TourManagement_BE.Data.Models;
+using TourManagement_BE.Data;
+using TourManagement_BE.Models;
 using TourManagement_BE.Repository.Interface;
 using System.Threading.Tasks;
 

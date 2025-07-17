@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
-using TourManagement_BE.Data.Context;
+using TourManagement_BE.Data;
 using TourManagement_BE.Data.DTO.Request.ProfileRequest;
 using TourManagement_BE.Data.DTO.Response.ProfileResponse;
 using System.ComponentModel.DataAnnotations;
+using TourManagement_BE.Models;
 
 namespace TourManagement_BE.Controllers
 {
