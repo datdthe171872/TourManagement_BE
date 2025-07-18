@@ -1,8 +1,9 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using TourManagement_BE.Data.Context;
+using TourManagement_BE.Data;
 using TourManagement_BE.Data.DTO.Response.TourBookingResponse;
+using TourManagement_BE.Models;
 using TourManagement_BE.TourManagement_BE.Data.DTO.Response.TourBookingResponse;
 
 namespace TourManagement_BE.Controllers

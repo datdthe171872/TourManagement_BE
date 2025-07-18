@@ -1,4 +1,4 @@
-﻿using TourManagement_BE.Data.Models;
+﻿using TourManagement_BE.Data;
 
 namespace TourManagement_BE.Data.DTO.Request.TourRequest.TourRequestDTO.Create
 {

@@ -1,6 +1,7 @@
-﻿using TourManagement_BE.Data.Models;
+﻿using TourManagement_BE.Data;
 using System;
 using System.Threading.Tasks;
+using TourManagement_BE.Models;
 
 namespace TourManagement_BE.Repository.Interface
 {
