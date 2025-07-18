@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using TourManagement_BE.Data.Context;
 using TourManagement_BE.Data.DTO.Request.AccountRequest;
 using TourManagement_BE.Data.DTO.Response.AccountResponse;
-using TourManagement_BE.Models;
 using TourManagement_BE.Repository.Interface;
 
 namespace TourManagement_BE.Controllers
@@ -41,6 +41,12 @@ namespace TourManagement_BE.Controllers
 
             return Ok(user);
         }
+
+        /*public async Task<IActionResult> ListAllAccount()
+        {
+            var result = await _account.ListAllAccount();
+            return Ok(result);
+        }*/
 
         [HttpGet("Search Account By Name or ID or Email")]
         public IActionResult SearchAccount(string? keyword)

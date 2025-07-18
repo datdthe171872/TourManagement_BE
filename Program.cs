@@ -5,14 +5,13 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System;
 using System.Text;
-using TourManagement_BE.Data;
+using TourManagement_BE.Data.Context;
 using TourManagement_BE.Mapping;
 using TourManagement_BE.Repository.Imple;
 using TourManagement_BE.Repository.Interface;
 using TourManagement_BE.Service;
 using TourManagement_BE.Helper;
 using Microsoft.Extensions.Options;
-using TourManagement_BE.Models;
 
 namespace TourManagement_BE
 {

@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using TourManagement_BE.Data.Models;
 
-namespace TourManagement_BE.Models;
+namespace TourManagement_BE.Data.Context;
 
 public partial class MyDBContext : DbContext
 {
@@ -75,13 +76,20 @@ public partial class MyDBContext : DbContext
     public virtual DbSet<User> Users { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Data Source=MSI\\SQLEXPRESS;Initial Catalog=SEP490_G35; Trusted_Connection=SSPI;Encrypt=false;TrustServerCertificate=true");
+    {
+        var builder = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+        IConfigurationRoot configuration = builder.Build();
+        optionsBuilder.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Booking>(entity =>
         {
+            base.OnModelCreating(modelBuilder); 
+
             entity.HasKey(e => e.BookingId).HasName("PK__Bookings__73951AED69F9C654");
 
             entity.Property(e => e.BookingDate)
@@ -303,7 +311,6 @@ public partial class MyDBContext : DbContext
             entity.HasKey(e => e.TransactionId).HasName("PK__Purchase__55433A6B7EA420F9");
 
             entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.ContentCode).HasMaxLength(50);
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
