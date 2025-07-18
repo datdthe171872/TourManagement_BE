@@ -154,6 +154,36 @@ public class TourOperatorController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Lấy thông tin UserId, UserName, TourOperatorId, Email của Tour Operator đang đăng nhập
+    /// </summary>
+    [HttpGet("user-operator")]
+    [Authorize(Roles = "Tour Operator")]
+    public async Task<IActionResult> GetUserOperatorList()
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdClaim))
+        {
+            return Unauthorized();
+        }
+        int userId = int.Parse(userIdClaim);
+        var data = await _context.TourOperators
+            .Include(to => to.User)
+            .Where(to => to.UserId == userId && to.User != null && to.IsActive)
+            .Select(to => new {
+                UserId = to.UserId,
+                UserName = to.User.UserName,
+                TourOperatorId = to.TourOperatorId,
+                Email = to.User.Email
+            })
+            .FirstOrDefaultAsync();
+        if (data == null)
+        {
+            return NotFound(new { message = "Không tìm thấy thông tin Tour Operator cho user này." });
+        }
+        return Ok(data);
+    }
+
     [HttpPost("register-tourguide")]
     [Authorize(Roles = "Tour Operator")]
     public async Task<IActionResult> RegisterTourGuide([FromBody] CreateTourGuideRequest request)
