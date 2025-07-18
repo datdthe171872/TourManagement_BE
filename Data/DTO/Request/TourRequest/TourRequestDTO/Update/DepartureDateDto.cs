@@ -1,4 +1,4 @@
-﻿using TourManagement_BE.Data;
+﻿using TourManagement_BE.Data.Models;
 
 namespace TourManagement_BE.Data.DTO.Request.TourRequest.TourRequestDTO.Update
 {

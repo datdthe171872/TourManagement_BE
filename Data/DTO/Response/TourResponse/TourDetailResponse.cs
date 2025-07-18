@@ -1,5 +1,5 @@
 ﻿using TourManagement_BE.Data.DTO.Response.TourResponse.TourDetailDTO;
-using TourManagement_BE.Models;
+using TourManagement_BE.Data.Models;
 
 namespace TourManagement_BE.Data.DTO.Response.TourResponse
 {

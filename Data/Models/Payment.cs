@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace TourManagement_BE.Models;
+namespace TourManagement_BE.Data.Models;
 
 public partial class Payment
 {

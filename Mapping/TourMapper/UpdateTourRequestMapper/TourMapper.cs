@@ -1,4 +1,4 @@
-﻿using TourManagement_BE.Models;
+﻿using TourManagement_BE.Data.Models;
 using AutoMapper;
 using TourManagement_BE.Data.DTO.Request.TourRequest;
 using TourManagement_BE.Data.DTO.Request.TourRequest.TourRequestDTO.Update;
