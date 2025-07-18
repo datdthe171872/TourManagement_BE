@@ -1,10 +1,11 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using TourManagement_BE.Data.Context;
+using TourManagement_BE.Data;
 using TourManagement_BE.Data.DTO.Request.ServicePackageRequest;
 using TourManagement_BE.Data.DTO.Response.PaymentResponse;
 using TourManagement_BE.Data.DTO.Response.ServicePackage;
 using TourManagement_BE.Mapping.ServiceMapping;
+using TourManagement_BE.Models;
 
 namespace TourManagement_BE.Controllers
 {
@@ -21,8 +22,8 @@ namespace TourManagement_BE.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet("ListAllServicePackage")]
-        public IActionResult ListAllServicePackage()
+        [HttpGet("ListAllServicePackageForAdmin")]
+        public IActionResult ListAllServicePackageForAdmin()
         {
             var services = context.ServicePackages.
                 Select(u => new ListServicePackageResponse
@@ -46,8 +47,8 @@ namespace TourManagement_BE.Controllers
             return Ok(services);
         }
 
-        [HttpGet("ListAllServicePackagePagging")]
-        public IActionResult ListAllServicePackagePagging(int pageNumber = 1, int pageSize = 10)
+        [HttpGet("ListAllServicePackagePaggingForAdmin")]
+        public IActionResult ListAllServicePackagePaggingForAdmin(int pageNumber = 1, int pageSize = 10)
         {
             if (pageNumber <= 0) pageNumber = 1;
             if (pageSize <= 0) pageSize = 10;
@@ -82,6 +83,70 @@ namespace TourManagement_BE.Controllers
                 Data = services
             });
         }
+
+
+        [HttpGet("ListAllServicePackageForCustomer")]
+        public IActionResult ListAllServicePackageForCustomer()
+        {
+            var services = context.ServicePackages.
+                Select(u => new ListServicePackageResponse
+                {
+                    PackageId = u.PackageId,
+                    Name = u.Name,
+                    Description = u.Description,
+                    Price = u.Price,
+                    DiscountPercentage = u.DiscountPercentage,
+                    DurationInYears = u.DurationInYears,
+                    MaxTours = u.MaxTours,
+                    TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
+                    IsActive = true,
+                });
+
+            if (!services.Any())
+            {
+                return NotFound("Not Found.");
+            }
+
+            return Ok(services);
+        }
+
+        [HttpGet("ListAllServicePackagePaggingForCustomer")]
+        public IActionResult ListAllServicePackagePagging(int pageNumber = 1, int pageSize = 10)
+        {
+            if (pageNumber <= 0) pageNumber = 1;
+            if (pageSize <= 0) pageSize = 10;
+
+            var totalRecords = context.ServicePackages.Count();
+
+            var services = context.ServicePackages.
+                Select(u => new ListServicePackageResponse
+                {
+                    PackageId = u.PackageId,
+                    Name = u.Name,
+                    Description = u.Description,
+                    Price = u.Price,
+                    DiscountPercentage = u.DiscountPercentage,
+                    DurationInYears = u.DurationInYears,
+                    MaxTours = u.MaxTours,
+                    TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
+                    IsActive = true,
+                });
+
+            if (!services.Any())
+            {
+                return NotFound("Not Found.");
+            }
+
+            return Ok(new
+            {
+                TotalRecords = totalRecords,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
+                Data = services
+            });
+        }
+
 
         [HttpPost("CreateServicePackage")]
         public IActionResult CreateServicePackage([FromBody] CreateServicePackageRequest request)
@@ -134,8 +199,8 @@ namespace TourManagement_BE.Controllers
             return Ok(new { message = "Service package updated successfully." });
         }
 
-        [HttpDelete("SoftDeleteServicePackage/{packageId}")]
-        public async Task<IActionResult> SoftDeleteServicePackage(int packageId)
+        [HttpPatch("ToggleServicePackageStatus/{packageId}")]
+        public async Task<IActionResult> ToggleServicePackageStatus(int packageId)
         {
             var service = await context.ServicePackages.FindAsync(packageId);
             if (service == null)
@@ -143,16 +208,19 @@ namespace TourManagement_BE.Controllers
                 return NotFound("Service package not found.");
             }
 
-            if (!service.IsActive)
-            {
-                return BadRequest("Service package is already inactive.");
-            }
+            // Toggle trạng thái IsActive
+            service.IsActive = !service.IsActive;
 
-            service.IsActive = false;
             await context.SaveChangesAsync();
 
-            return Ok(new { message = "Service package has been deactivated (soft deleted)." });
+            return Ok(new
+            {
+                message = $"Service package has been {(service.IsActive ? "activated" : "deactivated")}",
+                packageId = packageId,
+                newStatus = service.IsActive
+            });
         }
+
 
         [HttpGet("ViewDetailPackageService/{packageid}")]
         public IActionResult ViewDetailPackageService(int packageid)

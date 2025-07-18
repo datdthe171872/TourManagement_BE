@@ -2,11 +2,11 @@
 using CloudinaryDotNet.Actions;
 using CloudinaryDotNet;
 using Microsoft.AspNetCore.Mvc;
-using TourManagement_BE.Data.Context;
+using TourManagement_BE.Data;
 using TourManagement_BE.Data.DTO.Request.ServicePackageRequest;
 using TourManagement_BE.Data.DTO.Response.ContractTourBooking;
-using TourManagement_BE.Data.Models;
 using TourManagement_BE.Data.DTO.Request.TourContract;
+using TourManagement_BE.Models;
 
 namespace TourManagement_BE.Controllers
 {

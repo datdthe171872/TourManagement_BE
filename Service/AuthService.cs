@@ -1,15 +1,13 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using TourManagement_BE.Data.DTO.Response;
-using TourManagement_BE.Data.Models;
 using TourManagement_BE.Helper.Common;
 using TourManagement_BE.Helper.Constant;
 using TourManagement_BE.Repository.Interface;
 using TourManagement_BE.Data.DTO.Request;
 using System;
 using System.Threading.Tasks;
-using TourManagement_BE.Data.Context;
-using Microsoft.EntityFrameworkCore;
+using TourManagement_BE.Models;
 namespace TourManagement_BE.Service
 {
     public class AuthService : IAuthService

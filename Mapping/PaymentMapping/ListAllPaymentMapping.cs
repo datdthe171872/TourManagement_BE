@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using TourManagement_BE.Data.DTO.Response.PaymentResponse;
-using TourManagement_BE.Data.Models;
+using TourManagement_BE.Data;
+using TourManagement_BE.Models;
 
 namespace TourManagement_BE.Mapping.PaymentMapping
 {
