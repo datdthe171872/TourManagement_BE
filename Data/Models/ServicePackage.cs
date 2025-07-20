@@ -15,8 +15,6 @@ public partial class ServicePackage
 
     public decimal? DiscountPercentage { get; set; }
 
-    public int? DurationInYears { get; set; }
-
     public int MaxTours { get; set; }
 
     public bool IsActive { get; set; }

@@ -45,7 +45,7 @@ namespace TourManagement_BE.Service
             {
                 BookingId = b.BookingId,
                 TourTitle = b.Tour.Title,
-                SelectedDepartureDate = b.SelectedDepartureDate,
+                //SelectedDepartureDate = b.SelectedDepartureDate,
                 BookingDate = b.BookingDate,
                 TotalPrice = b.TotalPrice,
                 BookingStatus = b.BookingStatus,

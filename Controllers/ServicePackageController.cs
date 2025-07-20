@@ -32,7 +32,7 @@ namespace TourManagement_BE.Controllers
                     Description = u.Description,
                     Price = u.Price,
                     DiscountPercentage = u.DiscountPercentage,
-                    DurationInYears = u.DurationInYears,
+                    //DurationInYears = u.DurationInYears,
                     MaxTours = u.MaxTours,
                     TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
                     IsActive = u.IsActive,
@@ -62,7 +62,7 @@ namespace TourManagement_BE.Controllers
                     Description = u.Description,
                     Price = u.Price,
                     DiscountPercentage = u.DiscountPercentage,
-                    DurationInYears = u.DurationInYears,
+                    //DurationInYears = u.DurationInYears,
                     MaxTours = u.MaxTours,
                     TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
                     IsActive = u.IsActive,
@@ -120,8 +120,8 @@ namespace TourManagement_BE.Controllers
             if (request.DiscountPercentage.HasValue)
                 service.DiscountPercentage = request.DiscountPercentage.Value;
 
-            if (request.DurationInYears.HasValue)
-                service.DurationInYears = request.DurationInYears.Value;
+            //if (request.DurationInYears.HasValue)
+            //    service.DurationInYears = request.DurationInYears.Value;
 
             if (request.MaxTours.HasValue)
                 service.MaxTours = request.MaxTours.Value;
@@ -166,7 +166,7 @@ namespace TourManagement_BE.Controllers
                     Description = u.Description,
                     Price = u.Price,
                     DiscountPercentage = u.DiscountPercentage,
-                    DurationInYears = u.DurationInYears,
+                    //DurationInYears = u.DurationInYears,
                     MaxTours = u.MaxTours,
                     TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
                     IsActive = u.IsActive,

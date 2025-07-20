@@ -17,6 +17,8 @@ public partial class PurchaseTransaction
 
     public string? PaymentStatus { get; set; }
 
+    public string? ContentCode { get; set; }
+
     public DateTime? CreatedAt { get; set; }
 
     public bool IsActive { get; set; }

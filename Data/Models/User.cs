@@ -27,7 +27,11 @@ public partial class User
 
     public virtual ICollection<GuideRating> GuideRatings { get; set; } = new List<GuideRating>();
 
+    public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+
     public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
+
+    public virtual ICollection<ResetPasswordToken> ResetPasswordTokens { get; set; } = new List<ResetPasswordToken>();
 
     public virtual Role Role { get; set; } = null!;
 
@@ -40,6 +44,4 @@ public partial class User
     public virtual TourOperator? TourOperator { get; set; }
 
     public virtual ICollection<TourRating> TourRatings { get; set; } = new List<TourRating>();
-
-    public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 }

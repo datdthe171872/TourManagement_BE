@@ -131,7 +131,7 @@ namespace TourManagement_BE.Controllers
                     NoteId = a.NoteId,
                     IsLeadGuide = a.IsLeadGuide,
                     IsActive = a.IsActive,
-                    TourName = a.Booking.Tour.TourType,
+                    //TourName = a.Booking.Tour.TourType,
                     GuideName = a.TourGuide.User.UserName,
                     CustomerName = a.Booking.User.UserName
                 })

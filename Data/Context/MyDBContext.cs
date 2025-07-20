@@ -101,9 +101,9 @@ public partial class MyDBContext : DbContext
                 .HasMaxLength(50)
                 .HasDefaultValue("Pending");
             entity.Property(e => e.Contract).HasMaxLength(255);
-            entity.Property(e => e.DepositAmount)
-                .HasDefaultValue(0m)
-                .HasColumnType("decimal(18, 2)");
+            //entity.Property(e => e.DepositAmount)
+            //    .HasDefaultValue(0m)
+            //    .HasColumnType("decimal(18, 2)");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.NumberOfAdults).HasDefaultValue(0);
             entity.Property(e => e.NumberOfChildren).HasDefaultValue(0);
@@ -111,11 +111,11 @@ public partial class MyDBContext : DbContext
             entity.Property(e => e.PaymentStatus)
                 .HasMaxLength(50)
                 .HasDefaultValue("Pending");
-            entity.Property(e => e.RemainingAmount)
-                .HasDefaultValue(0m)
-                .HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.SelectedDepartureDate).HasColumnType("datetime");
-            entity.Property(e => e.TotalPrice).HasColumnType("decimal(18, 2)");
+            //entity.Property(e => e.RemainingAmount)
+            //    .HasDefaultValue(0m)
+            //    .HasColumnType("decimal(18, 2)");
+            //entity.Property(e => e.SelectedDepartureDate).HasColumnType("datetime");
+            //entity.Property(e => e.TotalPrice).HasColumnType("decimal(18, 2)");
 
             entity.HasOne(d => d.Tour).WithMany(p => p.Bookings)
                 .HasForeignKey(d => d.TourId)
@@ -401,7 +401,7 @@ public partial class MyDBContext : DbContext
             entity.Property(e => e.DiscountPercentage)
                 .HasDefaultValue(0m)
                 .HasColumnType("decimal(5, 2)");
-            entity.Property(e => e.DurationInYears).HasDefaultValue(1);
+            //entity.Property(e => e.DurationInYears).HasDefaultValue(1);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(255);
             entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
@@ -416,16 +416,16 @@ public partial class MyDBContext : DbContext
                 .HasColumnType("datetime");
             entity.Property(e => e.DurationInDays).HasMaxLength(255);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
+            //entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.SlotsBooked).HasDefaultValue(0);
             entity.Property(e => e.StartPoint).HasMaxLength(255);
             entity.Property(e => e.Title).HasMaxLength(255);
             entity.Property(e => e.TourStatus)
                 .HasMaxLength(50)
                 .HasDefaultValue("Active");
-            entity.Property(e => e.TourType)
-                .HasMaxLength(20)
-                .HasDefaultValue("Shared");
+            //entity.Property(e => e.TourType)
+            //    .HasMaxLength(20)
+            //    .HasDefaultValue("Shared");
             entity.Property(e => e.Transportation).HasMaxLength(255);
 
             entity.HasOne(d => d.TourOperator).WithMany(p => p.Tours)

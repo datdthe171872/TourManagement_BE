@@ -13,7 +13,7 @@ namespace TourManagement_BE.Mapping.ServiceMapping
                 Description = u.Description,
                 Price = u.Price,
                 DiscountPercentage = u.DiscountPercentage,
-                DurationInYears = u.DurationInYears,
+                //DurationInYears = u.DurationInYears,
                 MaxTours = u.MaxTours,
                 IsActive = u.IsActive,
 

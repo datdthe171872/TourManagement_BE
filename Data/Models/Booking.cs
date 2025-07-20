@@ -11,7 +11,7 @@ public partial class Booking
 
     public int TourId { get; set; }
 
-    public DateTime SelectedDepartureDate { get; set; }
+    public int DepartureDateId { get; set; }
 
     public DateTime? BookingDate { get; set; }
 
@@ -25,10 +25,6 @@ public partial class Booking
 
     public decimal? TotalPrice { get; set; }
 
-    public decimal? DepositAmount { get; set; }
-
-    public decimal? RemainingAmount { get; set; }
-
     public string? Contract { get; set; }
 
     public string? BookingStatus { get; set; }
@@ -38,6 +34,8 @@ public partial class Booking
     public bool IsActive { get; set; }
 
     public virtual ICollection<BookingExtraCharge> BookingExtraCharges { get; set; } = new List<BookingExtraCharge>();
+
+    public virtual DepartureDate DepartureDate { get; set; } = null!;
 
     public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
 

@@ -152,20 +152,20 @@ namespace TourManagement_BE.Controllers
             if (!string.IsNullOrEmpty(title))
                 query = query.Where(t => t.Title.Contains(title));
 
-            if (!string.IsNullOrEmpty(tourType))
-                query = query.Where(t => t.TourType.Contains(tourType));
+            //if (!string.IsNullOrEmpty(tourType))
+            //    query = query.Where(t => t.TourType.Contains(tourType));
 
-            if (!string.IsNullOrEmpty(transportation))
-                query = query.Where(t => t.Transportation!.Contains(transportation));
+            //if (!string.IsNullOrEmpty(transportation))
+            //    query = query.Where(t => t.Transportation!.Contains(transportation));
 
-            if (!string.IsNullOrEmpty(startPoint))
-                query = query.Where(t => t.StartPoint!.Contains(startPoint));
+            //if (!string.IsNullOrEmpty(startPoint))
+            //    query = query.Where(t => t.StartPoint!.Contains(startPoint));
 
-            if (minPrice.HasValue)
-                query = query.Where(t => t.Price >= minPrice.Value);
+            //if (minPrice.HasValue)
+            //    query = query.Where(t => t.Price >= minPrice.Value);
 
-            if (maxPrice.HasValue)
-                query = query.Where(t => t.Price <= maxPrice.Value);
+            //if (maxPrice.HasValue)
+            //    query = query.Where(t => t.Price <= maxPrice.Value);
 
             if (ratings != null && ratings.Length > 0)
             {
@@ -214,8 +214,8 @@ namespace TourManagement_BE.Controllers
             if (!string.IsNullOrEmpty(title))
                 query = query.Where(t => t.Title.Contains(title));
 
-            if (!string.IsNullOrEmpty(tourType))
-                query = query.Where(t => t.TourType.Contains(tourType));
+            //if (!string.IsNullOrEmpty(tourType))
+            //    query = query.Where(t => t.TourType.Contains(tourType));
 
             if (!string.IsNullOrEmpty(transportation))
                 query = query.Where(t => t.Transportation.Contains(transportation));
@@ -223,11 +223,11 @@ namespace TourManagement_BE.Controllers
             if (!string.IsNullOrEmpty(startPoint))
                 query = query.Where(t => t.StartPoint.Contains(startPoint));
 
-            if (minPrice.HasValue)
-                query = query.Where(t => t.Price >= minPrice.Value);
+            //if (minPrice.HasValue)
+            //    query = query.Where(t => t.Price >= minPrice.Value);
 
-            if (maxPrice.HasValue)
-                query = query.Where(t => t.Price <= maxPrice.Value);
+            //if (maxPrice.HasValue)
+            //    query = query.Where(t => t.Price <= maxPrice.Value);
 
             if (ratings != null && ratings.Length > 0)
             {
@@ -285,7 +285,7 @@ namespace TourManagement_BE.Controllers
             {
                 Title = request.Title,
                 Description = request.Description,
-                Price = request.Price,
+                //Price = request.Price,
                 DurationInDays = request.DurationInDays,
                 StartPoint = request.StartPoint,
                 Transportation = request.Transportation,
@@ -293,7 +293,7 @@ namespace TourManagement_BE.Controllers
                 MaxSlots = request.MaxSlots,
                 SlotsBooked = 0,
                 CreatedAt = DateTime.UtcNow.AddHours(7),
-                TourType = request.TourType,
+                //TourType = request.TourType,
                 Note = request.Note,
                 TourStatus = request.TourStatus,
                 IsActive = true,
@@ -482,12 +482,12 @@ namespace TourManagement_BE.Controllers
 
                 tour.Title = request.Title;
                 tour.Description = request.Description;
-                tour.Price = request.Price;
+                //tour.Price = request.Price;
                 tour.DurationInDays = request.DurationInDays;
                 tour.StartPoint = request.StartPoint;
                 tour.Transportation = request.Transportation;
                 tour.MaxSlots = request.MaxSlots;
-                tour.TourType = request.TourType;
+                //tour.TourType = request.TourType;
                 tour.Note = request.Note;
                 tour.TourStatus = request.TourStatus;
                 tour.IsActive = request.IsActive;

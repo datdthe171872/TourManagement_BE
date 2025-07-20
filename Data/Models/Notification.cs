@@ -1,5 +1,5 @@
-using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
 
 namespace TourManagement_BE.Data.Models;
 
@@ -9,23 +9,17 @@ public partial class Notification
 
     public int UserId { get; set; }
 
-    [Required]
-    [StringLength(200)]
     public string Title { get; set; } = null!;
 
-    [Required]
-    [StringLength(500)]
     public string Message { get; set; } = null!;
 
-    [Required]
-    [StringLength(50)]
-    public string Type { get; set; } = null!; // Booking, GuideNote, Feedback, Registration, etc.
+    public string Type { get; set; } = null!;
 
-    public string? RelatedEntityId { get; set; } // ID của entity liên quan (BookingId, GuideNoteId, etc.)
+    public string? RelatedEntityId { get; set; }
 
-    public bool IsRead { get; set; } = false;
+    public bool IsRead { get; set; }
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
 
     public virtual User User { get; set; } = null!;
-} 
+}

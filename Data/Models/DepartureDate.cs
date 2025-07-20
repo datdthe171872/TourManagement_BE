@@ -13,5 +13,7 @@ public partial class DepartureDate
 
     public bool IsActive { get; set; }
 
+    public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+
     public virtual Tour Tour { get; set; } = null!;
 }
