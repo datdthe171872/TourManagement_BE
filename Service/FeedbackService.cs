@@ -8,10 +8,12 @@ namespace TourManagement_BE.Service;
 public class FeedbackService : IFeedbackService
 {
     private readonly MyDBContext _context;
+    private readonly INotificationService _notificationService;
 
-    public FeedbackService(MyDBContext context)
+    public FeedbackService(MyDBContext context, INotificationService notificationService)
     {
         _context = context;
+        _notificationService = notificationService;
     }
 
     public async Task<FeedbackListResponse> GetFeedbacksAsync(FeedbackSearchRequest request)
@@ -129,6 +131,9 @@ public class FeedbackService : IFeedbackService
 
         _context.TourRatings.Add(feedback);
         await _context.SaveChangesAsync();
+
+        // Tạo notification khi tạo feedback thành công
+        await _notificationService.CreateFeedbackNotificationAsync(request.UserId, feedback.RatingId);
 
         return new FeedbackResponse
         {

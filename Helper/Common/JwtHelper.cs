@@ -2,6 +2,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Security.Principal;
 
 namespace TourManagement_BE.Helper.Common
 {
@@ -22,7 +23,7 @@ namespace TourManagement_BE.Helper.Common
         {
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, userId),
+                new Claim(ClaimTypes.NameIdentifier, userId),
                 new Claim(JwtRegisteredClaimNames.Email, email),
                 new Claim(ClaimTypes.Role, roleName),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
@@ -39,6 +40,16 @@ namespace TourManagement_BE.Helper.Common
                 signingCredentials: creds);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        public int? GetUserIdFromToken(ClaimsPrincipal user)
+        {
+            var userIdValue = user.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrEmpty(userIdValue) && int.TryParse(userIdValue, out int userId))
+            {
+                return userId;
+            }
+            return null;
         }
     }
 }
