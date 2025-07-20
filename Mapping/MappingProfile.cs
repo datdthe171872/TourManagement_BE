@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using TourManagement_BE.Data.DTO.Request;
-using TourManagement_BE.Models;
+using TourManagement_BE.Data.Models;
 
 namespace TourManagement_BE.Mapping
 {

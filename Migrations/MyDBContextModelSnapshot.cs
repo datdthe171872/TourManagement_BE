@@ -4,8 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using TourManagement_BE.Data;
-using TourManagement_BE.Models;
+using TourManagement_BE.Data.Context;
 
 #nullable disable
 

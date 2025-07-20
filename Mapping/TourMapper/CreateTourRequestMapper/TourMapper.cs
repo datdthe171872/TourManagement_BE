@@ -1,8 +1,7 @@
-﻿using TourManagement_BE.Data;
+﻿using TourManagement_BE.Data.Models;
 using AutoMapper;
 using TourManagement_BE.Data.DTO.Request.TourRequest;
 using TourManagement_BE.Data.DTO.Request.TourRequest.TourRequestDTO.Update;
-using TourManagement_BE.Models;
 
 namespace TourManagement_BE.Mapping.TourMapper.CreateTourRequestMapper
 {
