@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace TourManagement_BE.Data.Models;
+namespace TourManagement_BE.Models;
 
 public partial class BookingExtraCharge
 {

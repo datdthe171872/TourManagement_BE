@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace TourManagement_BE.Data.Models;
+namespace TourManagement_BE.Models;
 
 public partial class PurchaseTransaction
 {
@@ -16,6 +16,8 @@ public partial class PurchaseTransaction
     public string? PaymentMethod { get; set; }
 
     public string? PaymentStatus { get; set; }
+
+    public string? ContentCode { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 
