@@ -1,5 +1,5 @@
 ﻿using TourManagement_BE.Data.DTO.Response.TourResponse;
-using TourManagement_BE.Data.Models;
+using TourManagement_BE.Models;
 using AutoMapper;
 using TourManagement_BE.Data.DTO.Response.TourResponse.TourDetailDTO;
 
