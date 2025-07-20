@@ -56,7 +56,9 @@ public class FeedbackService : IFeedbackService
                 MediaUrl = tr.MediaUrl,
                 CreatedAt = tr.CreatedAt,
                 IsActive = tr.IsActive,
-                
+                TourName = tr.Tour.Title,
+                UserName = tr.User.UserName,
+                UserEmail = tr.User.Email
             })
             .ToListAsync();
 
@@ -67,6 +69,43 @@ public class FeedbackService : IFeedbackService
             PageNumber = request.PageNumber,
             PageSize = request.PageSize,
             TotalPages = totalPages
+        };
+    }
+
+    public async Task<FeedbackListResponse> GetUserFeedbacksAsync(int userId)
+    {
+        var query = _context.TourRatings
+            .Include(tr => tr.Tour)
+            .Include(tr => tr.User)
+            .Where(tr => tr.UserId == userId && tr.IsActive);
+
+        var totalCount = await query.CountAsync();
+
+        var feedbacks = await query
+            .OrderByDescending(tr => tr.CreatedAt)
+            .Select(tr => new FeedbackResponse
+            {
+                RatingId = tr.RatingId,
+                TourId = tr.TourId,
+                UserId = tr.UserId,
+                Rating = tr.Rating,
+                Comment = tr.Comment,
+                MediaUrl = tr.MediaUrl,
+                CreatedAt = tr.CreatedAt,
+                IsActive = tr.IsActive,
+                TourName = tr.Tour.Title,
+                UserName = tr.User.UserName,
+                UserEmail = tr.User.Email
+            })
+            .ToListAsync();
+
+        return new FeedbackListResponse
+        {
+            Feedbacks = feedbacks,
+            TotalCount = totalCount,
+            PageNumber = 1,
+            PageSize = totalCount,
+            TotalPages = 1
         };
     }
 
@@ -86,7 +125,9 @@ public class FeedbackService : IFeedbackService
                 MediaUrl = tr.MediaUrl,
                 CreatedAt = tr.CreatedAt,
                 IsActive = tr.IsActive,
-               
+                TourName = tr.Tour.Title,
+                UserName = tr.User.UserName,
+                UserEmail = tr.User.Email
             })
             .FirstOrDefaultAsync();
 
@@ -145,7 +186,9 @@ public class FeedbackService : IFeedbackService
             MediaUrl = feedback.MediaUrl,
             CreatedAt = feedback.CreatedAt,
             IsActive = feedback.IsActive,
-            
+            TourName = tour.Title,
+            UserName = user.UserName,
+            UserEmail = user.Email
         };
     }
 
@@ -189,7 +232,9 @@ public class FeedbackService : IFeedbackService
             MediaUrl = feedback.MediaUrl,
             CreatedAt = feedback.CreatedAt,
             IsActive = feedback.IsActive,
-           
+            TourName = feedback.Tour.Title,
+            UserName = feedback.User.UserName,
+            UserEmail = feedback.User.Email
         };
     }
 

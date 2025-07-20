@@ -10,4 +10,7 @@ public interface IFeedbackService
     Task<FeedbackResponse> CreateFeedbackAsync(CreateFeedbackRequest request);
     Task<FeedbackResponse?> UpdateFeedbackAsync(int id, UpdateFeedbackRequest request);
     Task<bool> SoftDeleteFeedbackAsync(int id);
+    
+    // New method for user feedback
+    Task<FeedbackListResponse> GetUserFeedbacksAsync(int userId);
 } 

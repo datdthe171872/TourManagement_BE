@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using TourManagement_BE.Data.DTO.Request;
 using TourManagement_BE.Data.DTO.Response;
 using TourManagement_BE.Service;
+using TourManagement_BE.Helper.Common;
 
 namespace TourManagement_BE.Controllers;
 
@@ -10,10 +11,12 @@ namespace TourManagement_BE.Controllers;
 public class FeedbackController : ControllerBase
 {
     private readonly IFeedbackService _feedbackService;
+    private readonly JwtHelper _jwtHelper;
 
-    public FeedbackController(IFeedbackService feedbackService)
+    public FeedbackController(IFeedbackService feedbackService, JwtHelper jwtHelper)
     {
         _feedbackService = feedbackService;
+        _jwtHelper = jwtHelper;
     }
 
     /// <summary>
@@ -143,4 +146,40 @@ public class FeedbackController : ControllerBase
             return StatusCode(500, new { message = "Có lỗi xảy ra khi xóa feedback", error = ex.Message });
         }
     }
+
+    /// <summary>
+    /// Lấy tất cả feedback của user đã đăng nhập
+    /// </summary>
+    /// <returns>Danh sách feedback của user</returns>
+    [HttpGet("my-feedbacks")]
+    public async Task<IActionResult> GetMyFeedbacks()
+    {
+        try
+        {
+            var userId = _jwtHelper.GetUserIdFromToken(User);
+            if (userId == null || userId == 0)
+            {
+                return Unauthorized(new { message = "Token không hợp lệ hoặc đã hết hạn" });
+            }
+
+            var result = await _feedbackService.GetUserFeedbacksAsync(userId.Value);
+            if (result.Feedbacks == null || !result.Feedbacks.Any())
+            {
+                return Ok(new {
+                    message = "Bạn chưa có feedback nào.",
+                    data = result
+                });
+            }
+            return Ok(new {
+                message = "Lấy danh sách feedback thành công",
+                data = result
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Có lỗi xảy ra khi lấy danh sách feedback", error = ex.Message });
+        }
+    }
+
+
 } 

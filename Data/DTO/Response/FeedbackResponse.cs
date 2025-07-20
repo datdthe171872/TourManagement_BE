@@ -10,5 +10,9 @@ public class FeedbackResponse
     public string? MediaUrl { get; set; }
     public DateTime? CreatedAt { get; set; }
     public bool IsActive { get; set; }
-   
+    
+    // Additional info for display
+    public string? TourName { get; set; }
+    public string? UserName { get; set; }
+    public string? UserEmail { get; set; }
 } 

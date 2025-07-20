@@ -1,0 +1,45 @@
+### Test Feedback API - Updated Version
+
+### 1. Get All Feedbacks (with search and pagination)
+GET {{baseUrl}}/api/Feedback?pageNumber=1&pageSize=10
+Authorization: Bearer {{token}}
+
+### 2. Get Feedback by ID
+GET {{baseUrl}}/api/Feedback/1
+Authorization: Bearer {{token}}
+
+### 3. Create New Feedback
+POST {{baseUrl}}/api/Feedback
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "tourId": 1,
+  "userId": 1,
+  "rating": 5,
+  "comment": "Tour rất tuyệt vời! Hướng dẫn viên rất nhiệt tình.",
+  "mediaUrl": "https://example.com/feedback-image.jpg"
+}
+
+### 4. Update Feedback
+PUT {{baseUrl}}/api/Feedback/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "rating": 4,
+  "comment": "Tour tốt, nhưng có thể cải thiện thêm về dịch vụ.",
+  "mediaUrl": "https://example.com/updated-feedback-image.jpg"
+}
+
+### 5. Soft Delete Feedback
+DELETE {{baseUrl}}/api/Feedback/1
+Authorization: Bearer {{token}}
+
+### 6. Get My Feedbacks (NEW API - Get all feedbacks of logged-in user)
+GET {{baseUrl}}/api/Feedback/my-feedbacks
+Authorization: Bearer {{token}}
+
+### Variables
+@baseUrl = http://localhost:5298
+@token = YOUR_JWT_TOKEN_HERE 
