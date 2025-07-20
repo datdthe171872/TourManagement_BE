@@ -1,8 +1,9 @@
 ﻿using AutoMapper;
 using CloudinaryDotNet;
 using Microsoft.AspNetCore.Mvc;
+using TourManagement_BE.Data.Context;
 using TourManagement_BE.Data.DTO.Request.DepartureDatesRequest;
-using TourManagement_BE.Models;
+using TourManagement_BE.Data.Models;
 
 namespace TourManagement_BE.Controllers
 {

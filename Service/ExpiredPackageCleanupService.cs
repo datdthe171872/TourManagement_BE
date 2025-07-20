@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TourManagement_BE.Data;
-using TourManagement_BE.Models;
+using TourManagement_BE.Data.Context;
 
 namespace TourManagement_BE.Service
 {
