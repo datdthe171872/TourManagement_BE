@@ -40,4 +40,6 @@ public partial class User
     public virtual TourOperator? TourOperator { get; set; }
 
     public virtual ICollection<TourRating> TourRatings { get; set; } = new List<TourRating>();
+
+    public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 }

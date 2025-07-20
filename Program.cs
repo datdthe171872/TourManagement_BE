@@ -6,6 +6,7 @@ using Microsoft.OpenApi.Models;
 using System;
 using System.Text;
 using TourManagement_BE.Data.Context;
+using TourManagement_BE.Helper.Common;
 using TourManagement_BE.Mapping;
 using TourManagement_BE.Repository.Imple;
 using TourManagement_BE.Repository.Interface;
@@ -59,6 +60,18 @@ namespace TourManagement_BE
             builder.Services.AddScoped<IGuideNoteService, GuideNoteService>();
             builder.Services.AddScoped<IDashboardCustomerService, DashboardCustomerService>();
             builder.Services.AddScoped<IDashboardOperatorService, DashboardOperatorService>();
+            builder.Services.AddScoped<INotificationService, NotificationService>();
+            
+            // Register JwtHelper with configuration
+            builder.Services.AddScoped<JwtHelper>(provider =>
+            {
+                var configuration = provider.GetRequiredService<IConfiguration>();
+                return new JwtHelper(
+                    configuration["Jwt:SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey is missing"),
+                    configuration["Jwt:Issuer"] ?? throw new InvalidOperationException("JWT Issuer is missing"),
+                    configuration["Jwt:Audience"] ?? throw new InvalidOperationException("JWT Audience is missing")
+                );
+            });
 
             // Configure JWT Authentication
             var secretKey = builder.Configuration["Jwt:SecretKey"];

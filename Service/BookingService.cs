@@ -11,9 +11,12 @@ namespace TourManagement_BE.Service
     public class BookingService : IBookingService
     {
         private readonly MyDBContext _context;
-        public BookingService(MyDBContext context)
+        private readonly INotificationService _notificationService;
+
+        public BookingService(MyDBContext context, INotificationService notificationService)
         {
             _context = context;
+            _notificationService = notificationService;
         }
 
         public async Task<BookingListResponse> GetBookingsAsync(BookingSearchRequest request)
@@ -69,6 +72,10 @@ namespace TourManagement_BE.Service
             };
             _context.Bookings.Add(booking);
             await _context.SaveChangesAsync();
+
+            // Tạo notification khi booking thành công
+            await _notificationService.CreateBookingSuccessNotificationAsync(request.UserId, booking.BookingId);
+
             return new BookingResponse
             {
                 BookingId = booking.BookingId,

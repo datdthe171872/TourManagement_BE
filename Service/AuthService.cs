@@ -19,17 +19,16 @@ namespace TourManagement_BE.Service
         private readonly JwtHelper _jwtHelper;
         private readonly IConfiguration _configuration;
         private readonly MyDBContext _context;
+        private readonly INotificationService _notificationService;
 
-        public AuthService(IUserRepository userRepository, IMapper mapper, IConfiguration configuration, MyDBContext context)
+        public AuthService(IUserRepository userRepository, IMapper mapper, IConfiguration configuration, MyDBContext context, INotificationService notificationService, JwtHelper jwtHelper)
         {
             _userRepository = userRepository;
             _mapper = mapper;
             _configuration = configuration;
             _context = context;
-            _jwtHelper = new JwtHelper(
-                _configuration["Jwt:SecretKey"],
-                _configuration["Jwt:Issuer"],
-                _configuration["Jwt:Audience"]);
+            _notificationService = notificationService;
+            _jwtHelper = jwtHelper;
         }
 
         public async Task<LoginResponse> LoginAsync(LoginRequest request)
@@ -73,6 +72,9 @@ namespace TourManagement_BE.Service
 
             // Lấy lại userId vừa tạo
             var createdUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email && u.IsActive);
+
+            // Tạo notification khi đăng ký thành công
+            await _notificationService.CreateRegistrationSuccessNotificationAsync(createdUser.UserId);
 
             if (request.RoleName == Roles.TourGuide)
             {
