@@ -16,16 +16,14 @@ namespace TourManagement_BE.Repository.Interface
         public async Task<CheckSlotTourOperatorResponse?> CheckRemainingSlotsAsync(int tourOperatorId)
         {
             var activePackage = await _context.PurchasedServicePackages
-                .Where(p => p.TourOperatorId == tourOperatorId && p.EndDate > DateTime.UtcNow && p.IsActive)
+                .Where(p => p.TourOperatorId == tourOperatorId && p.IsActive) 
                 .OrderByDescending(p => p.ActivationDate)
                 .Select(u => new CheckSlotTourOperatorResponse
                 {
-                    PurchaseId = u.PackageId,
+                    PurchaseId = u.PurchaseId,
                     TourOperatorId = u.TourOperatorId,
                     PackageId = u.PackageId,
-                    MaxTour = u.Package.MaxTours,
-                    NumOfToursUsed = u.NumOfToursUsed,
-                    RemainingTours = u.Package.MaxTours - u.NumOfToursUsed,
+                    EndDate = u.EndDate 
                 })
                 .FirstOrDefaultAsync();
 

@@ -18,12 +18,6 @@
 
         public DateTime EndDate { get; set; }
 
-        public int? NumOfToursUsed { get; set; }
-
-        public int? MaxTour { get; set; }
-
-        public int? RemainingTours { get; set; }
-
         public bool IsActive { get; set; }
 
         public DateTime? CreatedAt { get; set; }

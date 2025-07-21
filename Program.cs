@@ -58,7 +58,6 @@ namespace TourManagement_BE
             builder.Services.AddScoped<IAccountRepository, AccountRepository>();
             //new checkslot
             builder.Services.AddScoped<ISlotCheckService, SlotCheckService>();
-            builder.Services.AddHostedService<ExpiredPackageCleanupService>();
             builder.Services.AddScoped<ITourOperatorService, TourOperatorService>();
             builder.Services.AddScoped<IFeedbackService, FeedbackService>();
             builder.Services.AddScoped<IBookingService, BookingService>();

@@ -26,15 +26,6 @@ namespace TourManagement_BE.Helper.Validator
                 .InclusiveBetween(0, 100)
                 .WithMessage("Phần trăm giảm giá phải từ 0 đến 100.")
                 .When(x => x.DiscountPercentage.HasValue);
-
-            RuleFor(x => x.DurationInYears)
-                .GreaterThanOrEqualTo(1)
-                .WithMessage("Thời gian sử dụng phải >= 1 năm.")
-                .When(x => x.DurationInYears.HasValue);
-
-            RuleFor(x => x.MaxTours)
-                .GreaterThan(0)
-                .WithMessage("Số lượng tour tối đa phải lớn hơn 0.");
         }
     }
 }

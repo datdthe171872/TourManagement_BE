@@ -42,12 +42,6 @@ namespace TourManagement_BE.Controllers
             return Ok(user);
         }
 
-        /*public async Task<IActionResult> ListAllAccount()
-        {
-            var result = await _account.ListAllAccount();
-            return Ok(result);
-        }*/
-
         [HttpGet("Search Account By Name or ID or Email")]
         public IActionResult SearchAccount(string? keyword)
         {

@@ -12,8 +12,6 @@
 
         public decimal? DiscountPercentage { get; set; }
 
-        public int? DurationInYears { get; set; }
-
         public int MaxTours { get; set; }
 
         public decimal TotalPrice { get; set; }
