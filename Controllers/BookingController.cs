@@ -37,15 +37,63 @@ namespace TourManagement_BE.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateBooking([FromBody] CreateBookingRequest request)
         {
-            var result = await _bookingService.CreateBookingAsync(request);
+            // Validate số lượng người > 0
+            if (request.NumberOfAdults < 0 || request.NumberOfChildren < 0 || request.NumberOfInfants < 0)
+                return BadRequest("Số lượng người không hợp lệ");
+            if (request.NumberOfAdults + request.NumberOfChildren + request.NumberOfInfants <= 0)
+                return BadRequest("Tổng số người phải lớn hơn 0");
+            // Lấy UserId từ token
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return Unauthorized("Không xác định được người dùng");
+            int userId = int.Parse(userIdClaim.Value);
+            var result = await _bookingService.CreateBookingAsync(request, userId);
             return Ok(result);
         }
 
-        [HttpPut]
-        public async Task<IActionResult> UpdateBooking([FromBody] UpdateBookingRequest request)
+        [HttpPut("customer-update")]
+        [Authorize(Roles = Roles.Customer)]
+        public async Task<IActionResult> UpdateBookingCustomer([FromBody] UpdateBookingCustomerRequest request)
         {
-            var result = await _bookingService.UpdateBookingAsync(request);
-            if (result == null) return NotFound();
+            var booking = await _bookingService.GetBookingByIdAsync(request.BookingId);
+            if (booking == null) return NotFound();
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return Unauthorized("Không xác định được người dùng");
+            int userId = int.Parse(userIdClaim.Value);
+            if (booking.UserId != userId)
+                return Forbid();
+            var updateRequest = new UpdateBookingRequest
+            {
+                BookingId = request.BookingId,
+                DepartureDateId = request.DepartureDateId,
+                NumberOfAdults = request.NumberOfAdults,
+                NumberOfChildren = request.NumberOfChildren,
+                NumberOfInfants = request.NumberOfInfants,
+                NoteForTour = request.NoteForTour
+            };
+            var result = await _bookingService.UpdateBookingAsync(updateRequest);
+            return Ok(result);
+        }
+
+        [HttpPut("operator-update")]
+        [Authorize(Roles = Roles.TourOperator)]
+        public async Task<IActionResult> UpdateBookingOperator([FromBody] UpdateBookingOperatorRequest request)
+        {
+            var booking = await _bookingService.GetBookingByIdAsync(request.BookingId);
+            if (booking == null) return NotFound();
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return Unauthorized("Không xác định được người dùng");
+            int userId = int.Parse(userIdClaim.Value);
+            if (booking.TourOperatorId != userId)
+                return Forbid();
+            var updateRequest = new UpdateBookingRequest
+            {
+                BookingId = request.BookingId,
+                Contract = request.Contract
+            };
+            var result = await _bookingService.UpdateBookingContractAsync(updateRequest);
             return Ok(result);
         }
 
@@ -60,27 +108,43 @@ namespace TourManagement_BE.Controllers
         // API 1: Get bookings for Customer (Customer role only)
         [HttpGet("customer")]
         [Authorize(Roles = Roles.Customer)]
-        public async Task<IActionResult> GetCustomerBookings([FromQuery] BookingSearchRequest request)
+        public async Task<IActionResult> GetCustomerBookings([FromQuery] BookingSearchCustomerRequest request)
         {
-            var result = await _bookingService.GetCustomerBookingsAsync(request);
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return Unauthorized("Không xác định được người dùng");
+            int userId = int.Parse(userIdClaim.Value);
+            var searchRequest = new BookingSearchRequest
+            {
+                Keyword = request.Keyword
+            };
+            var result = await _bookingService.GetCustomerBookingsAsync(searchRequest, userId);
             return Ok(result);
         }
 
         // API 2: Get bookings for Tour Operator (Tour Operator role only)
         [HttpGet("tour-operator")]
         [Authorize(Roles = Roles.TourOperator)]
-        public async Task<IActionResult> GetTourOperatorBookings([FromQuery] BookingSearchRequest request)
+        public async Task<IActionResult> GetTourOperatorBookings([FromQuery] BookingSearchTourOperatorRequest request)
         {
-            var result = await _bookingService.GetTourOperatorBookingsAsync(request);
+            var searchRequest = new BookingSearchRequest
+            {
+                Keyword = request.Keyword
+            };
+            var result = await _bookingService.GetTourOperatorBookingsAsync(searchRequest);
             return Ok(result);
         }
 
         // API 3: Get all bookings for Admin (Admin role only)
         [HttpGet("admin")]
         [Authorize(Roles = Roles.Admin)]
-        public async Task<IActionResult> GetAllBookingsForAdmin([FromQuery] BookingSearchRequest request)
+        public async Task<IActionResult> GetAllBookingsForAdmin([FromQuery] BookingSearchAdminRequest request)
         {
-            var result = await _bookingService.GetAllBookingsForAdminAsync(request);
+            var searchRequest = new BookingSearchRequest
+            {
+                Keyword = request.Keyword
+            };
+            var result = await _bookingService.GetAllBookingsForAdminAsync(searchRequest);
             return Ok(result);
         }
     }
