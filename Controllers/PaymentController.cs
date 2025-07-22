@@ -21,44 +21,185 @@ namespace TourManagement_BE.Controllers
         }
 
         [HttpGet("ViewAllUserPaymentHistory")]
-        public async Task<IActionResult> ViewAllUserPaymentHistory()
+        public async Task<IActionResult> ViewAllUserPaymentHistory(int pageNumber = 1, int pageSize = 10)
         {
-            var payment = await context.Payments.Where(u => u.User.Role.RoleName == "Customer")
-                .ProjectTo<ViewAllPaymentHistory>(_mapper.ConfigurationProvider).ToListAsync();
+            if (pageNumber <= 0) pageNumber = 1;
+            if (pageSize <= 0) pageSize = 10;
 
-            if (!payment.Any())
+            var query = context.Payments
+                .Where(u => u.User.Role.RoleName == "Customer");
+
+            var totalRecords = await query.CountAsync();
+
+            var data = await query
+                .OrderByDescending(p => p.PaymentDate)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ProjectTo<ViewAllPaymentHistory>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            if (!data.Any())
             {
-                return NotFound("Not Found.");
+                return NotFound("No payment history found.");
             }
 
-            return Ok(payment);
+            return Ok(new
+            {
+                TotalRecords = totalRecords,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
+                Data = data
+            });
+        }
+
+
+        [HttpGet("SearchAllUserPaymentHistory")]
+        public async Task<IActionResult> SearchAllUserPaymentHistory(string? keyword = "", int pageNumber = 1, int pageSize = 10)
+        {
+            if (pageNumber <= 0) pageNumber = 1;
+            if (pageSize <= 0) pageSize = 10;
+
+            var query = context.Payments
+                .Where(p => p.User.Role.RoleName == "Customer");
+
+            // Tìm kiếm theo tên
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                query = query.Where(p => p.User.UserName.Contains(keyword));
+            }
+
+            var totalRecords = await query.CountAsync();
+
+            var data = await query
+                .OrderByDescending(p => p.PaymentDate)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ProjectTo<ViewAllPaymentHistory>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            return Ok(new
+            {
+                TotalRecords = totalRecords,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
+                Data = data
+            });
         }
 
         [HttpGet("ViewAllTourOperatorPaymentHistory")]
-        public async Task<IActionResult> ViewAllTourOperatorPaymentHistory()
+        public async Task<IActionResult> ViewAllTourOperatorPaymentHistory(int pageNumber = 1, int pageSize = 10)
         {
-            var payment = await context.Payments.Where(u => u.User.Role.RoleName == "Tour Operator")
-                .ProjectTo<ViewAllPaymentHistory>(_mapper.ConfigurationProvider).ToListAsync();
+            if (pageNumber <= 0) pageNumber = 1;
+            if (pageSize <= 0) pageSize = 10;
 
-            if (!payment.Any())
-            {
-                return NotFound("Not Found.");
-            }
+            var query = context.PurchaseTransactions.AsQueryable();
 
-            return Ok(payment);
-        }
+            var totalRecords = await query.CountAsync();
 
-        [HttpGet("ViewPaymentPackageHistory/{tourOperatorId}")]
-        public IActionResult ViewPaymentPackageHistory(int tourOperatorId)
-        {
-            var history = context.PurchaseTransactions
-                .Where(p => p.TourOperatorId == tourOperatorId)
+            var payment = await query
                 .OrderByDescending(p => p.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .Select(p => new ViewHistoryPaymentPackageResponse
                 {
                     TransactionId = p.TransactionId,
                     TourOperatorId = p.TourOperatorId,
-                    TourOperatorName = p.TourOperator.User.UserName,                 
+                    TourOperatorName = p.TourOperator.User.UserName,
+                    PackageId = p.PackageId,
+                    PackageName = p.Package.Name,
+                    Amount = p.Amount,
+                    PaymentMethod = p.PaymentMethod,
+                    PaymentStatus = p.PaymentStatus,
+                    CreatedAt = p.CreatedAt,
+                    IsActive = p.IsActive,
+                }).ToListAsync();
+
+            if (!payment.Any())
+            {
+                return NotFound("Not Found.");
+            }
+
+            return Ok(new
+            {
+                TotalRecords = totalRecords,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
+                Data = payment
+            });
+        }
+
+
+
+        [HttpGet("SearchAllTourOperatorPaymentHistory")]
+        public async Task<IActionResult> SearchAllTourOperatorPaymentHistory(string? keyword = "", int pageNumber = 1, int pageSize = 10)
+        {
+            if (pageNumber <= 0) pageNumber = 1;
+            if (pageSize <= 0) pageSize = 10;
+
+            var query = context.PurchaseTransactions.AsQueryable();
+
+            // Tìm kiếm theo tên tour operator
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                query = query.Where(p => p.TourOperator.User.UserName.Contains(keyword));
+            }
+
+            var totalRecords = await query.CountAsync();
+
+            var data = await query
+                .OrderByDescending(p => p.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(p => new ViewHistoryPaymentPackageResponse
+                {
+                    TransactionId = p.TransactionId,
+                    TourOperatorId = p.TourOperatorId,
+                    TourOperatorName = p.TourOperator.User.UserName,
+                    PackageId = p.PackageId,
+                    PackageName = p.Package.Name,
+                    Amount = p.Amount,
+                    PaymentMethod = p.PaymentMethod,
+                    PaymentStatus = p.PaymentStatus,
+                    CreatedAt = p.CreatedAt,
+                    IsActive = p.IsActive
+                })
+                .ToListAsync();
+
+            return Ok(new
+            {
+                TotalRecords = totalRecords,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
+                Data = data
+            });
+        }
+
+
+
+        [HttpGet("ViewPaymentPackageHistory/{tourOperatorId}")]
+        public IActionResult ViewPaymentPackageHistory(int tourOperatorId, int pageNumber = 1, int pageSize = 10)
+        {
+            if (pageNumber <= 0) pageNumber = 1;
+            if (pageSize <= 0) pageSize = 10;
+
+            var query = context.PurchaseTransactions
+                .Where(p => p.TourOperatorId == tourOperatorId);
+
+            var totalRecords = query.Count();
+
+            var history = query
+                .OrderByDescending(p => p.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(p => new ViewHistoryPaymentPackageResponse
+                {
+                    TransactionId = p.TransactionId,
+                    TourOperatorId = p.TourOperatorId,
+                    TourOperatorName = p.TourOperator.User.UserName,
                     PackageId = p.PackageId,
                     PackageName = p.Package.Name,
                     Amount = p.Amount,
@@ -71,15 +212,31 @@ namespace TourManagement_BE.Controllers
             if (!history.Any())
                 return NotFound("No payment history found for this tour operator.");
 
-            return Ok(history);
+            return Ok(new
+            {
+                TotalRecords = totalRecords,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
+                Data = history
+            });
         }
 
         [HttpGet("ViewUserPaymentDetailHistory/{userId}")]
-        public IActionResult ViewUserPaymentDetailHistory(int userId)
+        public IActionResult ViewUserPaymentDetailHistory(int userId, int pageNumber = 1, int pageSize = 10)
         {
-            var payments = context.Payments
-                .Where(p => p.UserId == userId && p.IsActive)
+            if (pageNumber <= 0) pageNumber = 1;
+            if (pageSize <= 0) pageSize = 10;
+
+            var query = context.Payments
+                .Where(p => p.UserId == userId && p.IsActive);
+
+            var totalRecords = query.Count();
+
+            var payments = query
                 .OrderByDescending(p => p.PaymentDate)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .Select(p => new ViewPaymentResponse
                 {
                     PaymentId = p.PaymentId,
@@ -102,7 +259,14 @@ namespace TourManagement_BE.Controllers
                 return NotFound("No payment history found for this user.");
             }
 
-            return Ok(payments);
+            return Ok(new
+            {
+                TotalRecords = totalRecords,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
+                Data = payments
+            });
         }
 
     }

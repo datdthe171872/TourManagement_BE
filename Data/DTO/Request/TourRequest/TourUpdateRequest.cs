@@ -6,12 +6,18 @@ namespace TourManagement_BE.Data.DTO.Request.TourRequest
     public class TourUpdateRequest
     {
         public int TourId { get; set; }
+        
+        //public int TourOperatorId { get; set; }
 
         public string Title { get; set; } = null!;
 
         public string? Description { get; set; }
 
-        public decimal Price { get; set; }
+        public decimal PriceOfAdults { get; set; }
+
+        public decimal PriceOfChildren { get; set; }
+
+        public decimal PriceOfInfants { get; set; }
 
         public string DurationInDays { get; set; } = null!;
 
@@ -21,7 +27,7 @@ namespace TourManagement_BE.Data.DTO.Request.TourRequest
 
         public int MaxSlots { get; set; }
 
-        public string TourType { get; set; } = null!;
+        public int MinSlots { get; set; }
 
         public string? Note { get; set; }
 

@@ -23,28 +23,6 @@ namespace TourManagement_BE.Controllers
             this._cloudinary = cloudinary;
         }
 
-        /*[HttpPost("CreateTourItinerary")]
-        public async Task<IActionResult> CreateTourItinerary([FromForm] TourItineraryCreateRequest request)
-        {
-            var tour = await context.Tours.FindAsync(request.TourId);
-            if (tour == null)
-                return NotFound("Tour not found.");
-
-            var iti = new TourItinerary
-            {
-                DayNumber = request.DayNumber,
-                Title = request.Title,
-                Description = request.Description,
-                CreatedAt = DateTime.UtcNow.AddHours(7),
-                IsActive = true
-            };
-
-            tour.TourItineraries.Add(iti);
-            await context.SaveChangesAsync();
-
-            return Ok(new { message = "TourItinerary created successfully.", id = iti.ItineraryId });
-        }*/
-
         [HttpPost("CreateTourItinerary")]
         public async Task<IActionResult> CreateTourItinerary([FromForm] TourItineraryCreateRequest request)
         {
