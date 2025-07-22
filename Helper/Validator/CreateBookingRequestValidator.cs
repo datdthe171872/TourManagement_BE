@@ -7,9 +7,7 @@ namespace TourManagement_BE.Helper.Validator
     {
         public CreateBookingRequestValidator()
         {
-            RuleFor(x => x.UserId).GreaterThan(0);
             RuleFor(x => x.TourId).GreaterThan(0);
-            RuleFor(x => x.SelectedDepartureDate).NotEmpty();
         }
     }
 } 
