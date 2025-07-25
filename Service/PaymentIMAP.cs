@@ -17,6 +17,11 @@ class PaymentIMAP
 
     public static async Task Main(string[] args)
     {
+        await CheckEmailAndProcessPayment();
+    }
+
+    public static async Task CheckEmailAndProcessPayment()
+    {
         Console.OutputEncoding = System.Text.Encoding.UTF8;
         Console.WriteLine("🔄 Bắt đầu kiểm tra email...");
         Console.WriteLine($"⏱️ Thời gian bắt đầu: {DateTime.Now}");

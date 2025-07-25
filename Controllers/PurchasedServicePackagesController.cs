@@ -59,7 +59,6 @@ namespace TourManagement_BE.Controllers
 
             await context.SaveChangesAsync();
 
-            // Trả về cả transactionId và contentCode
             return Ok(new
             {
                 message = "Purchase successful",
@@ -98,26 +97,20 @@ namespace TourManagement_BE.Controllers
 
         public static string GenerateContentCode()
         {
-            const string prefix = "PKG"; // Luôn bắt đầu bằng PKG
+            const string prefix = "PKG"; 
             const int suffixLength = 5;
 
-            // Tạo phần suffix gồm 5 ký tự
             var suffix = new char[suffixLength];
-
-            // Đảm bảo có ít nhất 1 số
             suffix[0] = numbers[random.Next(numbers.Length)];
 
-            // Các ký tự còn lại có thể là số hoặc chữ
             var allChars = chars + numbers;
             for (int i = 1; i < suffixLength; i++)
             {
                 suffix[i] = allChars[random.Next(allChars.Length)];
             }
 
-            // Trộn các ký tự trong suffix (trừ ký tự đầu tiên đã là số)
             var shuffledSuffix = suffix.Skip(1).OrderBy(_ => random.Next()).ToArray();
 
-            // Kết hợp prefix + số đầu tiên + các ký tự đã trộn
             return prefix + suffix[0] + new string(shuffledSuffix);
         }
     }

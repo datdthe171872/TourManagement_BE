@@ -13,6 +13,7 @@ using TourManagement_BE.Repository.Interface;
 using TourManagement_BE.Service;
 using TourManagement_BE.Helper;
 using Microsoft.Extensions.Options;
+using TourManagement_BE.BackgroundServices;
 
 namespace TourManagement_BE
 {
@@ -66,7 +67,10 @@ namespace TourManagement_BE
             builder.Services.AddScoped<IDashboardCustomerService, DashboardCustomerService>();
             builder.Services.AddScoped<IDashboardOperatorService, DashboardOperatorService>();
             builder.Services.AddScoped<INotificationService, NotificationService>();
-            
+
+            //PaymentIMAP
+            builder.Services.AddHostedService<EmailPaymentBackgroundService>();
+
             // Register JwtHelper with configuration
             builder.Services.AddScoped<JwtHelper>(provider =>
             {
