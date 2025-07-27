@@ -7,11 +7,15 @@ public partial class GuideNote
 {
     public int NoteId { get; set; }
 
+    public int ReportId { get; set; }
+
     public int AssignmentId { get; set; }
 
     public string? Title { get; set; }
 
     public string? Content { get; set; }
+
+    public decimal? ExtraCost { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 
@@ -20,4 +24,6 @@ public partial class GuideNote
     public virtual TourGuideAssignment Assignment { get; set; } = null!;
 
     public virtual ICollection<GuideNoteMedia> GuideNoteMedia { get; set; } = new List<GuideNoteMedia>();
+
+    public virtual TourAcceptanceReport Report { get; set; } = null!;
 }

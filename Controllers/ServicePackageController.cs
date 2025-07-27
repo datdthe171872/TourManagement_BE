@@ -32,7 +32,7 @@ namespace TourManagement_BE.Controllers
                     Description = u.Description,
                     Price = u.Price,
                     DiscountPercentage = u.DiscountPercentage,
-                    MaxTours = u.MaxTours,
+                    //MaxTours = u.MaxTours,
                     TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
                     IsActive = u.IsActive,
                 });
@@ -61,7 +61,7 @@ namespace TourManagement_BE.Controllers
                     Description = u.Description,
                     Price = u.Price,
                     DiscountPercentage = u.DiscountPercentage,
-                    MaxTours = u.MaxTours,
+                    //MaxTours = u.MaxTours,
                     TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
                     IsActive = u.IsActive,
                 });
@@ -93,7 +93,7 @@ namespace TourManagement_BE.Controllers
                     Description = u.Description,
                     Price = u.Price,
                     DiscountPercentage = u.DiscountPercentage,
-                    MaxTours = u.MaxTours,
+                    //MaxTours = u.MaxTours,
                     TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
                     IsActive = true,
                 });
@@ -122,7 +122,7 @@ namespace TourManagement_BE.Controllers
                     Description = u.Description,
                     Price = u.Price,
                     DiscountPercentage = u.DiscountPercentage,
-                    MaxTours = u.MaxTours,
+                    //MaxTours = u.MaxTours,
                     TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
                     IsActive = true,
                 });
@@ -223,7 +223,7 @@ namespace TourManagement_BE.Controllers
                     Description = u.Description,
                     Price = u.Price,
                     DiscountPercentage = u.DiscountPercentage,
-                    MaxTours = u.MaxTours,
+                    //MaxTours = u.MaxTours,
                     TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
                     IsActive = u.IsActive,
                 })
