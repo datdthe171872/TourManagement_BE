@@ -33,9 +33,15 @@ namespace TourManagement_BE.Controllers
             if (tour == null)
                 return NotFound("Tour not found.");
 
-            int nextDayNumber = 1;
-            if (tour.TourItineraries.Any())
-                nextDayNumber = tour.TourItineraries.Max(i => i.DayNumber) + 1;
+            if (!int.TryParse(tour.DurationInDays, out var maxDays))
+                return BadRequest("DurationInDays của tour không hợp lệ.");
+
+            if (tour.TourItineraries.Count >= maxDays)
+                return BadRequest($"Tour đã đủ {maxDays} ngày lịch trình. Không thể thêm mới.");
+
+            int nextDayNumber = tour.TourItineraries.Any()
+                ? tour.TourItineraries.Max(i => i.DayNumber) + 1
+                : 1;
 
             var iti = new TourItinerary
             {
@@ -56,6 +62,7 @@ namespace TourManagement_BE.Controllers
                 dayNumber = iti.DayNumber
             });
         }
+
 
 
         [HttpDelete("SoftDeleteTourItinerary/{id}")]

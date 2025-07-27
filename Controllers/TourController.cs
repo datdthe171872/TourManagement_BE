@@ -34,10 +34,10 @@ namespace TourManagement_BE.Controllers
             _slotCheckService = slotCheckService;
         }
 
-        [HttpGet("listAllToursForTourOperator")]
-        public async Task<IActionResult> listAllToursForTourOperator()
+        [HttpGet("List All Tours For Tour Operator/{touroperatorid}")]
+        public async Task<IActionResult> listAllToursForTourOperator(int touroperatorid)
         {
-            var tours = await context.Tours
+            var tours = await context.Tours.Where(t => t.TourOperatorId == touroperatorid)
                 .ProjectTo<ListTourResponse>(_mapper.ConfigurationProvider)
                 .ToListAsync();
 
@@ -49,11 +49,20 @@ namespace TourManagement_BE.Controllers
             return Ok(tours);
         }
 
-        [HttpGet("listAllToursForUser")]
-        public async Task<IActionResult> listAllToursForUser()
+
+        [HttpGet("List All Tours For Tour Operator Paging/{touroperatorid}")]
+        public async Task<IActionResult> listAllToursForTourOperatorPaging(int touroperatorid, int pageNumber = 1, int pageSize = 10)
         {
-            var tours = await context.Tours
-                .ProjectTo<ListTourResponse>(_mapper.ConfigurationProvider).Where(t => t.IsActive == true)
+            if (pageNumber <= 0) pageNumber = 1;
+            if (pageSize <= 0) pageSize = 10;
+
+            var totalRecords = await context.Tours.CountAsync();
+
+            var tours = await context.Tours.Where(t => t.TourOperatorId == touroperatorid)
+                .OrderBy(t => t.TourId)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ProjectTo<ListTourResponse>(_mapper.ConfigurationProvider)
                 .ToListAsync();
 
             if (!tours.Any())
@@ -61,25 +70,6 @@ namespace TourManagement_BE.Controllers
                 return NotFound("Not Found.");
             }
 
-            return Ok(tours);
-        }
-
-
-        [HttpGet("listAllToursForUserPaging")]
-        public async Task<IActionResult> listAllToursForUserPaging(int pageNumber = 1, int pageSize = 10)
-        {
-            if (pageNumber <= 0) pageNumber = 1;
-            if (pageSize <= 0) pageSize = 10;
-
-            var totalRecords = await context.Tours.CountAsync();
-
-            var tours = await context.Tours
-                .OrderBy(t => t.TourId)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ProjectTo<ListTourResponse>(_mapper.ConfigurationProvider).Where(t => t.IsActive == true)
-                .ToListAsync();
-
             return Ok(new
             {
                 TotalRecords = totalRecords,
@@ -90,35 +80,10 @@ namespace TourManagement_BE.Controllers
             });
         }
 
-        [HttpGet("listAllToursForTourOperatorPaging")]
-        public async Task<IActionResult> listAllToursForTourOperatorPaging(int pageNumber = 1, int pageSize = 10)
+        [HttpGet("Search Tour By Name For Tour Operator/{touroperatorid}")]
+        public async Task<IActionResult> SearchTourForOperator(int touroperatorid, string? keyword)
         {
-            if (pageNumber <= 0) pageNumber = 1;
-            if (pageSize <= 0) pageSize = 10;
-
-            var totalRecords = await context.Tours.CountAsync();
-
-            var tours = await context.Tours
-                .OrderBy(t => t.TourId)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ProjectTo<ListTourResponse>(_mapper.ConfigurationProvider)
-                .ToListAsync();
-
-            return Ok(new
-            {
-                TotalRecords = totalRecords,
-                PageNumber = pageNumber,
-                PageSize = pageSize,
-                TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
-                Data = tours
-            });
-        }
-
-        [HttpGet("Search Tour By Name For Tour Operator")]
-        public async Task<IActionResult> SearchTourForOperator(string? keyword)
-        {
-            var query = context.Tours.AsQueryable();
+            var query = context.Tours.Where(t => t.TourOperatorId == touroperatorid).AsQueryable();
 
             if (!string.IsNullOrEmpty(keyword))
             {
@@ -138,13 +103,13 @@ namespace TourManagement_BE.Controllers
             return Ok(tours);
         }
 
-        [HttpGet("Search Tour Paging By Name For Tour Operator")]
-        public async Task<IActionResult> SearchTourPagingForOperator(string? keyword, int pageNumber = 1, int pageSize = 10)
+        [HttpGet("Search Tour Paging By Name For Tour Operator/{touroperatorid}")]
+        public async Task<IActionResult> SearchTourPagingForOperator(int touroperatorid, string? keyword, int pageNumber = 1, int pageSize = 10)
         {
             if (pageNumber <= 0) pageNumber = 1;
             if (pageSize <= 0) pageSize = 10;
 
-            var query = context.Tours.AsQueryable();
+            var query = context.Tours.Where(t => t.TourOperatorId == touroperatorid).AsQueryable();
 
             if (!string.IsNullOrEmpty(keyword))
             {
@@ -176,71 +141,9 @@ namespace TourManagement_BE.Controllers
             });
         }
 
-        [HttpGet("Search Tour By Name For User")]
-        public async Task<IActionResult> SearchTourForUser(string? keyword)
-        {
-            var query = context.Tours.AsQueryable();
-
-            if (!string.IsNullOrEmpty(keyword))
-            {
-                keyword = keyword.ToLower();
-                query = query.Where(u => u.Title.ToLower().Contains(keyword));
-            }
-
-            var tours = await query
-                .ProjectTo<ListTourResponse>(_mapper.ConfigurationProvider)
-                .ToListAsync();
-
-            if (!tours.Any())
-            {
-                return NotFound("No tours found.");
-            }
-
-            return Ok(tours);
-        }
-
-        [HttpGet("Search Tour Paging By Name For User")]
-        public async Task<IActionResult> SearchTourPagingForUser(string? keyword, int pageNumber = 1, int pageSize = 10)
-        {
-            if (pageNumber <= 0) pageNumber = 1;
-            if (pageSize <= 0) pageSize = 10;
-
-            var query = context.Tours.AsQueryable();
-
-            if (!string.IsNullOrEmpty(keyword))
-            {
-                keyword = keyword.ToLower();
-                query = query.Where(u => u.Title.ToLower().Contains(keyword));
-            }
-
-            var totalRecords = await query.CountAsync();
-
-            var tours = await query
-                .OrderBy(t => t.TourId)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ProjectTo<ListTourResponse>(_mapper.ConfigurationProvider)
-                .ToListAsync();
-
-            if (!tours.Any())
-            {
-                return NotFound("No tours found.");
-            }
-
-            return Ok(new
-            {
-                TotalRecords = totalRecords,
-                PageNumber = pageNumber,
-                PageSize = pageSize,
-                TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
-                Data = tours
-            });
-        }
-
-        [HttpGet("FilterToursPagingForOperator")]
-        public async Task<IActionResult> FilterToursPagingForOperator(
+        [HttpGet("Filter Tours Paging For Tour Operator/{touroperatorid}")]
+        public async Task<IActionResult> FilterToursPagingForOperator(int touroperatorid,
             string? title,
-            string? tourType,
             string? transportation,
             string? startPoint,
             decimal? minPrice,
@@ -249,7 +152,7 @@ namespace TourManagement_BE.Controllers
             int pageNumber = 1,
             int pageSize = 10)
         {
-            var query = context.Tours.AsQueryable();
+            var query = context.Tours.Where(t => t.TourOperatorId == touroperatorid).AsQueryable();
 
             if (!string.IsNullOrEmpty(title))
                 query = query.Where(t => t.Title.Contains(title));
@@ -298,17 +201,16 @@ namespace TourManagement_BE.Controllers
             });
         }
 
-        [HttpGet("FilterToursForOperattor")]
-        public async Task<IActionResult> FilterToursForOperattor(
+        [HttpGet("Filter Tours For Operator/{touroperatorid}")]
+        public async Task<IActionResult> FilterToursForOperattor(int touroperatorid,
             string? title,
-            string? tourType,
             string? transportation,
             string? startPoint,
             decimal? minPrice,
             decimal? maxPrice,
             [FromQuery] int[] ratings)
         {
-            var query = context.Tours.AsQueryable();
+            var query = context.Tours.Where(t => t.TourOperatorId == touroperatorid).AsQueryable();
 
             if (!string.IsNullOrEmpty(title))
                 query = query.Where(t => t.Title.Contains(title));
@@ -345,10 +247,131 @@ namespace TourManagement_BE.Controllers
             return Ok(result);
         }
 
-        [HttpGet("FilterToursPagingForCustomer")]
+        [HttpGet("Tour Detail For TourOperator/{tourid}")]
+        public async Task<IActionResult> TourDetailForTourOperator(int tourid)
+        {
+            var tour = await context.Tours
+                .Include(x => x.TourOperator).ThenInclude(op => op.User)
+                .Include(x => x.DepartureDates)
+                .Include(x => x.TourExperiences)
+                .Include(x => x.TourItineraries).ThenInclude(ti => ti.ItineraryMedia)
+                .Include(x => x.TourMedia)
+                .Include(x => x.TourRatings).ThenInclude(r => r.User)
+                .FirstOrDefaultAsync(t => t.TourId == tourid);
+
+            if (tour == null)
+            {
+                return NotFound("Tour not found.");
+            }
+            var result = _mapper.Map<TourDetailResponse>(tour);
+            return Ok(result);
+        }
+
+        [HttpGet("List All Tours For Customer")]
+        public async Task<IActionResult> listAllToursForUser()
+        {
+            var tours = await context.Tours
+                .ProjectTo<ListTourResponse>(_mapper.ConfigurationProvider).Where(t => t.IsActive == true)
+                .ToListAsync();
+
+            if (!tours.Any())
+            {
+                return NotFound("Not Found.");
+            }
+
+            return Ok(tours);
+        }
+
+
+        [HttpGet("List All Tours For Customer Paging")]
+        public async Task<IActionResult> listAllToursForUserPaging(int pageNumber = 1, int pageSize = 10)
+        {
+            if (pageNumber <= 0) pageNumber = 1;
+            if (pageSize <= 0) pageSize = 10;
+
+            var totalRecords = await context.Tours.CountAsync();
+
+            var tours = await context.Tours
+                .OrderBy(t => t.TourId)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ProjectTo<ListTourResponse>(_mapper.ConfigurationProvider).Where(t => t.IsActive == true)
+                .ToListAsync();
+
+            return Ok(new
+            {
+                TotalRecords = totalRecords,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
+                Data = tours
+            });
+        }
+
+        [HttpGet("Search Tour By Name For Customer")]
+        public async Task<IActionResult> SearchTourForUser(string? keyword)
+        {
+            var query = context.Tours.AsQueryable();
+
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                keyword = keyword.ToLower();
+                query = query.Where(u => u.Title.ToLower().Contains(keyword));
+            }
+
+            var tours = await query
+                .ProjectTo<ListTourResponse>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            if (!tours.Any())
+            {
+                return NotFound("No tours found.");
+            }
+
+            return Ok(tours);
+        }
+
+        [HttpGet("Search Tour Paging By Name For Customer")]
+        public async Task<IActionResult> SearchTourPagingForUser(string? keyword, int pageNumber = 1, int pageSize = 10)
+        {
+            if (pageNumber <= 0) pageNumber = 1;
+            if (pageSize <= 0) pageSize = 10;
+
+            var query = context.Tours.AsQueryable();
+
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                keyword = keyword.ToLower();
+                query = query.Where(u => u.Title.ToLower().Contains(keyword));
+            }
+
+            var totalRecords = await query.CountAsync();
+
+            var tours = await query
+                .OrderBy(t => t.TourId)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ProjectTo<ListTourResponse>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            if (!tours.Any())
+            {
+                return NotFound("No tours found.");
+            }
+
+            return Ok(new
+            {
+                TotalRecords = totalRecords,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
+                Data = tours
+            });
+        } 
+
+        [HttpGet("Filter Tours Paging For Customer")]
         public async Task<IActionResult> FilterToursPagingForCustomer(
             string? title,
-            string? tourType,
             string? transportation,
             string? startPoint,
             decimal? minPrice,
@@ -406,10 +429,9 @@ namespace TourManagement_BE.Controllers
             });
         }
 
-        [HttpGet("FilterToursForCustomer")]
+        [HttpGet("Filter Tours For Customer")]
         public async Task<IActionResult> FilterToursForCustomer(
             string? title,
-            string? tourType,
             string? transportation,
             string? startPoint,
             decimal? minPrice,
@@ -453,8 +475,8 @@ namespace TourManagement_BE.Controllers
             return Ok(result);
         }
 
-        [HttpGet("TourDetail/{tourid}")]
-        public async Task<IActionResult> TourDetail(int tourid)
+        [HttpGet("Tour Detail For Customer/{tourid}")]
+        public async Task<IActionResult> TourDetailForCustomer(int tourid)
         {
             var tour = await context.Tours
                 .Include(x => x.TourOperator).ThenInclude(op => op.User)
@@ -463,17 +485,24 @@ namespace TourManagement_BE.Controllers
                 .Include(x => x.TourItineraries).ThenInclude(ti => ti.ItineraryMedia)
                 .Include(x => x.TourMedia)
                 .Include(x => x.TourRatings).ThenInclude(r => r.User)
+                .Where(t => t.IsActive == true)
                 .FirstOrDefaultAsync(t => t.TourId == tourid);
 
             if (tour == null)
             {
                 return NotFound("Tour not found.");
             }
+
+            var today = DateTime.UtcNow.AddHours(7).Date;
+            tour.DepartureDates = tour.DepartureDates
+                .Where(d => d.DepartureDate1.Date > today && d.IsActive)
+                .ToList();
+
             var result = _mapper.Map<TourDetailResponse>(tour);
             return Ok(result);
         }
 
-        [HttpPost("CreateTour")]
+        [HttpPost("Create Tour")]
         public async Task<IActionResult> CreateTour([FromForm] TourCreateRequest request)
         {
 
@@ -701,7 +730,8 @@ namespace TourManagement_BE.Controllers
             tour.TourStatus = request.TourStatus;
             tour.IsActive = request.IsActive;
 
-            if (request.DepartureDates != null)
+            // Update DepartureDates
+            /*if (request.DepartureDates != null)
             {
                 foreach (var d in request.DepartureDates)
                 {
@@ -719,6 +749,50 @@ namespace TourManagement_BE.Controllers
                     {
                         return BadRequest($"DepartureDate with ID {d.Id} not exist.");
                     }
+                }
+            }*/
+
+            if (request.DepartureDates != null)
+            {
+                var today = DateTime.UtcNow.AddHours(7).Date;
+
+                foreach (var d in request.DepartureDates)
+                {
+                    var existing = tour.DepartureDates.FirstOrDefault(x => x.Id == d.Id);
+                    if (existing == null)
+                    {
+                        return BadRequest($"DepartureDate with ID {d.Id} not exist.");
+                    }
+
+                    if (existing.DepartureDate1.Date < today)
+                    {
+                        return BadRequest($"DepartureDate ID {d.Id} is in the past. You cannot update it.");
+                    }
+
+
+                    var hasActiveBooking = await context.Bookings
+                        .AnyAsync(b => b.DepartureDateId == existing.Id && b.BookingStatus != "Cancelled");
+
+                    if (hasActiveBooking)
+                    {
+                        return BadRequest($"DepartureDate ID {d.Id} already has active bookings. You cannot update it.");
+                    }
+
+                    if (d.DepartureDate1.Date <= today)
+                    {
+                        return BadRequest($"The new departure date of ID {d.Id} must be greater than today.");
+                    }
+
+                    var isDuplicated = tour.DepartureDates.Any(x => x.Id != d.Id
+                                                                 && x.IsActive
+                                                                 && x.DepartureDate1.Date == d.DepartureDate1.Date);
+                    if (isDuplicated)
+                    {
+                        return BadRequest($"DepartureDate {d.DepartureDate1:yyyy-MM-dd} already exists in this tour.");
+                    }
+
+                    existing.DepartureDate1 = d.DepartureDate1;
+                    existing.IsActive = d.IsActive;
                 }
             }
 
@@ -877,7 +951,7 @@ namespace TourManagement_BE.Controllers
             var tour = await context.Tours.FindAsync(tourid);
             if (tour == null)
             {
-                return NotFound("Tour package not found.");
+                return NotFound("Tour not found.");
             }
 
             if (!tour.IsActive)

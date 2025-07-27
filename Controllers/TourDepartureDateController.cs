@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using CloudinaryDotNet;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TourManagement_BE.Data.Context;
 using TourManagement_BE.Data.DTO.Request.DepartureDatesRequest;
 using TourManagement_BE.Data.Models;
@@ -25,18 +26,30 @@ namespace TourManagement_BE.Controllers
         [HttpPost("CreateDepartureDate")]
         public async Task<IActionResult> CreateDepartureDate([FromBody] CreateDepartureDate request)
         {
-            var tour = await context.Tours.FindAsync(request.TourId);
+            var tour = await context.Tours
+                .Include(t => t.DepartureDates)
+                .FirstOrDefaultAsync(t => t.TourId == request.TourId);
+
             if (tour == null)
                 return NotFound("Tour not found.");
 
-            if (request.DepartureDate1.Date < DateTime.UtcNow.AddHours(7).Date)
-                return BadRequest("Departure date cannot be in the past.");
+            var today = DateTime.UtcNow.AddHours(7).Date;
+
+            if (request.DepartureDate1.Date <= today)
+                return BadRequest("Departure date must be greater than today.");
+
+            if (tour.DepartureDates.Any(d => d.IsActive
+                                          && d.DepartureDate1.Date == request.DepartureDate1.Date))
+            {
+                return BadRequest("Departure date already exists for this tour.");
+            }
 
             var dep = new DepartureDate
             {
                 DepartureDate1 = request.DepartureDate1,
                 IsActive = true
             };
+
             tour.DepartureDates.Add(dep);
             await context.SaveChangesAsync();
 
@@ -46,9 +59,23 @@ namespace TourManagement_BE.Controllers
         [HttpDelete("SoftDeleteDepartureDate/{id}")]
         public async Task<IActionResult> SoftDeleteDepartureDate(int id)
         {
-            var dep = await context.DepartureDates.FindAsync(id);
+            var dep = await context.DepartureDates
+                .Include(d => d.Bookings)
+                .FirstOrDefaultAsync(d => d.Id == id);
+
             if (dep == null)
                 return NotFound("DepartureDate not found.");
+
+            var today = DateTime.UtcNow.AddHours(7).Date;
+
+            // 1) Không cho xoá nếu ngày đã qua
+            if (dep.DepartureDate1.Date < today)
+                return BadRequest("Cannot delete a departure date in the past.");
+
+            // 2) Không cho xoá nếu đã có booking còn hiệu lực
+            var hasActiveBooking = dep.Bookings.Any(b => b.BookingStatus != "Cancelled");
+            if (hasActiveBooking)
+                return BadRequest("This departure date already has bookings. You cannot delete it.");
 
             dep.IsActive = false;
             await context.SaveChangesAsync();
