@@ -1,0 +1,39 @@
+### DepartureDates API Tests
+
+### 0. Test thông tin user (để kiểm tra role)
+GET {{baseUrl}}/api/DepartureDates/test-user-info
+Authorization: Bearer {{token}}
+
+### 0.1. Test logic UserId → TourOperatorId → TourIds → DepartureDates
+GET {{baseUrl}}/api/DepartureDates/test-operator-logic
+Authorization: Bearer {{token}}
+
+### 1. Tạo ngày khởi hành cho tour (POST)
+POST {{baseUrl}}/api/DepartureDates
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "tourId": 1,
+  "startDate": "2024-02-01T00:00:00"
+}
+
+### 2. Lấy tất cả ngày khởi hành (GET)
+GET {{baseUrl}}/api/DepartureDates
+Authorization: Bearer {{token}}
+
+### 3. Lấy ngày khởi hành theo TourId (GET)
+GET {{baseUrl}}/api/DepartureDates/tour/1
+Authorization: Bearer {{token}}
+
+### 4. Lấy tất cả ngày khởi hành của TourOperator hiện tại (GET)
+GET {{baseUrl}}/api/DepartureDates/operator
+Authorization: Bearer {{token}}
+
+### 5. Lấy ngày khởi hành với booking cho TourOperator hiện tại (GET)
+GET {{baseUrl}}/api/DepartureDates/operator/with-bookings
+Authorization: Bearer {{token}}
+
+### Variables
+@baseUrl = https://localhost:7001
+@token = your_jwt_token_here 

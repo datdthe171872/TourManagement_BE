@@ -8,13 +8,15 @@ namespace TourManagement_BE.Service
     public interface IBookingService
     {
         Task<BookingListResponse> GetBookingsAsync(BookingSearchRequest request);
-        Task<BookingResponse> CreateBookingAsync(CreateBookingRequest request);
+        Task<BookingResponse> CreateBookingAsync(CreateBookingRequest request, int userId);
         Task<BookingResponse> UpdateBookingAsync(UpdateBookingRequest request);
         Task<bool> SoftDeleteBookingAsync(int bookingId, int userId);
         
         // New methods for role-based booking retrieval
-        Task<BookingListResponse> GetCustomerBookingsAsync(BookingSearchRequest request);
-        Task<BookingListResponse> GetTourOperatorBookingsAsync(BookingSearchRequest request);
+        Task<BookingListResponse> GetCustomerBookingsAsync(BookingSearchRequest request, int userId);
+        Task<BookingListResponse> GetTourOperatorBookingsAsync(BookingSearchRequest request, int userId);
         Task<BookingListResponse> GetAllBookingsForAdminAsync(BookingSearchRequest request);
+        Task<BookingResponse> GetBookingByIdAsync(int bookingId);
+        Task<BookingResponse> UpdateBookingContractAsync(UpdateBookingRequest request);
     }
 } 

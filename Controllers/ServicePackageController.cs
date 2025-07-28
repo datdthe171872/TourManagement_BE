@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TourManagement_BE.Data.Context;
 using TourManagement_BE.Data.DTO.Request.ServicePackageRequest;
 using TourManagement_BE.Data.DTO.Response.PaymentResponse;
 using TourManagement_BE.Data.DTO.Response.ServicePackage;
+using TourManagement_BE.Data.Models;
 using TourManagement_BE.Mapping.ServiceMapping;
 
 namespace TourManagement_BE.Controllers
@@ -32,10 +34,18 @@ namespace TourManagement_BE.Controllers
                     Description = u.Description,
                     Price = u.Price,
                     DiscountPercentage = u.DiscountPercentage,
-                    MaxTours = u.MaxTours,
                     TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
                     IsActive = u.IsActive,
-                });
+                    ServicePackageFeaturesResponses = u.ServicePackageFeatures.Where(f => f.IsActive)
+                        .Select(f => new ServicePackageFeaturesResponse
+                        {
+                            FeatureId = f.FeatureId,
+                            PackageId = f.PackageId,
+                            FeatureName = f.FeatureName,
+                            FeatureValue = f.FeatureValue,
+                            IsActive = f.IsActive
+                        }).ToList()
+                }).ToList();
 
             if (!services.Any())
             {
@@ -61,10 +71,18 @@ namespace TourManagement_BE.Controllers
                     Description = u.Description,
                     Price = u.Price,
                     DiscountPercentage = u.DiscountPercentage,
-                    MaxTours = u.MaxTours,
                     TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
                     IsActive = u.IsActive,
-                });
+                    ServicePackageFeaturesResponses = u.ServicePackageFeatures.Where(f => f.IsActive)
+                        .Select(f => new ServicePackageFeaturesResponse
+                        {
+                            FeatureId = f.FeatureId,
+                            PackageId = f.PackageId,
+                            FeatureName = f.FeatureName,
+                            FeatureValue = f.FeatureValue,
+                            IsActive = f.IsActive
+                        }).ToList()
+                }).ToList();
 
             if (!services.Any())
             {
@@ -85,7 +103,7 @@ namespace TourManagement_BE.Controllers
         [HttpGet("ListAllServicePackageForCustomer")]
         public IActionResult ListAllServicePackageForCustomer()
         {
-            var services = context.ServicePackages.Where(u => u.IsActive == true).
+            var services = context.ServicePackages.
                 Select(u => new ListServicePackageResponse
                 {
                     PackageId = u.PackageId,
@@ -93,10 +111,19 @@ namespace TourManagement_BE.Controllers
                     Description = u.Description,
                     Price = u.Price,
                     DiscountPercentage = u.DiscountPercentage,
-                    MaxTours = u.MaxTours,
                     TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
                     IsActive = true,
-                });
+                    ServicePackageFeaturesResponses = u.ServicePackageFeatures.Where(f => f.IsActive)
+                        .Select(f => new ServicePackageFeaturesResponse
+                        {
+                            FeatureId = f.FeatureId,
+                            PackageId = f.PackageId,
+                            FeatureName = f.FeatureName,
+                            FeatureValue = f.FeatureValue,
+                            IsActive = true
+                        }).ToList()
+                }).ToList();
+
 
             if (!services.Any())
             {
@@ -114,7 +141,7 @@ namespace TourManagement_BE.Controllers
 
             var totalRecords = context.ServicePackages.Count();
 
-            var services = context.ServicePackages.Where(u => u.IsActive == true).
+            var services = context.ServicePackages.
                 Select(u => new ListServicePackageResponse
                 {
                     PackageId = u.PackageId,
@@ -122,10 +149,18 @@ namespace TourManagement_BE.Controllers
                     Description = u.Description,
                     Price = u.Price,
                     DiscountPercentage = u.DiscountPercentage,
-                    MaxTours = u.MaxTours,
                     TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
                     IsActive = true,
-                });
+                    ServicePackageFeaturesResponses = u.ServicePackageFeatures.Where(f => f.IsActive)
+                        .Select(f => new ServicePackageFeaturesResponse
+                        {
+                            FeatureId = f.FeatureId,
+                            PackageId = f.PackageId,
+                            FeatureName = f.FeatureName,
+                            FeatureValue = f.FeatureValue,
+                            IsActive = true
+                        }).ToList()
+                }).ToList();
 
             if (!services.Any())
             {
@@ -159,6 +194,47 @@ namespace TourManagement_BE.Controllers
             }
         }
 
+        [HttpPost("AddServicePackageFeature")]
+        public async Task<IActionResult> AddServicePackageFeature([FromBody] AddServicePackageFeatureRequest request)
+        {
+            try
+            {
+                var packageExists = await context.ServicePackages
+                    .AnyAsync(p => p.PackageId == request.PackageId);
+
+                if (!packageExists)
+                {
+                    return NotFound(new { Message = $"ServicePackage with ID {request.PackageId} not found" });
+                }
+
+                var newFeature = new ServicePackageFeature
+                {
+                    PackageId = request.PackageId,
+                    FeatureName = request.FeatureName,
+                    FeatureValue = request.FeatureValue,
+                    IsActive = request.IsActive
+                };
+
+                context.ServicePackageFeatures.Add(newFeature);
+                await context.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    Message = "ServicePackageFeature added successfully",
+                    FeatureId = newFeature.FeatureId,
+                    PackageId = newFeature.PackageId
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    Message = "Failed to add ServicePackageFeature",
+                    Error = ex.Message
+                });
+            }
+        }
+
         [HttpPut("UpdateServicePackage")]
         public async Task<IActionResult> UpdateServicePackage([FromBody] UpdateServicePackageRequest request)
         {
@@ -188,6 +264,58 @@ namespace TourManagement_BE.Controllers
             return Ok(new { message = "Service package updated successfully." });
         }
 
+        [HttpPut("UpdateServicePackageFeature")]
+        public async Task<IActionResult> UpdateServicePackageFeature([FromBody] UpdateServicePackageFeatureRequest request)
+        {
+            try
+            { 
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+                var feature = await context.ServicePackageFeatures
+                    .FirstOrDefaultAsync(f => f.FeatureId == request.FeatureId);
+
+                if (feature == null)
+                {
+                    return NotFound(new { Message = $"Feature with ID {request.FeatureId} not found" });
+                }
+
+                var duplicateFeature = await context.ServicePackageFeatures
+                    .AnyAsync(f => f.PackageId == feature.PackageId &&
+                                  f.FeatureName == request.FeatureName &&
+                                  f.FeatureId != request.FeatureId);
+
+                if (duplicateFeature)
+                {
+                    return Conflict(new { Message = "Feature with this name already exists for this package" });
+                }
+
+                feature.FeatureName = request.FeatureName.Trim();
+                feature.FeatureValue = request.FeatureValue.Trim();
+                feature.IsActive = request.IsActive;
+
+                context.ServicePackageFeatures.Update(feature);
+                await context.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    Message = "Feature updated successfully",
+                    FeatureId = feature.FeatureId,
+                    PackageId = feature.PackageId
+                });
+            }
+            catch (Exception ex)
+            {
+                // Ghi log lỗi ở đây
+                return StatusCode(500, new
+                {
+                    Message = "Failed to update feature",
+                    Error = ex.Message
+                });
+            }
+        }
+
         [HttpPatch("ToggleServicePackageStatus/{packageId}")]
         public async Task<IActionResult> ToggleServicePackageStatus(int packageId)
         {
@@ -210,9 +338,30 @@ namespace TourManagement_BE.Controllers
             });
         }
 
+        [HttpPatch("ToggleServicePackageFeatureStatus/{packageId}")]
+        public async Task<IActionResult> ToggleServicePackageFeatureStatus(int featureid)
+        {
+            var service = await context.ServicePackageFeatures.FindAsync(featureid);
+            if (service == null)
+            {
+                return NotFound("Service package feature not found.");
+            }
 
-        [HttpGet("ViewDetailPackageService/{packageid}")]
-        public IActionResult ViewDetailPackageService(int packageid)
+            service.IsActive = !service.IsActive;
+
+            await context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = $"Service package has been {(service.IsActive ? "activated" : "deactivated")}",
+                featureid = featureid,
+                newStatus = service.IsActive
+            });
+        }
+
+
+        [HttpGet("ViewDetailPackageServiceForCustomer/{packageid}")]
+        public IActionResult ViewDetailPackageServicForCustomere(int packageid)
         {
             var services = context.ServicePackages
                 .Where(u => u.PackageId == packageid)
@@ -223,9 +372,51 @@ namespace TourManagement_BE.Controllers
                     Description = u.Description,
                     Price = u.Price,
                     DiscountPercentage = u.DiscountPercentage,
-                    MaxTours = u.MaxTours,
+                    TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
+                    IsActive = true,
+                    ServicePackageFeaturesResponses = u.ServicePackageFeatures.Where(f => f.IsActive)
+                        .Select(f => new ServicePackageFeaturesResponse
+                        {
+                            FeatureId = f.FeatureId,
+                            PackageId = f.PackageId,
+                            FeatureName = f.FeatureName,
+                            FeatureValue = f.FeatureValue,
+                            IsActive = true
+                        }).ToList()
+                })
+                .FirstOrDefault();
+
+            if (services == null)
+            {
+                return NotFound("Not found.");
+            }
+
+            return Ok(services);
+        }
+
+        [HttpGet("ViewDetailPackageServiceForAdmin/{packageid}")]
+        public IActionResult ViewDetailPackageServiceForAdmin(int packageid)
+        {
+            var services = context.ServicePackages
+                .Where(u => u.PackageId == packageid)
+                .Select(u => new ListServicePackageResponse
+                {
+                    PackageId = u.PackageId,
+                    Name = u.Name,
+                    Description = u.Description,
+                    Price = u.Price,
+                    DiscountPercentage = u.DiscountPercentage,
                     TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
                     IsActive = u.IsActive,
+                    ServicePackageFeaturesResponses = u.ServicePackageFeatures.Where(f => f.IsActive)
+                        .Select(f => new ServicePackageFeaturesResponse
+                        {
+                            FeatureId = f.FeatureId,
+                            PackageId = f.PackageId,
+                            FeatureName = f.FeatureName,
+                            FeatureValue = f.FeatureValue,
+                            IsActive = f.IsActive
+                        }).ToList()
                 })
                 .FirstOrDefault();
 

@@ -13,8 +13,6 @@ public partial class TourAcceptanceReport
 
     public DateTime? ReportDate { get; set; }
 
-    public string? Summary { get; set; }
-
     public decimal? TotalExtraCost { get; set; }
 
     public string? Notes { get; set; }
@@ -24,6 +22,8 @@ public partial class TourAcceptanceReport
     public bool IsActive { get; set; }
 
     public virtual Booking Booking { get; set; } = null!;
+
+    public virtual ICollection<GuideNote> GuideNotes { get; set; } = new List<GuideNote>();
 
     public virtual TourGuide TourGuide { get; set; } = null!;
 }

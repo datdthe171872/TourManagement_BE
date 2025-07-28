@@ -4,34 +4,34 @@
 @baseUrl = https://localhost:7001
 @authToken = your_jwt_token_here
 
-### 1. Get Customer Bookings (search by keyword)
+### 1. Get Customer Bookings (search by Tour Name)
 # Role: Customer
-# Description: Get all bookings for the authenticated customer, search by keyword (user name, tour title, company name)
-GET {{baseUrl}}/api/booking/customer?keyword=Hạ%20Long
+# Description: Get all bookings for the authenticated customer, search by tour name
+GET {{baseUrl}}/api/booking/customer?TourName=Hạ%20Long
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 ###
 
-### 2. Get Tour Operator Bookings (search by keyword)
+### 2. Get Tour Operator Bookings (search by Tour Name and User Name)
 # Role: Tour Operator
-# Description: Get all bookings for tours created by the authenticated tour operator, search by keyword
-GET {{baseUrl}}/api/booking/tour-operator?keyword=Nguyen
+# Description: Get all bookings for tours created by the authenticated tour operator, search by tour name and user name
+GET {{baseUrl}}/api/booking/tour-operator?TourName=Hạ%20Long&UserName=Nguyen
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 ###
 
-### 3. Get All Bookings (Admin, search by keyword)
+### 3. Get All Bookings (Admin, search by Tour Name and User Name)
 # Role: Admin
-# Description: Get all bookings in the system, search by keyword
-GET {{baseUrl}}/api/booking/admin?keyword=Travel%20Viet
+# Description: Get all bookings in the system, search by tour name and user name
+GET {{baseUrl}}/api/booking/admin?TourName=Travel%20Viet&UserName=John
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 ###
 
-### 4. Get Bookings (no keyword, all results for role)
+### 4. Get Bookings (no search parameters, all results for role)
 # Description: Get all bookings for the role (no search)
 GET {{baseUrl}}/api/booking/customer
 Authorization: Bearer {{authToken}}
@@ -43,11 +43,11 @@ Content-Type: application/json
 
 1. **Replace the auth token**: Replace `your_jwt_token_here` with a valid JWT token obtained from login
 2. **Test by role**: 
-   - Use endpoint 1 for Customer role (search by keyword)
-   - Use endpoint 2 for Tour Operator role (search by keyword)
-   - Use endpoint 3 for Admin role (search by keyword)
+   - Use endpoint 1 for Customer role (search by Tour Name only)
+   - Use endpoint 2 for Tour Operator role (search by Tour Name and/or User Name)
+   - Use endpoint 3 for Admin role (search by Tour Name and/or User Name)
 3. **Expected responses**:
-   - 200 OK: Successful retrieval
+   - 200 OK: Successful retrieval with UserName and TourTitle in response
    - 401 Unauthorized: Invalid or missing token
    - 403 Forbidden: Wrong role for the endpoint
    - 404 Not Found: Tour Operator not found (for tour operator endpoint)
@@ -57,7 +57,8 @@ Content-Type: application/json
 - All endpoints require authentication
 - Role-based access is enforced
 - Only active bookings are returned
-- Customer can only see their own bookings
-- Tour Operator can only see bookings for their tours
-- Admin can see all bookings
-- The search is case-insensitive and matches any part of the name/title/company. 
+- Customer can only see their own bookings and search by Tour Name
+- Tour Operator can only see bookings for their tours and search by Tour Name and User Name
+- Admin can see all bookings and search by Tour Name and User Name
+- The search is case-insensitive and matches any part of the name/title
+- All responses include UserName and TourTitle fields 

@@ -36,10 +36,10 @@ namespace TourManagement_BE.Controllers
                 TotalRevenue = g.Sum(x => x.Amount),
                 Count = g.Count()
             })
-            .AsEnumerable() // Từ đây chuyển sang xử lý bằng LINQ to Objects
+            .AsEnumerable() 
             .Select(g => new ServicePackageStatisticsResponse
             {
-                Month = $"{g.Year}-{g.MonthNum:D2}", // tạo chuỗi ở đây bằng C#
+                Month = $"{g.Year}-{g.MonthNum:D2}", 
                 TotalRevenue = g.TotalRevenue,
                 PurchaseCount = g.Count
             })

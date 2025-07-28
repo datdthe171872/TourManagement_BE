@@ -7,16 +7,29 @@ namespace TourManagement_BE.Mapping.ServiceMapping
     {
         public static ServicePackage? ToDto(this CreateServicePackageRequest u)
         {
-            return new ServicePackage
+            var servicePackage = new ServicePackage
             {
                 Name = u.Name,
                 Description = u.Description,
                 Price = u.Price,
+                DurationInDay = u.DurationInDay, 
                 DiscountPercentage = u.DiscountPercentage,
-                MaxTours = 10000,
-                IsActive = u.IsActive,
-
+                IsActive = true,
+                ServicePackageFeatures = new List<ServicePackageFeature>()
             };
+
+            foreach (var featureRequest in u.ServicePackageFeaturesRequests)
+            {
+                servicePackage.ServicePackageFeatures.Add(new ServicePackageFeature
+                {
+                    FeatureName = featureRequest.FeatureName,
+                    FeatureValue = featureRequest.FeatureValue,
+                    IsActive = true,
+                    Package = servicePackage 
+                });
+            }
+
+            return servicePackage;
         }
     }
 }
