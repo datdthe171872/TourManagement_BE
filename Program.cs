@@ -46,8 +46,7 @@ namespace TourManagement_BE
                 fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.UpdateTourOperatorRequestValidator>();
                 fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.CreateBookingRequestValidator>();
                 fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.UpdateBookingRequestValidator>();
-                fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.CreateExtraChargeRequestValidator>();
-                fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.UpdateExtraChargeRequestValidator>();
+              
                 fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.CreateDepartureDateRequestValidator>();
             });
            
