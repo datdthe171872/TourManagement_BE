@@ -360,10 +360,20 @@ public partial class MyDBContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Purchased__Trans__503BEA1C");
         });
-        modelBuilder.Entity<ResetPasswordToken>()
-            .HasOne(r => r.User)
-            .WithMany() 
-            .HasForeignKey(r => r.UserId);
+        modelBuilder.Entity<ResetPasswordToken>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__ResetPas__3214EC07ABCD1234");
+
+            entity.Property(e => e.Token).HasMaxLength(255);
+            entity.Property(e => e.ExpiryDate).HasColumnType("datetime");
+            entity.Property(e => e.IsUsed).HasDefaultValue(false);
+
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.ResetPasswordTokens)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK__ResetPass__UserI__12345678");
+        });
         modelBuilder.Entity<Role>(entity =>
         {
             entity.HasKey(e => e.RoleId).HasName("PK__Roles__8AFACE1A793714B3");

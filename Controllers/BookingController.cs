@@ -116,7 +116,7 @@ namespace TourManagement_BE.Controllers
             int userId = int.Parse(userIdClaim.Value);
             var searchRequest = new BookingSearchRequest
             {
-                Keyword = request.Keyword
+                TourName = request.TourName
             };
             var result = await _bookingService.GetCustomerBookingsAsync(searchRequest, userId);
             return Ok(result);
@@ -127,11 +127,17 @@ namespace TourManagement_BE.Controllers
         [Authorize(Roles = Roles.TourOperator)]
         public async Task<IActionResult> GetTourOperatorBookings([FromQuery] BookingSearchTourOperatorRequest request)
         {
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return Unauthorized("Không xác định được người dùng");
+            int userId = int.Parse(userIdClaim.Value);
+            
             var searchRequest = new BookingSearchRequest
             {
-                Keyword = request.Keyword
+                TourName = request.TourName,
+                UserName = request.UserName
             };
-            var result = await _bookingService.GetTourOperatorBookingsAsync(searchRequest);
+            var result = await _bookingService.GetTourOperatorBookingsAsync(searchRequest, userId);
             return Ok(result);
         }
 
@@ -142,10 +148,13 @@ namespace TourManagement_BE.Controllers
         {
             var searchRequest = new BookingSearchRequest
             {
-                Keyword = request.Keyword
+                TourName = request.TourName,
+                UserName = request.UserName
             };
             var result = await _bookingService.GetAllBookingsForAdminAsync(searchRequest);
             return Ok(result);
         }
+
+
     }
 } 

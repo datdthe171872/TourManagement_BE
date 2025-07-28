@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -21,7 +22,23 @@ namespace TourManagement_BE.Service
 
         public async Task<BookingListResponse> GetBookingsAsync(BookingSearchRequest request)
         {
-            var query = _context.Bookings.AsQueryable();          
+            var query = _context.Bookings
+                .Include(x => x.Tour).ThenInclude(t => t.TourOperator)
+                .Include(x => x.User)
+                .AsQueryable();
+
+            // Search by Tour Name
+            if (!string.IsNullOrEmpty(request.TourName))
+            {
+                query = query.Where(x => x.Tour != null && x.Tour.Title.Contains(request.TourName));
+            }
+
+            // Search by User Name
+            if (!string.IsNullOrEmpty(request.UserName))
+            {
+                query = query.Where(x => x.User != null && x.User.UserName.Contains(request.UserName));
+            }
+
             var bookings = await query.ToListAsync();
             return new BookingListResponse
             {
@@ -123,7 +140,10 @@ namespace TourManagement_BE.Service
 
         public async Task<BookingResponse> UpdateBookingAsync(UpdateBookingRequest request)
         {
-            var booking = await _context.Bookings.FirstOrDefaultAsync(x => x.BookingId == request.BookingId);
+            var booking = await _context.Bookings
+                .Include(b => b.User)
+                .Include(b => b.Tour).ThenInclude(t => t.TourOperator)
+                .FirstOrDefaultAsync(x => x.BookingId == request.BookingId);
             if (booking == null) return null;
             // Không update BookingStatus, PaymentStatus nữa
             booking.DepartureDateId = request.DepartureDateId;
@@ -232,11 +252,18 @@ namespace TourManagement_BE.Service
         // New methods for role-based booking retrieval
         public async Task<BookingListResponse> GetCustomerBookingsAsync(BookingSearchRequest request, int userId)
         {
-            var bookings = await _context.Bookings
+            var query = _context.Bookings
                 .Include(x => x.Tour).ThenInclude(t => t.TourOperator)
                 .Include(x => x.User)
-                .Where(x => x.UserId == userId && x.IsActive)
-                .ToListAsync();
+                .Where(x => x.UserId == userId && x.IsActive);
+
+            // Search by Tour Name
+            if (!string.IsNullOrEmpty(request.TourName))
+            {
+                query = query.Where(x => x.Tour != null && x.Tour.Title.Contains(request.TourName));
+            }
+
+            var bookings = await query.ToListAsync();
             return new BookingListResponse
             {
                 Bookings = bookings.Select(x => new BookingResponse
@@ -254,6 +281,7 @@ namespace TourManagement_BE.Service
                     Contract = x.Contract,
                     BookingStatus = x.BookingStatus,
                     PaymentStatus = x.PaymentStatus,
+                    IsActive = x.IsActive,
                     UserName = x.User != null ? x.User.UserName : null,
                     TourTitle = x.Tour != null ? x.Tour.Title : null,
                     CompanyName = x.Tour != null && x.Tour.TourOperator != null ? x.Tour.TourOperator.CompanyName : null,
@@ -262,16 +290,36 @@ namespace TourManagement_BE.Service
             };
         }
 
-        public async Task<BookingListResponse> GetTourOperatorBookingsAsync(BookingSearchRequest request)
+        public async Task<BookingListResponse> GetTourOperatorBookingsAsync(BookingSearchRequest request, int userId)
         {
-            // Lấy userId từ ClaimsPrincipal (chính là TourOperatorId)
-            var userIdClaim = System.Security.Claims.ClaimsPrincipal.Current?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-            int tourOperatorId = userIdClaim != null ? int.Parse(userIdClaim.Value) : 0;
-            var bookings = await _context.Bookings
+            // Tìm TourOperatorId từ userId
+            var tourOperator = await _context.TourOperators
+                .FirstOrDefaultAsync(to => to.UserId == userId);
+            
+            if (tourOperator == null)
+            {
+                return new BookingListResponse { Bookings = new List<BookingResponse>() };
+            }
+            
+            var query = _context.Bookings
                 .Include(x => x.Tour).ThenInclude(t => t.TourOperator)
                 .Include(x => x.User)
-                .Where(x => x.Tour != null && x.Tour.TourOperatorId == tourOperatorId && x.IsActive)
-                .ToListAsync();
+                .Where(x => x.Tour != null && x.Tour.TourOperatorId == tourOperator.TourOperatorId && x.IsActive);
+
+            // Search by Tour Name
+            if (!string.IsNullOrEmpty(request.TourName))
+            {
+                query = query.Where(x => x.Tour != null && x.Tour.Title.Contains(request.TourName));
+            }
+
+            // Search by User Name
+            if (!string.IsNullOrEmpty(request.UserName))
+            {
+                query = query.Where(x => x.User != null && x.User.UserName.Contains(request.UserName));
+            }
+
+            var bookings = await query.ToListAsync();
+            
             return new BookingListResponse
             {
                 Bookings = bookings.Select(x => new BookingResponse
@@ -289,6 +337,7 @@ namespace TourManagement_BE.Service
                     Contract = x.Contract,
                     BookingStatus = x.BookingStatus,
                     PaymentStatus = x.PaymentStatus,
+                    IsActive = x.IsActive,
                     UserName = x.User != null ? x.User.UserName : null,
                     TourTitle = x.Tour != null ? x.Tour.Title : null,
                     CompanyName = x.Tour != null && x.Tour.TourOperator != null ? x.Tour.TourOperator.CompanyName : null,
@@ -299,11 +348,24 @@ namespace TourManagement_BE.Service
 
         public async Task<BookingListResponse> GetAllBookingsForAdminAsync(BookingSearchRequest request)
         {
-            var bookings = await _context.Bookings
+            var query = _context.Bookings
                 .Include(x => x.Tour).ThenInclude(t => t.TourOperator)
                 .Include(x => x.User)
-                .Where(x => x.IsActive)
-                .ToListAsync();
+                .Where(x => x.IsActive);
+
+            // Search by Tour Name
+            if (!string.IsNullOrEmpty(request.TourName))
+            {
+                query = query.Where(x => x.Tour != null && x.Tour.Title.Contains(request.TourName));
+            }
+
+            // Search by User Name
+            if (!string.IsNullOrEmpty(request.UserName))
+            {
+                query = query.Where(x => x.User != null && x.User.UserName.Contains(request.UserName));
+            }
+
+            var bookings = await query.ToListAsync();
             return new BookingListResponse
             {
                 Bookings = bookings.Select(x => new BookingResponse
@@ -321,6 +383,7 @@ namespace TourManagement_BE.Service
                     Contract = x.Contract,
                     BookingStatus = x.BookingStatus,
                     PaymentStatus = x.PaymentStatus,
+                    IsActive = x.IsActive,
                     UserName = x.User != null ? x.User.UserName : null,
                     TourTitle = x.Tour != null ? x.Tour.Title : null,
                     CompanyName = x.Tour != null && x.Tour.TourOperator != null ? x.Tour.TourOperator.CompanyName : null,
