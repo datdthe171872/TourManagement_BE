@@ -13,5 +13,7 @@ public partial class ServicePackageFeature
 
     public string FeatureValue { get; set; } = null!;
 
+    public bool IsActive { get; set; }
+
     public virtual ServicePackage Package { get; set; } = null!;
 }
