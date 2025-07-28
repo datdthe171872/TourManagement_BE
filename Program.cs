@@ -45,9 +45,7 @@ namespace TourManagement_BE
                 fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.CreateTourOperatorRequestValidator>();
                 fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.UpdateTourOperatorRequestValidator>();
                 fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.CreateBookingRequestValidator>();
-                fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.UpdateBookingRequestValidator>();
-                fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.CreateExtraChargeRequestValidator>();
-                fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.UpdateExtraChargeRequestValidator>();
+                fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.UpdateBookingRequestValidator>();               
                 fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.CreateDepartureDateRequestValidator>();
             });
            
@@ -62,8 +60,7 @@ namespace TourManagement_BE
             builder.Services.AddScoped<ISlotCheckService, SlotCheckService>();
             builder.Services.AddScoped<ITourOperatorService, TourOperatorService>();
             builder.Services.AddScoped<IFeedbackService, FeedbackService>();
-            builder.Services.AddScoped<IBookingService, BookingService>();
-            builder.Services.AddScoped<IExtraChargeService, ExtraChargeService>();
+            builder.Services.AddScoped<IBookingService, BookingService>();          
             builder.Services.AddScoped<IGuideNoteService, GuideNoteService>();
             builder.Services.AddScoped<IDashboardCustomerService, DashboardCustomerService>();
             builder.Services.AddScoped<IDashboardOperatorService, DashboardOperatorService>();
