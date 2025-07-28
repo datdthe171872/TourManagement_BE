@@ -51,6 +51,8 @@ public partial class MyDBContext : DbContext
 
     public virtual DbSet<ServicePackage> ServicePackages { get; set; }
 
+    public virtual DbSet<ServicePackageFeature> ServicePackageFeatures { get; set; }
+
     public virtual DbSet<Tour> Tours { get; set; }
 
     public virtual DbSet<TourAcceptanceReport> TourAcceptanceReports { get; set; }
@@ -416,6 +418,9 @@ public partial class MyDBContext : DbContext
             entity.Property(e => e.Name).HasMaxLength(255);
             entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
         });
+
+        modelBuilder.Entity<ServicePackageFeature>()
+        .HasKey(s => s.FeatureId);
 
         modelBuilder.Entity<Tour>(entity =>
         {

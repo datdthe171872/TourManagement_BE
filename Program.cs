@@ -45,7 +45,9 @@ namespace TourManagement_BE
                 fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.CreateTourOperatorRequestValidator>();
                 fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.UpdateTourOperatorRequestValidator>();
                 fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.CreateBookingRequestValidator>();
-                fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.UpdateBookingRequestValidator>();               
+                fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.UpdateBookingRequestValidator>();
+                fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.CreateExtraChargeRequestValidator>();
+                fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.UpdateExtraChargeRequestValidator>();
                 fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.CreateDepartureDateRequestValidator>();
             });
            
@@ -66,7 +68,10 @@ namespace TourManagement_BE
             builder.Services.AddScoped<IDashboardOperatorService, DashboardOperatorService>();
             builder.Services.AddScoped<INotificationService, NotificationService>();
             builder.Services.AddScoped<IDepartureDateService, DepartureDateService>();
-            
+
+            //PaymentIMAP
+            builder.Services.AddHostedService<EmailPaymentBackgroundService>();
+
             // Register JwtHelper with configuration
             builder.Services.AddScoped<JwtHelper>(provider =>
             {
