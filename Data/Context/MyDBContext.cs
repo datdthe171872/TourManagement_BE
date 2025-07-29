@@ -18,11 +18,7 @@ public partial class MyDBContext : DbContext
 
     public virtual DbSet<Booking> Bookings { get; set; }
 
-    public virtual DbSet<BookingExtraCharge> BookingExtraCharges { get; set; }
-
     public virtual DbSet<DepartureDate> DepartureDates { get; set; }
-
-    public virtual DbSet<ExtraCharge> ExtraCharges { get; set; }
 
     public virtual DbSet<GuideLanguage> GuideLanguages { get; set; }
 
@@ -36,6 +32,8 @@ public partial class MyDBContext : DbContext
 
     public virtual DbSet<Language> Languages { get; set; }
 
+    public virtual DbSet<Notification> Notifications { get; set; }
+
     public virtual DbSet<Payment> Payments { get; set; }
 
     public virtual DbSet<PaymentType> PaymentTypes { get; set; }
@@ -44,9 +42,10 @@ public partial class MyDBContext : DbContext
 
     public virtual DbSet<PurchasedServicePackage> PurchasedServicePackages { get; set; }
 
+    public virtual DbSet<ResetPasswordToken> ResetPasswordTokens { get; set; }
+
     public virtual DbSet<Role> Roles { get; set; }
 
-    public DbSet<ResetPasswordToken> ResetPasswordTokens { get; set; }
     public virtual DbSet<SavedTour> SavedTours { get; set; }
 
     public virtual DbSet<ServicePackage> ServicePackages { get; set; }
@@ -77,8 +76,6 @@ public partial class MyDBContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
-    public virtual DbSet<Notification> Notifications { get; set; }
-
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         var builder = new ConfigurationBuilder()
@@ -87,14 +84,15 @@ public partial class MyDBContext : DbContext
         IConfigurationRoot configuration = builder.Build();
         optionsBuilder.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
     }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Booking>(entity =>
         {
-            base.OnModelCreating(modelBuilder); 
-
             entity.HasKey(e => e.BookingId).HasName("PK__Bookings__73951AED69F9C654");
+
+            entity.HasIndex(e => e.TourId, "IX_Bookings_TourId");
+
+            entity.HasIndex(e => e.UserId, "IX_Bookings_UserId");
 
             entity.Property(e => e.BookingDate)
                 .HasDefaultValueSql("(getdate())")
@@ -103,9 +101,6 @@ public partial class MyDBContext : DbContext
                 .HasMaxLength(50)
                 .HasDefaultValue("Pending");
             entity.Property(e => e.Contract).HasMaxLength(255);
-            //entity.Property(e => e.DepositAmount)
-            //    .HasDefaultValue(0m)
-            //    .HasColumnType("decimal(18, 2)");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.NumberOfAdults).HasDefaultValue(0);
             entity.Property(e => e.NumberOfChildren).HasDefaultValue(0);
@@ -113,11 +108,12 @@ public partial class MyDBContext : DbContext
             entity.Property(e => e.PaymentStatus)
                 .HasMaxLength(50)
                 .HasDefaultValue("Pending");
-            //entity.Property(e => e.RemainingAmount)
-            //    .HasDefaultValue(0m)
-            //    .HasColumnType("decimal(18, 2)");
-            //entity.Property(e => e.SelectedDepartureDate).HasColumnType("datetime");
-            //entity.Property(e => e.TotalPrice).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.TotalPrice).HasColumnType("decimal(18, 2)");
+
+            entity.HasOne(d => d.DepartureDate).WithMany(p => p.Bookings)
+                .HasForeignKey(d => d.DepartureDateId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Bookings_DepartureDates");
 
             entity.HasOne(d => d.Tour).WithMany(p => p.Bookings)
                 .HasForeignKey(d => d.TourId)
@@ -130,28 +126,11 @@ public partial class MyDBContext : DbContext
                 .HasConstraintName("FK__Bookings__UserId__42E1EEFE");
         });
 
-        modelBuilder.Entity<BookingExtraCharge>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__BookingE__3214EC072D708871");
-
-            entity.Property(e => e.Content).HasMaxLength(255);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.Quantity).HasDefaultValue(1);
-
-            entity.HasOne(d => d.Booking).WithMany(p => p.BookingExtraCharges)
-                .HasForeignKey(d => d.BookingId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__BookingEx__Booki__40058253");
-
-            entity.HasOne(d => d.ExtraCharge).WithMany(p => p.BookingExtraCharges)
-                .HasForeignKey(d => d.ExtraChargeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__BookingEx__Extra__40F9A68C");
-        });
-
         modelBuilder.Entity<DepartureDate>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Departur__3214EC07D728106D");
+
+            entity.HasIndex(e => e.TourId, "IX_DepartureDates_TourId");
 
             entity.Property(e => e.DepartureDate1)
                 .HasColumnType("datetime")
@@ -164,18 +143,13 @@ public partial class MyDBContext : DbContext
                 .HasConstraintName("FK__Departure__TourI__43D61337");
         });
 
-        modelBuilder.Entity<ExtraCharge>(entity =>
-        {
-            entity.HasKey(e => e.ExtraChargeId).HasName("PK__ExtraCha__23A84331F76C775E");
-
-            entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.Name).HasMaxLength(255);
-        });
-
         modelBuilder.Entity<GuideLanguage>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__GuideLan__3214EC0754BC5DEE");
+
+            entity.HasIndex(e => e.GuideId, "IX_GuideLanguages_GuideId");
+
+            entity.HasIndex(e => e.LanguageId, "IX_GuideLanguages_LanguageId");
 
             entity.Property(e => e.IsActive).HasDefaultValue(true);
 
@@ -192,9 +166,12 @@ public partial class MyDBContext : DbContext
         {
             entity.HasKey(e => e.NoteId).HasName("PK__GuideNot__EACE355F7D9F9B80");
 
+            entity.HasIndex(e => e.AssignmentId, "IX_GuideNotes_AssignmentId");
+
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
+            entity.Property(e => e.ExtraCost).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Title).HasMaxLength(255);
 
@@ -202,11 +179,18 @@ public partial class MyDBContext : DbContext
                 .HasForeignKey(d => d.AssignmentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__GuideNote__Assig__47A6A41B");
+
+            entity.HasOne(d => d.Report).WithMany(p => p.GuideNotes)
+                .HasForeignKey(d => d.ReportId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_GuideNotes_TourAcceptanceReports");
         });
 
         modelBuilder.Entity<GuideNoteMedia>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__GuideNot__3214EC078F6A2553");
+
+            entity.HasIndex(e => e.NoteId, "IX_GuideNoteMedia_NoteId");
 
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.MediaUrl).HasMaxLength(255);
@@ -223,6 +207,10 @@ public partial class MyDBContext : DbContext
         modelBuilder.Entity<GuideRating>(entity =>
         {
             entity.HasKey(e => e.RatingId).HasName("PK__GuideRat__FCCDF87C1044E830");
+
+            entity.HasIndex(e => e.AssignmentId, "IX_GuideRatings_AssignmentId");
+
+            entity.HasIndex(e => e.UserId, "IX_GuideRatings_UserId");
 
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
@@ -244,6 +232,8 @@ public partial class MyDBContext : DbContext
         modelBuilder.Entity<ItineraryMedia>(entity =>
         {
             entity.HasKey(e => e.MediaId).HasName("PK__Itinerar__B2C2B5CFEA6D2966");
+
+            entity.HasIndex(e => e.ItineraryId, "IX_ItineraryMedia_ItineraryId");
 
             entity.Property(e => e.Caption).HasMaxLength(255);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
@@ -267,9 +257,35 @@ public partial class MyDBContext : DbContext
             entity.Property(e => e.LanguageName).HasMaxLength(100);
         });
 
+        modelBuilder.Entity<Notification>(entity =>
+        {
+            entity.HasKey(e => e.NotificationId).HasName("PK__Notifica__20B2F72112345678");
+
+            entity.HasIndex(e => e.UserId, "IX_Notifications_UserId");
+
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.Message).HasMaxLength(500);
+            entity.Property(e => e.RelatedEntityId).HasMaxLength(100);
+            entity.Property(e => e.Title).HasMaxLength(200);
+            entity.Property(e => e.Type).HasMaxLength(50);
+
+            entity.HasOne(d => d.User).WithMany(p => p.Notifications)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__Notificat__UserI__6555E2C9");
+        });
+
         modelBuilder.Entity<Payment>(entity =>
         {
             entity.HasKey(e => e.PaymentId).HasName("PK__Payments__9B556A389E758151");
+
+            entity.HasIndex(e => e.BookingId, "IX_Payments_BookingId");
+
+            entity.HasIndex(e => e.PaymentTypeId, "IX_Payments_PaymentTypeId");
+
+            entity.HasIndex(e => e.UserId, "IX_Payments_UserId");
 
             entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.AmountPaid)
@@ -314,7 +330,12 @@ public partial class MyDBContext : DbContext
         {
             entity.HasKey(e => e.TransactionId).HasName("PK__Purchase__55433A6B7EA420F9");
 
+            entity.HasIndex(e => e.PackageId, "IX_PurchaseTransactions_PackageId");
+
+            entity.HasIndex(e => e.TourOperatorId, "IX_PurchaseTransactions_TourOperatorId");
+
             entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.ContentCode).HasMaxLength(100);
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
@@ -339,6 +360,12 @@ public partial class MyDBContext : DbContext
         {
             entity.HasKey(e => e.PurchaseId).HasName("PK__Purchase__6B0A6BBE22291CBE");
 
+            entity.HasIndex(e => e.PackageId, "IX_PurchasedServicePackages_PackageId");
+
+            entity.HasIndex(e => e.TourOperatorId, "IX_PurchasedServicePackages_TourOperatorId");
+
+            entity.HasIndex(e => e.TransactionId, "IX_PurchasedServicePackages_TransactionId");
+
             entity.Property(e => e.ActivationDate).HasColumnType("datetime");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
@@ -362,20 +389,14 @@ public partial class MyDBContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Purchased__Trans__503BEA1C");
         });
+
         modelBuilder.Entity<ResetPasswordToken>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__ResetPas__3214EC07ABCD1234");
+            entity.HasIndex(e => e.UserId, "IX_ResetPasswordTokens_UserId");
 
-            entity.Property(e => e.Token).HasMaxLength(255);
-            entity.Property(e => e.ExpiryDate).HasColumnType("datetime");
-            entity.Property(e => e.IsUsed).HasDefaultValue(false);
-
-            entity.HasOne(d => d.User)
-                .WithMany(p => p.ResetPasswordTokens)
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK__ResetPass__UserI__12345678");
+            entity.HasOne(d => d.User).WithMany(p => p.ResetPasswordTokens).HasForeignKey(d => d.UserId);
         });
+
         modelBuilder.Entity<Role>(entity =>
         {
             entity.HasKey(e => e.RoleId).HasName("PK__Roles__8AFACE1A793714B3");
@@ -389,6 +410,10 @@ public partial class MyDBContext : DbContext
         modelBuilder.Entity<SavedTour>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__SavedTou__3214EC0795DB6045");
+
+            entity.HasIndex(e => e.TourId, "IX_SavedTours_TourId");
+
+            entity.HasIndex(e => e.UserId, "IX_SavedTours_UserId");
 
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.SavedAt)
@@ -413,34 +438,43 @@ public partial class MyDBContext : DbContext
             entity.Property(e => e.DiscountPercentage)
                 .HasDefaultValue(0m)
                 .HasColumnType("decimal(5, 2)");
-            //entity.Property(e => e.DurationInYears).HasDefaultValue(1);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(255);
             entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
         });
 
-        modelBuilder.Entity<ServicePackageFeature>()
-        .HasKey(s => s.FeatureId);
+        modelBuilder.Entity<ServicePackageFeature>(entity =>
+        {
+            entity.HasKey(e => e.FeatureId).HasName("PK__ServiceP__82230BC98B4657F8");
+
+            entity.Property(e => e.FeatureName).HasMaxLength(100);
+
+            entity.HasOne(d => d.Package).WithMany(p => p.ServicePackageFeatures)
+                .HasForeignKey(d => d.PackageId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__ServicePa__Packa__5CD6CB2B");
+        });
 
         modelBuilder.Entity<Tour>(entity =>
         {
             entity.HasKey(e => e.TourId).HasName("PK__Tours__604CEA3014B7154A");
+
+            entity.HasIndex(e => e.TourOperatorId, "IX_Tours_TourOperatorId");
 
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
             entity.Property(e => e.DurationInDays).HasMaxLength(255);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
-            //entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.PriceOfAdults).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.PriceOfChildren).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.PriceOfInfants).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.SlotsBooked).HasDefaultValue(0);
             entity.Property(e => e.StartPoint).HasMaxLength(255);
             entity.Property(e => e.Title).HasMaxLength(255);
             entity.Property(e => e.TourStatus)
                 .HasMaxLength(50)
                 .HasDefaultValue("Active");
-            //entity.Property(e => e.TourType)
-            //    .HasMaxLength(20)
-            //    .HasDefaultValue("Shared");
             entity.Property(e => e.Transportation).HasMaxLength(255);
 
             entity.HasOne(d => d.TourOperator).WithMany(p => p.Tours)
@@ -452,6 +486,10 @@ public partial class MyDBContext : DbContext
         modelBuilder.Entity<TourAcceptanceReport>(entity =>
         {
             entity.HasKey(e => e.ReportId).HasName("PK__TourAcce__D5BD480579C896E8");
+
+            entity.HasIndex(e => e.BookingId, "IX_TourAcceptanceReports_BookingId");
+
+            entity.HasIndex(e => e.TourGuideId, "IX_TourAcceptanceReports_TourGuideId");
 
             entity.Property(e => e.AttachmentUrl).HasMaxLength(500);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
@@ -477,6 +515,10 @@ public partial class MyDBContext : DbContext
         {
             entity.HasKey(e => e.CancellationId).HasName("PK__TourCanc__6A2D9A3A1E33ECEB");
 
+            entity.HasIndex(e => e.CancelledBy, "IX_TourCancellations_CancelledBy");
+
+            entity.HasIndex(e => e.TourId, "IX_TourCancellations_TourId");
+
             entity.Property(e => e.CancelledAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
@@ -497,6 +539,8 @@ public partial class MyDBContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__TourExpe__3214EC0771B42547");
 
+            entity.HasIndex(e => e.TourId, "IX_TourExperiences_TourId");
+
             entity.Property(e => e.IsActive).HasDefaultValue(true);
 
             entity.HasOne(d => d.Tour).WithMany(p => p.TourExperiences)
@@ -509,7 +553,11 @@ public partial class MyDBContext : DbContext
         {
             entity.HasKey(e => e.TourGuideId).HasName("PK__TourGuid__2F0E035344C0797A");
 
-            entity.HasIndex(e => e.UserId, "UQ__TourGuid__1788CC4D814900F4").IsUnique();
+            entity.HasIndex(e => e.TourOperatorId, "IX_TourGuides_TourOperatorId");
+
+            entity.HasIndex(e => e.UserId, "UQ__TourGuid__1788CC4D814900F4")
+                .IsUnique()
+                .HasFilter("([UserId] IS NOT NULL)");
 
             entity.Property(e => e.IsActive).HasDefaultValue(true);
 
@@ -525,6 +573,10 @@ public partial class MyDBContext : DbContext
         modelBuilder.Entity<TourGuideAssignment>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__TourGuid__3214EC073C3A4EB5");
+
+            entity.HasIndex(e => e.BookingId, "IX_TourGuideAssignments_BookingId");
+
+            entity.HasIndex(e => e.TourGuideId, "IX_TourGuideAssignments_TourGuideId");
 
             entity.Property(e => e.AssignedDate).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
@@ -545,6 +597,8 @@ public partial class MyDBContext : DbContext
         {
             entity.HasKey(e => e.ItineraryId).HasName("PK__TourItin__361216C6A8FF1462");
 
+            entity.HasIndex(e => e.TourId, "IX_TourItineraries_TourId");
+
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
@@ -561,6 +615,8 @@ public partial class MyDBContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__TourMedi__3214EC07762CE9DE");
 
+            entity.HasIndex(e => e.TourId, "IX_TourMedia_TourId");
+
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.MediaType).HasMaxLength(255);
             entity.Property(e => e.MediaUrl).HasMaxLength(255);
@@ -575,7 +631,9 @@ public partial class MyDBContext : DbContext
         {
             entity.HasKey(e => e.TourOperatorId).HasName("PK__TourOper__776E46D99CB4F975");
 
-            entity.HasIndex(e => e.UserId, "UQ__TourOper__1788CC4D657A0885").IsUnique();
+            entity.HasIndex(e => e.UserId, "UQ__TourOper__1788CC4D657A0885")
+                .IsUnique()
+                .HasFilter("([UserId] IS NOT NULL)");
 
             entity.Property(e => e.Address).HasMaxLength(255);
             entity.Property(e => e.CompanyLogo).HasMaxLength(255);
@@ -598,6 +656,8 @@ public partial class MyDBContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__TourOper__3214EC076E5C56CE");
 
+            entity.HasIndex(e => e.TourOperatorId, "IX_TourOperatorMedia_TourOperatorId");
+
             entity.Property(e => e.Caption).HasMaxLength(255);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.MediaUrl).HasMaxLength(255);
@@ -614,6 +674,10 @@ public partial class MyDBContext : DbContext
         modelBuilder.Entity<TourRating>(entity =>
         {
             entity.HasKey(e => e.RatingId).HasName("PK__TourRati__FCCDF87C99F24843");
+
+            entity.HasIndex(e => e.TourId, "IX_TourRatings_TourId");
+
+            entity.HasIndex(e => e.UserId, "IX_TourRatings_UserId");
 
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
@@ -636,6 +700,8 @@ public partial class MyDBContext : DbContext
         {
             entity.HasKey(e => e.UserId).HasName("PK__Users__1788CC4C6EA58613");
 
+            entity.HasIndex(e => e.RoleId, "IX_Users_RoleId");
+
             entity.HasIndex(e => e.Email, "UQ__Users__A9D10534A733E8F8").IsUnique();
 
             entity.Property(e => e.Address).HasMaxLength(255);
@@ -650,25 +716,6 @@ public partial class MyDBContext : DbContext
                 .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Users__RoleId__6442E2C9");
-        });
-
-        modelBuilder.Entity<Notification>(entity =>
-        {
-            entity.HasKey(e => e.NotificationId).HasName("PK__Notifica__20B2F72112345678");
-
-            entity.Property(e => e.Title).HasMaxLength(200);
-            entity.Property(e => e.Message).HasMaxLength(500);
-            entity.Property(e => e.Type).HasMaxLength(50);
-            entity.Property(e => e.RelatedEntityId).HasMaxLength(100);
-            entity.Property(e => e.IsRead).HasDefaultValue(false);
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-
-            entity.HasOne(d => d.User).WithMany(p => p.Notifications)
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Notificat__UserI__6555E2C9");
         });
 
         OnModelCreatingPartial(modelBuilder);

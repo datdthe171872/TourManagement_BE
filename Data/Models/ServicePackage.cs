@@ -13,8 +13,6 @@ public partial class ServicePackage
 
     public decimal Price { get; set; }
 
-    public int DurationInDay { get; set; }
-
     public decimal? DiscountPercentage { get; set; }
 
     public bool IsActive { get; set; }

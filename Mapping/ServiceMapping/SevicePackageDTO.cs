@@ -12,7 +12,7 @@ namespace TourManagement_BE.Mapping.ServiceMapping
                 Name = u.Name,
                 Description = u.Description,
                 Price = u.Price,
-                DurationInDay = u.DurationInDay, 
+                //DurationInDay = u.DurationInDay, 
                 DiscountPercentage = u.DiscountPercentage,
                 IsActive = true,
                 ServicePackageFeatures = new List<ServicePackageFeature>()
