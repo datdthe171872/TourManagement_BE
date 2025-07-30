@@ -18,5 +18,15 @@ namespace TourManagement_BE.Service
         Task<BookingListResponse> GetAllBookingsForAdminAsync(BookingSearchRequest request);
         Task<BookingResponse> GetBookingByIdAsync(int bookingId);
         Task<BookingResponse> UpdateBookingContractAsync(UpdateBookingRequest request);
+        
+        // New detailed booking methods
+        Task<BookingDetailListResponse> GetBookingsDetailedAsync(BookingSearchRequest request);
+        Task<BookingDetailListResponse> GetCustomerBookingsDetailedAsync(BookingSearchRequest request, int userId);
+        Task<BookingDetailListResponse> GetTourOperatorBookingsDetailedAsync(BookingSearchRequest request, int userId);
+        Task<BookingDetailListResponse> GetAllBookingsForAdminDetailedAsync(BookingSearchRequest request);
+        
+        // Status update methods for Tour Operator
+        Task<BookingResponse> UpdatePaymentStatusAsync(UpdatePaymentStatusRequest request, int tourOperatorId);
+        Task<BookingResponse> UpdateBookingStatusAsync(UpdateBookingStatusRequest request, int tourOperatorId);
     }
 } 
