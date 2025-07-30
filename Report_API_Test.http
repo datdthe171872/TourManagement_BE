@@ -1,0 +1,106 @@
+### Report API Test
+### Lưu ý: Thay thế {token} bằng JWT token thực tế
+
+### ========================================
+### 1. TEST CUSTOMER REPORT API
+### ========================================
+
+### 1.1 Lấy báo cáo cho Customer (tất cả)
+GET {{baseUrl}}/api/Report/customer
+Authorization: Bearer {customer_token}
+Content-Type: application/json
+
+###
+
+### 1.2 Lấy báo cáo cho Customer - Search theo Username
+GET {{baseUrl}}/api/Report/customer?username=customer1
+Authorization: Bearer {customer_token}
+Content-Type: application/json
+
+###
+
+### 1.3 Lấy báo cáo cho Customer - Search theo BookingId
+GET {{baseUrl}}/api/Report/customer?bookingId=1
+Authorization: Bearer {customer_token}
+Content-Type: application/json
+
+###
+
+### 1.4 Lấy báo cáo cho Customer - Search kết hợp Username và BookingId
+GET {{baseUrl}}/api/Report/customer?username=customer1&bookingId=1
+Authorization: Bearer {customer_token}
+Content-Type: application/json
+
+###
+
+### ========================================
+### 2. TEST TOUR OPERATOR REPORT API
+### ========================================
+
+### 2.1 Lấy báo cáo cho Tour Operator (tất cả)
+GET {{baseUrl}}/api/Report/operator
+Authorization: Bearer {operator_token}
+Content-Type: application/json
+
+###
+
+### 2.2 Lấy báo cáo cho Tour Operator - Search theo Username
+GET {{baseUrl}}/api/Report/operator?username=customer1
+Authorization: Bearer {operator_token}
+Content-Type: application/json
+
+###
+
+### 2.3 Lấy báo cáo cho Tour Operator - Search theo BookingId
+GET {{baseUrl}}/api/Report/operator?bookingId=1
+Authorization: Bearer {operator_token}
+Content-Type: application/json
+
+###
+
+### 2.4 Lấy báo cáo cho Tour Operator - Search kết hợp Username và BookingId
+GET {{baseUrl}}/api/Report/operator?username=customer1&bookingId=1
+Authorization: Bearer {operator_token}
+Content-Type: application/json
+
+###
+
+### ========================================
+### 3. TEST ERROR CASES
+### ========================================
+
+### 3.1 Test Customer API với token không đúng role
+GET {{baseUrl}}/api/Report/customer
+Authorization: Bearer {operator_token}
+Content-Type: application/json
+
+###
+
+### 3.2 Test Operator API với token không đúng role
+GET {{baseUrl}}/api/Report/operator
+Authorization: Bearer {customer_token}
+Content-Type: application/json
+
+###
+
+### 3.3 Test không có token
+GET {{baseUrl}}/api/Report/customer
+Content-Type: application/json
+
+###
+
+### ========================================
+### HƯỚNG DẪN SỬ DỤNG
+### ========================================
+
+### 1. Cài đặt REST Client extension trong VS Code
+### 2. Thay thế {baseUrl} bằng URL thực tế của API (ví dụ: http://localhost:5000)
+### 3. Thay thế {customer_token} bằng JWT token của Customer
+### 4. Thay thế {operator_token} bằng JWT token của Tour Operator
+### 5. Chạy từng request để test
+
+### Lưu ý:
+### - Đảm bảo có dữ liệu test trong database (Users, Bookings, Tours, TourAcceptanceReports)
+### - Customer chỉ thấy booking của chính mình
+### - Tour Operator chỉ thấy booking của các tour thuộc về mình
+### - Total = TotalPrice + TotalExtraCost 

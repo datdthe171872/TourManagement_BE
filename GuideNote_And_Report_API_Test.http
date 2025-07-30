@@ -1,0 +1,280 @@
+### GuideNote và TourAcceptanceReport API Test
+### Lưu ý: Thay thế {token} bằng JWT token thực tế của Tour Guide
+
+### ========================================
+### 1. TEST GUIDE NOTE API
+### ========================================
+
+### 1.1 Lấy danh sách notes của guide hiện tại
+GET {{baseUrl}}/api/GuideNote/notes
+Authorization: Bearer {token}
+Content-Type: application/json
+
+###
+
+### 1.2 Tạo note mới
+POST {{baseUrl}}/api/GuideNote/notes
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "assignmentId": 1,
+  "title": "Ghi chú về thời tiết",
+  "content": "Thời tiết xấu, cần thay đổi lịch trình từ sáng sang chiều",
+  "extraCost": 50.00,
+  "mediaUrls": [
+    "https://example.com/weather-photo1.jpg",
+    "https://example.com/weather-photo2.jpg"
+  ]
+}
+
+###
+
+### 1.3 Tạo note thứ 2 (sẽ tự động cập nhật report)
+POST {{baseUrl}}/api/GuideNote/notes
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "assignmentId": 1,
+  "title": "Ghi chú về chi phí phát sinh",
+  "content": "Khách yêu cầu thêm dịch vụ ăn trưa tại nhà hàng cao cấp",
+  "extraCost": 75.00,
+  "mediaUrls": [
+    "https://example.com/restaurant-receipt.jpg"
+  ]
+}
+
+###
+
+### 1.4 Cập nhật note
+PUT {{baseUrl}}/api/GuideNote/notes/1
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "title": "Ghi chú về thời tiết (Đã cập nhật)",
+  "content": "Thời tiết xấu, đã thay đổi lịch trình từ sáng sang chiều. Khách đồng ý.",
+  "mediaUrls": [
+    "https://example.com/weather-photo1.jpg",
+    "https://example.com/weather-photo2.jpg",
+    "https://example.com/updated-schedule.jpg"
+  ]
+}
+
+###
+
+### 1.5 Xóa note
+DELETE {{baseUrl}}/api/GuideNote/notes/2
+Authorization: Bearer {token}
+
+###
+
+### ========================================
+### 2. TEST TOUR ACCEPTANCE REPORT API (READ-ONLY)
+### ========================================
+
+### 2.1 Lấy danh sách reports của guide hiện tại
+GET {{baseUrl}}/api/TourAcceptanceReport
+Authorization: Bearer {token}
+Content-Type: application/json
+
+###
+
+### 2.2 Lấy chi tiết report theo ID
+GET {{baseUrl}}/api/TourAcceptanceReport/1
+Authorization: Bearer {token}
+Content-Type: application/json
+
+###
+
+### 2.3 Cập nhật report (chỉ Notes và AttachmentUrl)
+PUT {{baseUrl}}/api/TourAcceptanceReport/1
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "notes": "Khách rất hài lòng với dịch vụ. Thời tiết có thay đổi nhưng đã xử lý tốt.",
+  "attachmentUrl": "https://example.com/tour-completion-report.pdf"
+}
+
+###
+
+### Lưu ý: TourAcceptanceReport được quản lý tự động
+### - Tạo: Tự động khi tạo note đầu tiên
+### - Cập nhật TotalExtraCost: Tự động khi thêm/sửa/xóa note
+### - Cập nhật Notes/AttachmentUrl: Thủ công qua PUT
+### - Xóa: Không cần thiết (soft delete qua note)
+
+### ========================================
+### 3. TEST ADMIN/OPERATOR API
+### ========================================
+
+### 3.1 Lấy reports theo booking ID (Admin/Operator)
+GET {{baseUrl}}/api/TourAcceptanceReport/booking/1
+Authorization: Bearer {admin_token}
+Content-Type: application/json
+
+###
+
+### ========================================
+### 4. TEST LUỒNG HOÀN CHỈNH
+### ========================================
+
+### Bước 1: Tạo note đầu tiên (sẽ tự động tạo report)
+POST {{baseUrl}}/api/GuideNote/notes
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "assignmentId": 1,
+  "title": "Bắt đầu tour",
+  "content": "Đã đón khách tại sân bay, thời tiết đẹp",
+  "extraCost": 0.00,
+  "mediaUrls": []
+}
+
+###
+
+### Bước 2: Kiểm tra report đã được tạo tự động
+GET {{baseUrl}}/api/TourAcceptanceReport
+Authorization: Bearer {token}
+
+###
+
+### Bước 3: Thêm note với chi phí phát sinh
+POST {{baseUrl}}/api/GuideNote/notes
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "assignmentId": 1,
+  "title": "Chi phí phát sinh - Ăn trưa",
+  "content": "Khách yêu cầu ăn tại nhà hàng cao cấp thay vì nhà hàng thường",
+  "extraCost": 100.00,
+  "mediaUrls": [
+    "https://example.com/restaurant-receipt.jpg"
+  ]
+}
+
+###
+
+### Bước 4: Kiểm tra report đã được cập nhật tổng chi phí
+GET {{baseUrl}}/api/TourAcceptanceReport/1
+Authorization: Bearer {token}
+
+###
+
+### Bước 5: Thêm note cuối cùng
+POST {{baseUrl}}/api/GuideNote/notes
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "assignmentId": 1,
+  "title": "Kết thúc tour",
+  "content": "Đã đưa khách về khách sạn an toàn. Khách rất hài lòng.",
+  "extraCost": 25.00,
+  "mediaUrls": [
+    "https://example.com/final-photo.jpg"
+  ]
+}
+
+###
+
+### Bước 6: Cập nhật report với ghi chú tổng kết
+PUT {{baseUrl}}/api/TourAcceptanceReport/1
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "notes": "Tour hoàn thành thành công. Khách rất hài lòng với dịch vụ. Tổng chi phí phát sinh: 125.00",
+  "attachmentUrl": "https://example.com/final-report.pdf"
+}
+
+###
+
+### Bước 7: Kiểm tra report đã được cập nhật
+GET {{baseUrl}}/api/TourAcceptanceReport/1
+Authorization: Bearer {token}
+
+###
+
+### Bước 7: Kiểm tra kết quả cuối cùng
+GET {{baseUrl}}/api/TourAcceptanceReport/1
+Authorization: Bearer {token}
+
+###
+
+### ========================================
+### 5. TEST ERROR CASES
+### ========================================
+
+### 5.1 Test tạo note với assignment không tồn tại
+POST {{baseUrl}}/api/GuideNote/notes
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "assignmentId": 999,
+  "title": "Test Error",
+  "content": "Test assignment không tồn tại",
+  "extraCost": 0.00,
+  "mediaUrls": []
+}
+
+###
+
+### 5.2 Test cập nhật note không tồn tại
+PUT {{baseUrl}}/api/GuideNote/notes/999
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "title": "Test Error",
+  "content": "Test note không tồn tại",
+  "mediaUrls": []
+}
+
+###
+
+### 5.3 Test xóa note không tồn tại
+DELETE {{baseUrl}}/api/GuideNote/notes/999
+Authorization: Bearer {token}
+
+###
+
+### ========================================
+### 6. TEST NOTIFICATION
+### ========================================
+
+### 6.1 Kiểm tra notification sau khi tạo note
+GET {{baseUrl}}/api/Notification
+Authorization: Bearer {user_token}
+Content-Type: application/json
+
+###
+
+### 6.2 Kiểm tra notification sau khi tạo report
+GET {{baseUrl}}/api/Notification
+Authorization: Bearer {user_token}
+Content-Type: application/json
+
+###
+
+### ========================================
+### HƯỚNG DẪN SỬ DỤNG
+### ========================================
+
+### 1. Cài đặt REST Client extension trong VS Code
+### 2. Thay thế {baseUrl} bằng URL thực tế của API (ví dụ: http://localhost:5000)
+### 3. Thay thế {token} bằng JWT token của Tour Guide
+### 4. Thay thế {admin_token} bằng JWT token của Admin
+### 5. Thay thế {user_token} bằng JWT token của User thường
+### 6. Chạy từng request để test
+
+### Lưu ý:
+### - Đảm bảo có dữ liệu test trong database (TourGuide, TourGuideAssignment, Booking)
+### - Test theo thứ tự để đảm bảo luồng hoạt động đúng
+### - Kiểm tra response để xác nhận kết quả
+### - Xem log để debug nếu có lỗi 
