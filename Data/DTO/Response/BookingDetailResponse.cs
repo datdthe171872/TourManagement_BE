@@ -28,6 +28,7 @@ namespace TourManagement_BE.Data.DTO.Response
         public int MaxSlots { get; set; }
         public string? Transportation { get; set; }
         public string? StartPoint { get; set; }
+        public DateTime? DepartureDate { get; set; }
     }
 
     public class BookingInfo

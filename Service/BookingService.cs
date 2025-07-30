@@ -399,6 +399,7 @@ namespace TourManagement_BE.Service
             var query = _context.Bookings
                 .Include(x => x.Tour).ThenInclude(t => t.TourOperator)
                 .Include(x => x.User)
+                .Include(x => x.DepartureDate)
                 .AsQueryable();
 
             // Search by Tour Name
@@ -425,6 +426,7 @@ namespace TourManagement_BE.Service
             var query = _context.Bookings
                 .Include(x => x.Tour).ThenInclude(t => t.TourOperator)
                 .Include(x => x.User)
+                .Include(x => x.DepartureDate)
                 .Where(x => x.UserId == userId && x.IsActive);
 
             // Search by Tour Name
@@ -454,6 +456,7 @@ namespace TourManagement_BE.Service
             var query = _context.Bookings
                 .Include(x => x.Tour).ThenInclude(t => t.TourOperator)
                 .Include(x => x.User)
+                .Include(x => x.DepartureDate)
                 .Where(x => x.Tour != null && x.Tour.TourOperatorId == tourOperator.TourOperatorId && x.IsActive);
 
             // Search by Tour Name
@@ -481,6 +484,7 @@ namespace TourManagement_BE.Service
             var query = _context.Bookings
                 .Include(x => x.Tour).ThenInclude(t => t.TourOperator)
                 .Include(x => x.User)
+                .Include(x => x.DepartureDate)
                 .Where(x => x.IsActive);
 
             // Search by Tour Name
@@ -512,7 +516,8 @@ namespace TourManagement_BE.Service
                     Title = booking.Tour?.Title ?? string.Empty,
                     MaxSlots = booking.Tour?.MaxSlots ?? 0,
                     Transportation = booking.Tour?.Transportation,
-                    StartPoint = booking.Tour?.StartPoint
+                    StartPoint = booking.Tour?.StartPoint,
+                    DepartureDate = booking.DepartureDate.DepartureDate1
                 },
                 Booking = new BookingInfo
                 {
