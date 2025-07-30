@@ -98,7 +98,7 @@ namespace TourManagement_BE.Controllers
 
             var totalRecords = await query.CountAsync();
 
-            var payment = await query
+            var payment = await query.Where(p => p.PackageId != 3 )
                 .OrderByDescending(p => p.CreatedAt)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
@@ -149,7 +149,7 @@ namespace TourManagement_BE.Controllers
 
             var totalRecords = await query.CountAsync();
 
-            var data = await query
+            var data = await query.Where(p => p.PackageId != 3)
                 .OrderByDescending(p => p.CreatedAt)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
@@ -191,7 +191,7 @@ namespace TourManagement_BE.Controllers
 
             var totalRecords = query.Count();
 
-            var history = query
+            var history = query.Where(p => p.PackageId != 3)
                 .OrderByDescending(p => p.CreatedAt)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)

@@ -18,6 +18,14 @@
 
         public DateTime EndDate { get; set; }
 
+        public int? NumOfToursUsed { get; set; }
+
+        public int NumberOfTours { get; set; }
+
+        public int NumberOfTourAttribute { get; set; } 
+
+        public bool PostVideo { get; set; }
+
         public bool IsActive { get; set; }
 
         public DateTime? CreatedAt { get; set; }

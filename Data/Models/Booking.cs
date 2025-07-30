@@ -33,8 +33,6 @@ public partial class Booking
 
     public bool IsActive { get; set; }
 
-    public virtual ICollection<BookingExtraCharge> BookingExtraCharges { get; set; } = new List<BookingExtraCharge>();
-
     public virtual DepartureDate DepartureDate { get; set; } = null!;
 
     public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();

@@ -12,7 +12,6 @@ namespace TourManagement_BE.Mapping.ServiceMapping
                 Name = u.Name,
                 Description = u.Description,
                 Price = u.Price,
-                DurationInDay = u.DurationInDay, 
                 DiscountPercentage = u.DiscountPercentage,
                 IsActive = true,
                 ServicePackageFeatures = new List<ServicePackageFeature>()
@@ -22,8 +21,9 @@ namespace TourManagement_BE.Mapping.ServiceMapping
             {
                 servicePackage.ServicePackageFeatures.Add(new ServicePackageFeature
                 {
-                    FeatureName = featureRequest.FeatureName,
-                    FeatureValue = featureRequest.FeatureValue,
+                    NumberOfTours = featureRequest.NumberOfTours,
+                    NumberOfTourAttribute = featureRequest.NumberOfTourAttribute,
+                    PostVideo = featureRequest.PostVideo,
                     IsActive = true,
                     Package = servicePackage 
                 });

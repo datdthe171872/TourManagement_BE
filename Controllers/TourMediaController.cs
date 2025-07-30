@@ -2,9 +2,11 @@
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TourManagement_BE.Data.Context;
 using TourManagement_BE.Data.DTO.Request.TourMediaRequest;
 using TourManagement_BE.Data.Models;
+using TourManagement_BE.Repository.Interface;
 
 namespace TourManagement_BE.Controllers
 {
@@ -15,34 +17,69 @@ namespace TourManagement_BE.Controllers
         private readonly MyDBContext context;
         private readonly IMapper _mapper;
         private readonly Cloudinary _cloudinary;
-
-        public TourMediaController(MyDBContext context, IMapper mapper, Cloudinary cloudinary)
+        private readonly ISlotCheckService _slotCheckService;
+        public TourMediaController(MyDBContext context, IMapper mapper, Cloudinary cloudinary, ISlotCheckService slotCheckService)
         {
             this.context = context;
             _mapper = mapper;
             this._cloudinary = cloudinary;
+            _slotCheckService = slotCheckService;
         }
+
 
         [HttpPost("CreateTourMedia")]
         public async Task<IActionResult> CreateTourMedia([FromForm] TourMediaCreateRequest request)
         {
-            var tour = await context.Tours.FindAsync(request.TourId);
+            var tour = await context.Tours
+                .Include(t => t.TourMedia)
+                .FirstOrDefaultAsync(t => t.TourId == request.TourId);
+
             if (tour == null)
                 return NotFound("Tour not found.");
 
-            if (request.MediaFile == null || request.MediaFile.Length == 0)
+            var slotInfo = await _slotCheckService.CheckRemainingSlotsAsync(tour.TourOperatorId);
+            if (slotInfo == null)
+                return BadRequest("No active service package found.");
+
+            int maxMediaPerTour = slotInfo.NumberOfTourAttribute == 0 ? int.MaxValue : slotInfo.NumberOfTourAttribute;
+            int currentCount = tour.TourMedia.Count(m => m.IsActive);
+            int remainingSlots = maxMediaPerTour - currentCount;
+
+            if (remainingSlots <= 0)
+                return BadRequest("Gói dịch vụ hiện tại không cho phép thêm media vào tour này.");
+
+            var m = request;
+
+            if (m.MediaFile == null || m.MediaFile.Length == 0)
                 return BadRequest("Media file is required.");
 
-            if (request.MediaFile.Length > 100 * 1024 * 1024)
+            if (m.MediaFile.Length > 100 * 1024 * 1024)
                 return BadRequest("Media file exceeds 100MB.");
+
+            string contentType = m.MediaFile.ContentType;
+            bool isImage = contentType.StartsWith("image/");
+            bool isVideo = contentType.StartsWith("video/");
+            string declaredType = m.MediaType?.ToLower().Trim();
+
+            if (isImage && declaredType != "image")
+                return BadRequest("The uploaded file is an image, but MediaType was set to video.");
+
+            if (isVideo && declaredType != "video")
+                return BadRequest("The uploaded file is a video, but MediaType was set to image.");
+
+            if (!isImage && !isVideo)
+                return BadRequest("Unsupported file type. Only image and video are allowed.");
+
+            if (isVideo && !slotInfo.PostVideo)
+                return BadRequest("Gói dịch vụ hiện tại không cho phép upload video trong tour media.");
 
             string uploadedUrl;
 
-            if (request.MediaType == "Video")
+            if (isVideo)
             {
                 var uploadParams = new VideoUploadParams
                 {
-                    File = new FileDescription(request.MediaFile.FileName, request.MediaFile.OpenReadStream()),
+                    File = new FileDescription(m.MediaFile.FileName, m.MediaFile.OpenReadStream()),
                     Folder = "ProjectSEP490/Tour/TourMedia/Video"
                 };
                 var uploadResult = await _cloudinary.UploadAsync(uploadParams);
@@ -52,25 +89,25 @@ namespace TourManagement_BE.Controllers
             {
                 var uploadParams = new ImageUploadParams
                 {
-                    File = new FileDescription(request.MediaFile.FileName, request.MediaFile.OpenReadStream()),
+                    File = new FileDescription(m.MediaFile.FileName, m.MediaFile.OpenReadStream()),
                     Folder = "ProjectSEP490/Tour/TourMedia/Image"
                 };
                 var uploadResult = await _cloudinary.UploadAsync(uploadParams);
                 uploadedUrl = uploadResult.SecureUrl.ToString();
             }
 
-            var media = new TourMedia
+            tour.TourMedia.Add(new TourMedia
             {
                 MediaUrl = uploadedUrl,
                 MediaType = request.MediaType,
                 IsActive = true
-            };
+            });
 
-            tour.TourMedia.Add(media);
             await context.SaveChangesAsync();
 
-            return Ok(new { message = "TourMedia created successfully.", id = media.Id });
+            return Ok(new { message = "Tour media created successfully." });
         }
+
 
 
         [HttpDelete("SoftDeleteTourMedia/{id}")]
@@ -84,6 +121,23 @@ namespace TourManagement_BE.Controllers
             await context.SaveChangesAsync();
 
             return Ok(new { message = "TourMedia deactivated successfully." });
+        }
+
+        [HttpPatch("ToggleTourMedia/{id}")]
+        public async Task<IActionResult> ToggleTourMedia(int id)
+        {
+            var media = await context.TourMedia.FindAsync(id);
+            if (media == null)
+                return NotFound("TourMedia not found.");
+
+            media.IsActive = !media.IsActive;
+
+            await context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = $"Tour Media has been {(media.IsActive ? "activated" : "deactivated")}",
+            });
         }
     }
 }

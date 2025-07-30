@@ -2,9 +2,11 @@
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TourManagement_BE.Data.Context;
 using TourManagement_BE.Data.DTO.Request.TourItineraryRequest;
 using TourManagement_BE.Data.Models;
+using TourManagement_BE.Repository.Interface;
 
 namespace TourManagement_BE.Controllers
 {
@@ -15,34 +17,69 @@ namespace TourManagement_BE.Controllers
         private readonly MyDBContext context;
         private readonly IMapper _mapper;
         private readonly Cloudinary _cloudinary;
-
-        public TourItineraryMediaController(MyDBContext context, IMapper mapper, Cloudinary cloudinary)
+        private readonly ISlotCheckService _slotCheckService;
+        public TourItineraryMediaController(MyDBContext context, IMapper mapper, Cloudinary cloudinary, ISlotCheckService slotCheckService)
         {
             this.context = context;
             _mapper = mapper;
             this._cloudinary = cloudinary;
+            _slotCheckService = slotCheckService;
         }
 
         [HttpPost("AddItineraryMedia")]
         public async Task<IActionResult> AddItineraryMedia([FromForm] ItineraryMediaCreate request)
         {
-            var itinerary = await context.TourItineraries.FindAsync(request.ItineraryId);
+            var itinerary = await context.TourItineraries
+                .Include(i => i.Tour)
+                .Include(i => i.ItineraryMedia)
+                .FirstOrDefaultAsync(i => i.ItineraryId == request.ItineraryId);
+
             if (itinerary == null)
                 return NotFound("Itinerary not found.");
 
-            if (request.MediaFile == null || request.MediaFile.Length == 0)
-                return BadRequest("Media file is required.");
+            var slotInfo = await _slotCheckService.CheckRemainingSlotsAsync(itinerary.Tour.TourOperatorId);
+            if (slotInfo == null)
+                return BadRequest("No active service package found.");
 
-            if (request.MediaFile.Length > 100 * 1024 * 1024)
-                return BadRequest("Media file exceeds 100MB.");
+            int maxMediaPerItinerary = slotInfo.NumberOfTourAttribute == 0 ? int.MaxValue : slotInfo.NumberOfTourAttribute;
+            int currentCount = itinerary.ItineraryMedia.Count(m => m.IsActive);
+            int remainingSlots = maxMediaPerItinerary - currentCount;
+
+            if (remainingSlots <= 0)
+                return BadRequest("Gói dịch vụ hiện tại không cho phép thêm media vào itinerary này.");
+
+            var m = request;
+
+            if (m.MediaFile == null || m.MediaFile.Length == 0)
+                return BadRequest("ItineraryMedia file is required.");
+
+            if (m.MediaFile.Length > 100 * 1024 * 1024)
+                return BadRequest("ItineraryMedia file size exceeds 100MB.");
+
+            string contentType = m.MediaFile.ContentType;
+            bool isImage = contentType.StartsWith("image/");
+            bool isVideo = contentType.StartsWith("video/");
+            string declaredType = m.MediaType?.ToLower().Trim();
+
+            if (isImage && declaredType != "image")
+                return BadRequest("The uploaded file is an image, but MediaType was set to video.");
+
+            if (isVideo && declaredType != "video")
+                return BadRequest("The uploaded file is a video, but MediaType was set to image.");
+
+            if (!isImage && !isVideo)
+                return BadRequest("Unsupported file type. Only image and video are allowed.");
+
+            if (isVideo && !slotInfo.PostVideo)
+                return BadRequest("Gói dịch vụ hiện tại không cho phép upload video trong itinerary media.");
 
             string uploadedUrl;
 
-            if (request.MediaType == "Video")
+            if (isVideo)
             {
                 var uploadParams = new VideoUploadParams
                 {
-                    File = new FileDescription(request.MediaFile.FileName, request.MediaFile.OpenReadStream()),
+                    File = new FileDescription(m.MediaFile.FileName, m.MediaFile.OpenReadStream()),
                     Folder = "ProjectSEP490/Tour/TourItineraryMedia/Video"
                 };
                 var uploadResult = await _cloudinary.UploadAsync(uploadParams);
@@ -52,28 +89,26 @@ namespace TourManagement_BE.Controllers
             {
                 var uploadParams = new ImageUploadParams
                 {
-                    File = new FileDescription(request.MediaFile.FileName, request.MediaFile.OpenReadStream()),
+                    File = new FileDescription(m.MediaFile.FileName, m.MediaFile.OpenReadStream()),
                     Folder = "ProjectSEP490/Tour/TourItineraryMedia/Image"
                 };
                 var uploadResult = await _cloudinary.UploadAsync(uploadParams);
                 uploadedUrl = uploadResult.SecureUrl.ToString();
             }
 
-            var media = new ItineraryMedia
+            itinerary.ItineraryMedia.Add(new ItineraryMedia
             {
                 MediaUrl = uploadedUrl,
-                MediaType = request.MediaType,
-                Caption = request.Caption,
+                MediaType = isVideo ? "Video" : "Image",
+                Caption = m.Caption,
                 UploadedAt = DateTime.UtcNow.AddHours(7),
                 IsActive = true
-            };
+            });
 
-            itinerary.ItineraryMedia.Add(media);
             await context.SaveChangesAsync();
 
-            return Ok(new { message = "Itinerary media created successfully.", mediaId = media.MediaId });
+            return Ok(new { message = "Itinerary media created successfully." });
         }
-
 
         [HttpDelete("SoftDeleteTourItineraryMedia/{id}")]
         public async Task<IActionResult> SoftDeleteTourItineraryMedia(int id)
@@ -86,6 +121,23 @@ namespace TourManagement_BE.Controllers
             await context.SaveChangesAsync();
 
             return Ok(new { message = "ItineraryMedia deactivated successfully." });
+        }
+
+        [HttpPatch("ToggleTourItineraryMedia/{id}")]
+        public async Task<IActionResult> ToggleTourItineraryMedia(int id)
+        {
+            var media = await context.ItineraryMedia.FindAsync(id);
+            if (media == null)
+                return NotFound("ItineraryMedia not found.");
+
+            media.IsActive = !media.IsActive;
+
+            await context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = $"Tour Itinerary Media has been {(media.IsActive ? "activated" : "deactivated")}",
+            });
         }
     }
 }
