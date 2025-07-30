@@ -161,4 +161,15 @@ public class NotificationService : INotificationService
             "Registration"
         );
     }
+
+    public async Task CreateTourAcceptanceReportNotificationAsync(int userId, int reportId)
+    {
+        await CreateNotificationAsync(
+            userId,
+            "Báo cáo hoàn thành tour mới",
+            "Bạn có một báo cáo hoàn thành tour mới. Hãy kiểm tra để biết thêm chi tiết.",
+            "TourAcceptanceReport",
+            reportId.ToString()
+        );
+    }
 } 
