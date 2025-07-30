@@ -61,7 +61,8 @@ namespace TourManagement_BE
             builder.Services.AddScoped<ISlotCheckService, SlotCheckService>();
             builder.Services.AddScoped<ITourOperatorService, TourOperatorService>();
             builder.Services.AddScoped<IFeedbackService, FeedbackService>();
-            builder.Services.AddScoped<IBookingService, BookingService>();          
+            builder.Services.AddScoped<IBookingService, BookingService>();
+            //builder.Services.AddScoped<IExtraChargeService, ExtraChargeService>();
             builder.Services.AddScoped<IGuideNoteService, GuideNoteService>();
             builder.Services.AddScoped<IDashboardCustomerService, DashboardCustomerService>();
             builder.Services.AddScoped<IDashboardOperatorService, DashboardOperatorService>();

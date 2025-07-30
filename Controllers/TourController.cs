@@ -2,8 +2,10 @@
 using AutoMapper.QueryableExtensions;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 using TourManagement_BE.Data.Context;
 using TourManagement_BE.Data.DTO.Request.DepartureDatesRequest;
 using TourManagement_BE.Data.DTO.Request.TourExperienceRequest;
@@ -13,6 +15,7 @@ using TourManagement_BE.Data.DTO.Request.TourRequest;
 using TourManagement_BE.Data.DTO.Response.PaymentResponse;
 using TourManagement_BE.Data.DTO.Response.TourResponse;
 using TourManagement_BE.Data.Models;
+using TourManagement_BE.Helper.Constant;
 using TourManagement_BE.Repository.Interface;
 
 namespace TourManagement_BE.Controllers
@@ -25,6 +28,7 @@ namespace TourManagement_BE.Controllers
         private readonly IMapper _mapper;
         private readonly Cloudinary _cloudinary;
         private readonly ISlotCheckService _slotCheckService;
+        
 
         public TourController(MyDBContext context, IMapper mapper, Cloudinary cloudinary, ISlotCheckService slotCheckService)
         {
@@ -34,12 +38,15 @@ namespace TourManagement_BE.Controllers
             _slotCheckService = slotCheckService;
         }
 
-        [HttpGet("List All Tours For Tour Operator/{touroperatorid}")]
-        public async Task<IActionResult> listAllToursForTourOperator(int touroperatorid)
+        [HttpGet("List All Tours For Tour Operator/{userid}")]
+        public async Task<IActionResult> listAllToursForTourOperator(int userid)
         {
-            var tours = await context.Tours.Where(t => t.TourOperatorId == touroperatorid)
-                .ProjectTo<ListTourResponse>(_mapper.ConfigurationProvider)
-                .ToListAsync();
+            var tours = await context.Tours
+            .Include(t => t.TourOperator) 
+            .ThenInclude(to => to.User) 
+            .Where(t => t.TourOperator.User.UserId == userid)
+            .ProjectTo<ListTourResponse>(_mapper.ConfigurationProvider)
+            .ToListAsync();
 
             if (!tours.Any())
             {
@@ -50,15 +57,16 @@ namespace TourManagement_BE.Controllers
         }
 
 
-        [HttpGet("List All Tours For Tour Operator Paging/{touroperatorid}")]
-        public async Task<IActionResult> listAllToursForTourOperatorPaging(int touroperatorid, int pageNumber = 1, int pageSize = 10)
+        [HttpGet("List All Tours For Tour Operator Paging/{userid}")]
+        public async Task<IActionResult> listAllToursForTourOperatorPaging(int userid, int pageNumber = 1, int pageSize = 10)
         {
             if (pageNumber <= 0) pageNumber = 1;
             if (pageSize <= 0) pageSize = 10;
 
             var totalRecords = await context.Tours.CountAsync();
 
-            var tours = await context.Tours.Where(t => t.TourOperatorId == touroperatorid)
+            var tours = await context.Tours.Include(t => t.TourOperator).ThenInclude(to => to.User)
+            .Where(t => t.TourOperator.User.UserId == userid)
                 .OrderBy(t => t.TourId)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
@@ -80,10 +88,11 @@ namespace TourManagement_BE.Controllers
             });
         }
 
-        [HttpGet("Search Tour By Name For Tour Operator/{touroperatorid}")]
-        public async Task<IActionResult> SearchTourForOperator(int touroperatorid, string? keyword)
+        [HttpGet("Search Tour By Name For Tour Operator/{userid}")]
+        public async Task<IActionResult> SearchTourForOperator(int userid, string? keyword)
         {
-            var query = context.Tours.Where(t => t.TourOperatorId == touroperatorid).AsQueryable();
+            var query = context.Tours.Include(t => t.TourOperator).ThenInclude(to => to.User)
+            .Where(t => t.TourOperator.User.UserId == userid).AsQueryable();
 
             if (!string.IsNullOrEmpty(keyword))
             {
@@ -103,13 +112,14 @@ namespace TourManagement_BE.Controllers
             return Ok(tours);
         }
 
-        [HttpGet("Search Tour Paging By Name For Tour Operator/{touroperatorid}")]
-        public async Task<IActionResult> SearchTourPagingForOperator(int touroperatorid, string? keyword, int pageNumber = 1, int pageSize = 10)
+        [HttpGet("Search Tour Paging By Name For Tour Operator/{userid}")]
+        public async Task<IActionResult> SearchTourPagingForOperator(int userid, string? keyword, int pageNumber = 1, int pageSize = 10)
         {
             if (pageNumber <= 0) pageNumber = 1;
             if (pageSize <= 0) pageSize = 10;
 
-            var query = context.Tours.Where(t => t.TourOperatorId == touroperatorid).AsQueryable();
+            var query = context.Tours.Include(t => t.TourOperator).ThenInclude(to => to.User)
+            .Where(t => t.TourOperator.User.UserId == userid).AsQueryable();
 
             if (!string.IsNullOrEmpty(keyword))
             {
@@ -141,8 +151,8 @@ namespace TourManagement_BE.Controllers
             });
         }
 
-        [HttpGet("Filter Tours Paging For Tour Operator/{touroperatorid}")]
-        public async Task<IActionResult> FilterToursPagingForOperator(int touroperatorid,
+        [HttpGet("Filter Tours Paging For Tour Operator/{userid}")]
+        public async Task<IActionResult> FilterToursPagingForOperator(int userid,
             string? title,
             string? transportation,
             string? startPoint,
@@ -152,7 +162,8 @@ namespace TourManagement_BE.Controllers
             int pageNumber = 1,
             int pageSize = 10)
         {
-            var query = context.Tours.Where(t => t.TourOperatorId == touroperatorid).AsQueryable();
+            var query = context.Tours.Include(t => t.TourOperator).ThenInclude(to => to.User)
+            .Where(t => t.TourOperator.User.UserId == userid).AsQueryable();
 
             if (!string.IsNullOrEmpty(title))
                 query = query.Where(t => t.Title.Contains(title));
@@ -201,8 +212,8 @@ namespace TourManagement_BE.Controllers
             });
         }
 
-        [HttpGet("Filter Tours For Operator/{touroperatorid}")]
-        public async Task<IActionResult> FilterToursForOperattor(int touroperatorid,
+        [HttpGet("Filter Tours For Operator/{userid}")]
+        public async Task<IActionResult> FilterToursForOperattor(int userid,
             string? title,
             string? transportation,
             string? startPoint,
@@ -210,7 +221,8 @@ namespace TourManagement_BE.Controllers
             decimal? maxPrice,
             [FromQuery] int[] ratings)
         {
-            var query = context.Tours.Where(t => t.TourOperatorId == touroperatorid).AsQueryable();
+            var query = context.Tours.Include(t => t.TourOperator).ThenInclude(to => to.User)
+            .Where(t => t.TourOperator.User.UserId == userid).AsQueryable();
 
             if (!string.IsNullOrEmpty(title))
                 query = query.Where(t => t.Title.Contains(title));
@@ -502,6 +514,7 @@ namespace TourManagement_BE.Controllers
             return Ok(result);
         }
 
+
         [HttpPost("Create Tour")]
         public async Task<IActionResult> CreateTour([FromForm] TourCreateRequest request)
         {
@@ -509,10 +522,30 @@ namespace TourManagement_BE.Controllers
             var slotInfo = await _slotCheckService.CheckRemainingSlotsAsync(request.TourOperatorId);
 
             if (slotInfo == null)
-                return BadRequest("Tour operator does not have an active service package.");
-
-            if (slotInfo.EndDate <= DateTime.UtcNow.AddHours(7))
                 return BadRequest("No remaining time create tour available. Please purchase a PackageService to create more Tours");
+            
+            if (slotInfo.NumOfToursUsed == slotInfo.NumberOfTours)
+            {
+                return BadRequest($"You have reached the maximum number of tours ({slotInfo.NumberOfTours}) for your current package.");
+            }
+
+            int maxItemPerList = slotInfo.NumberOfTourAttribute;
+
+            // Validate số lượng phần tử
+            if (request.DepartureDates?.Count > maxItemPerList)
+                return BadRequest($"DepartureDates cannot exceed {maxItemPerList} items for your current package.");
+
+            if (request.TourExperiences?.Count > maxItemPerList)
+                return BadRequest($"TourExperiences cannot exceed {maxItemPerList} items for your current package.");
+
+            if (request.TourItineraries?.Count > maxItemPerList)
+                return BadRequest($"TourItineraries cannot exceed {maxItemPerList} items for your current package.");
+
+            if (request.TourItineraries?.Any(i => i.ItineraryMedia?.Count > maxItemPerList) == true)
+                return BadRequest($"Each TourItinerary cannot contain more than {maxItemPerList} media items for your current package.");
+
+            if (request.TourMedia?.Count > maxItemPerList)
+                return BadRequest($"TourMedia cannot exceed {maxItemPerList} items for your current package.");
 
             var tour = new Tour
             {
@@ -589,13 +622,30 @@ namespace TourManagement_BE.Controllers
                             if (m.MediaFile == null || m.MediaFile.Length == 0)
                                 return BadRequest("ItineraryMedia file is required.");
 
-                            // Check file size (bytes)
                             if (m.MediaFile.Length > 100 * 1024 * 1024)
                                 return BadRequest("ItineraryMedia file size exceeds 100MB.");
 
+                            // Kiểm tra loại thật sự của file dựa trên content-type
+                            string contentType = m.MediaFile.ContentType;
+                            bool isImage = contentType.StartsWith("image/");
+                            bool isVideo = contentType.StartsWith("video/");
+                            string declaredType = m.MediaType?.ToLower().Trim();
+
+                            if (isImage && declaredType != "image")
+                                return BadRequest("The uploaded file is an image, but MediaType was set to video.");
+
+                            if (isVideo && declaredType != "video")
+                                return BadRequest("The uploaded file is a video, but MediaType was set to image.");
+
+                            if (!isImage && !isVideo)
+                                return BadRequest("Unsupported file type. Only image and video are allowed.");
+
+                            if (isVideo && !slotInfo.PostVideo)
+                                return BadRequest("Your service package does not allow uploading video in itinerary media.");
+
                             string uploadedUrl;
 
-                            if (m.MediaType == "Video")
+                            if (isVideo)
                             {
                                 var uploadParams = new VideoUploadParams
                                 {
@@ -605,7 +655,7 @@ namespace TourManagement_BE.Controllers
                                 var uploadResult = await _cloudinary.UploadAsync(uploadParams);
                                 uploadedUrl = uploadResult.SecureUrl.ToString();
                             }
-                            else
+                            else // Image
                             {
                                 var uploadParams = new ImageUploadParams
                                 {
@@ -619,15 +669,13 @@ namespace TourManagement_BE.Controllers
                             itinerary.ItineraryMedia.Add(new ItineraryMedia
                             {
                                 MediaUrl = uploadedUrl,
-                                MediaType = m.MediaType,
+                                MediaType = isVideo ? "Video" : "Image",
                                 Caption = m.Caption,
                                 UploadedAt = DateTime.UtcNow.AddHours(7),
                                 IsActive = true
                             });
                         }
                     }
-
-
                     tour.TourItineraries.Add(itinerary);
                 }
             }
@@ -640,13 +688,30 @@ namespace TourManagement_BE.Controllers
                     if (m.MediaFile == null || m.MediaFile.Length == 0)
                         return BadRequest("TourMedia file is required.");
 
-                    // Check file size (bytes)
                     if (m.MediaFile.Length > 100 * 1024 * 1024)
                         return BadRequest("TourMedia file size exceeds 100MB.");
 
+                    // Kiểm tra loại thật sự của file dựa trên content-type
+                    string contentType = m.MediaFile.ContentType;
+                    bool isImage = contentType.StartsWith("image/");
+                    bool isVideo = contentType.StartsWith("video/");
+                    string declaredType = m.MediaType?.ToLower().Trim();
+
+                    if (isImage && declaredType != "image")
+                        return BadRequest("The uploaded file is an image, but MediaType was set to video.");
+
+                    if (isVideo && declaredType != "video")
+                        return BadRequest("The uploaded file is a video, but MediaType was set to image.");
+
+                    if (!isImage && !isVideo)
+                        return BadRequest("Unsupported file type. Only image and video are allowed.");
+
+                    if (isVideo && !slotInfo.PostVideo)
+                        return BadRequest("Your service package does not allow uploading video in tour media.");
+
                     string uploadedUrl;
 
-                    if (m.MediaType == "Video")
+                    if (isVideo)
                     {
                         var uploadParams = new VideoUploadParams
                         {
@@ -656,7 +721,7 @@ namespace TourManagement_BE.Controllers
                         var uploadResult = await _cloudinary.UploadAsync(uploadParams);
                         uploadedUrl = uploadResult.SecureUrl.ToString();
                     }
-                    else
+                    else // Image
                     {
                         var uploadParams = new ImageUploadParams
                         {
@@ -670,7 +735,7 @@ namespace TourManagement_BE.Controllers
                     tour.TourMedia.Add(new TourMedia
                     {
                         MediaUrl = uploadedUrl,
-                        MediaType = m.MediaType,
+                        MediaType = isVideo ? "Video" : "Image",
                         IsActive = true
                     });
                 }
@@ -731,26 +796,6 @@ namespace TourManagement_BE.Controllers
             tour.IsActive = request.IsActive;
 
             // Update DepartureDates
-            /*if (request.DepartureDates != null)
-            {
-                foreach (var d in request.DepartureDates)
-                {
-                    var existing = tour.DepartureDates.FirstOrDefault(x => x.Id == d.Id);
-                    if (existing != null)
-                    {
-                        if (d.DepartureDate1.Date < DateTime.UtcNow.Date)
-                        {
-                            return BadRequest($"The departure date (DepartureDate1) of ID {d.Id} cannot be less than the current date.");
-                        }
-                        existing.DepartureDate1 = d.DepartureDate1;
-                        existing.IsActive = d.IsActive;
-                    }
-                    else
-                    {
-                        return BadRequest($"DepartureDate with ID {d.Id} not exist.");
-                    }
-                }
-            }*/
 
             if (request.DepartureDates != null)
             {
@@ -839,14 +884,37 @@ namespace TourManagement_BE.Controllers
 
                                 if (existingMedia != null)
                                 {
-                                    // Nếu có file mới, upload
+                                    // Nếu có file mới, kiểm tra & upload
                                     if (m.MediaFile != null && m.MediaFile.Length > 0)
                                     {
                                         if (m.MediaFile.Length > 100 * 1024 * 1024)
                                             return BadRequest("ItineraryMedia file size exceeds 100MB.");
 
+                                        string contentType = m.MediaFile.ContentType;
+                                        bool isImage = contentType.StartsWith("image/");
+                                        bool isVideo = contentType.StartsWith("video/");
+                                        string declaredType = m.MediaType?.ToLower().Trim();
+
+                                        if (isImage && declaredType != "image")
+                                            return BadRequest($"The uploaded file is an image, but MediaType was set to {declaredType}.");
+
+                                        if (isVideo && declaredType != "video")
+                                            return BadRequest($"The uploaded file is a video, but MediaType was set to {declaredType}.");
+
+                                        if (!isImage && !isVideo)
+                                            return BadRequest("Unsupported file type. Only image and video are allowed.");
+
+                                        var tourOperatorId = existingItinerary.Tour.TourOperatorId;
+                                        var slotInfo = await _slotCheckService.CheckRemainingSlotsAsync(tourOperatorId);
+                                        if (slotInfo == null)
+                                            return BadRequest("No active service package found.");
+
+                                        if (isVideo && !slotInfo.PostVideo)
+                                            return BadRequest("Current service plans do not allow uploading videos in media itinerary.");
+
                                         string uploadedUrl;
-                                        if (m.MediaType == "Video")
+
+                                        if (isVideo)
                                         {
                                             var uploadParams = new VideoUploadParams
                                             {
@@ -881,7 +949,6 @@ namespace TourManagement_BE.Controllers
                                 }
                             }
                         }
-
                     }
                     else
                     {
@@ -896,47 +963,66 @@ namespace TourManagement_BE.Controllers
                 foreach (var m in request.TourMedia)
                 {
                     var existing = tour.TourMedia.FirstOrDefault(x => x.Id == m.Id);
-                    if (existing != null)
-                    {
-                        if (m.MediaFile != null && m.MediaFile.Length > 0)
-                        {
-                            if (m.MediaFile.Length > 100 * 1024 * 1024)
-                                return BadRequest("TourMedia file size exceeds 100MB.");
-
-                            string uploadedUrl;
-                            if (m.MediaType == "Video")
-                            {
-                                var uploadParams = new VideoUploadParams
-                                {
-                                    File = new FileDescription(m.MediaFile.FileName, m.MediaFile.OpenReadStream()),
-                                    Folder = "ProjectSEP490/Tour/TourMedia/Video"
-                                };
-                                var uploadResult = await _cloudinary.UploadAsync(uploadParams);
-                                uploadedUrl = uploadResult.SecureUrl.ToString();
-                            }
-                            else
-                            {
-                                var uploadParams = new ImageUploadParams
-                                {
-                                    File = new FileDescription(m.MediaFile.FileName, m.MediaFile.OpenReadStream()),
-                                    Folder = "ProjectSEP490/Tour/TourMedia/Image"
-                                };
-                                var uploadResult = await _cloudinary.UploadAsync(uploadParams);
-                                uploadedUrl = uploadResult.SecureUrl.ToString();
-                            }
-
-                            existing.MediaUrl = uploadedUrl;
-                        }
-
-                        existing.MediaType = m.MediaType;
-                        existing.IsActive = m.IsActive;
-                    }
-                    else
-                    {
+                    if (existing == null)
                         return BadRequest($"TourMedia with ID {m.Id} not found.");
+
+                    if (m.MediaFile != null && m.MediaFile.Length > 0)
+                    {
+                        if (m.MediaFile.Length > 100 * 1024 * 1024)
+                            return BadRequest("TourMedia file size exceeds 100MB.");
+
+                        string contentType = m.MediaFile.ContentType;
+                        bool isImage = contentType.StartsWith("image/");
+                        bool isVideo = contentType.StartsWith("video/");
+                        string declaredType = m.MediaType?.ToLower().Trim();
+
+                        if (isImage && declaredType != "image")
+                            return BadRequest($"The uploaded file is an image, but MediaType was set to {declaredType}.");
+
+                        if (isVideo && declaredType != "video")
+                            return BadRequest($"The uploaded file is a video, but MediaType was set to {declaredType}.");
+
+                        if (!isImage && !isVideo)
+                            return BadRequest("Unsupported file type. Only image and video are allowed.");
+
+                        var tourOperatorId = tour.TourOperatorId;
+                        var slotInfo = await _slotCheckService.CheckRemainingSlotsAsync(tourOperatorId);
+                        if (slotInfo == null)
+                            return BadRequest("No active service package found.");
+
+                        if (isVideo && !slotInfo.PostVideo)
+                            return BadRequest("Current service package does not allow uploading videos in tour media.");
+
+                        string uploadedUrl;
+
+                        if (isVideo)
+                        {
+                            var uploadParams = new VideoUploadParams
+                            {
+                                File = new FileDescription(m.MediaFile.FileName, m.MediaFile.OpenReadStream()),
+                                Folder = "ProjectSEP490/Tour/TourMedia/Video"
+                            };
+                            var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+                            uploadedUrl = uploadResult.SecureUrl.ToString();
+                        }
+                        else
+                        {
+                            var uploadParams = new ImageUploadParams
+                            {
+                                File = new FileDescription(m.MediaFile.FileName, m.MediaFile.OpenReadStream()),
+                                Folder = "ProjectSEP490/Tour/TourMedia/Image"
+                            };
+                            var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+                            uploadedUrl = uploadResult.SecureUrl.ToString();
+                        }
+                        existing.MediaUrl = uploadedUrl;
                     }
+
+                    existing.MediaType = m.MediaType;
+                    existing.IsActive = m.IsActive;
                 }
             }
+
 
 
             await context.SaveChangesAsync();
@@ -945,8 +1031,8 @@ namespace TourManagement_BE.Controllers
         }
 
 
-        [HttpDelete("SoftDeleteTour/{tourid}")]
-        public async Task<IActionResult> SoftDeleteTour(int tourid)
+        [HttpPatch("ToggleTourStatus/{tourid}")]
+        public async Task<IActionResult> ToggleTourStatus(int tourid)
         {
             var tour = await context.Tours.FindAsync(tourid);
             if (tour == null)
@@ -954,17 +1040,21 @@ namespace TourManagement_BE.Controllers
                 return NotFound("Tour not found.");
             }
 
-            if (!tour.IsActive)
-            {
-                return BadRequest("Tour is already inactive.");
-            }
+            // Toggle trạng thái IsActive
+            tour.IsActive = !tour.IsActive;
 
-            tour.IsActive = false;
-            tour.TourStatus = "InActive";
+            // Cập nhật TourStatus tương ứng
+            tour.TourStatus = tour.IsActive ? "Active" : "InActive";
+
             await context.SaveChangesAsync();
 
-            return Ok(new { message = "Tour has been deactivated (soft deleted)." });
+            return Ok(new
+            {
+                message = $"Tour has been {(tour.IsActive ? "activated" : "deactivated")}",
+                tourId = tourid,
+                newStatus = tour.IsActive,
+                tourStatus = tour.TourStatus
+            });
         }
-
     }
 }

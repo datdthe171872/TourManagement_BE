@@ -4,13 +4,13 @@ namespace TourManagement_BE.Data.DTO.Request.ServicePackageRequest
 {
     public class AddServicePackageFeatureRequest
     {
-        public int PackageId { get; set; }  // ID của ServicePackage tồn tại
-
+        public int PackageId { get; set; }
         [Required]
-        public string FeatureName { get; set; } = null!;
-
+        public int NumberOfTours { get; set; }
         [Required]
-        public string FeatureValue { get; set; } = null!;
+        public int NumberOfTourAttribute { get; set; }
+        [Required]
+        public bool PostVideo { get; set; }
 
         public bool IsActive { get; set; } = true;
     }

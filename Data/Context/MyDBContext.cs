@@ -115,6 +115,11 @@ public partial class MyDBContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Bookings_DepartureDates");
 
+            entity.HasOne(d => d.DepartureDate).WithMany(p => p.Bookings)
+                .HasForeignKey(d => d.DepartureDateId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Bookings_DepartureDates");
+
             entity.HasOne(d => d.Tour).WithMany(p => p.Bookings)
                 .HasForeignKey(d => d.TourId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -289,7 +294,7 @@ public partial class MyDBContext : DbContext
 
             entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.AmountPaid)
-                .HasDefaultValue(0m)
+                .HasDefaultValue(0.0m)
                 .HasColumnType("decimal(18, 2)");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.PaymentDate)
@@ -436,7 +441,7 @@ public partial class MyDBContext : DbContext
             entity.HasKey(e => e.PackageId).HasName("PK__ServiceP__322035CC2CFB51A1");
 
             entity.Property(e => e.DiscountPercentage)
-                .HasDefaultValue(0m)
+                .HasDefaultValue(0.0m)
                 .HasColumnType("decimal(5, 2)");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(255);
@@ -446,8 +451,6 @@ public partial class MyDBContext : DbContext
         modelBuilder.Entity<ServicePackageFeature>(entity =>
         {
             entity.HasKey(e => e.FeatureId).HasName("PK__ServiceP__82230BC98B4657F8");
-
-            entity.Property(e => e.FeatureName).HasMaxLength(100);
 
             entity.HasOne(d => d.Package).WithMany(p => p.ServicePackageFeatures)
                 .HasForeignKey(d => d.PackageId)
@@ -497,7 +500,7 @@ public partial class MyDBContext : DbContext
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
             entity.Property(e => e.TotalExtraCost)
-                .HasDefaultValue(0m)
+                .HasDefaultValue(0.0m)
                 .HasColumnType("decimal(18, 2)");
 
             entity.HasOne(d => d.Booking).WithMany(p => p.TourAcceptanceReports)

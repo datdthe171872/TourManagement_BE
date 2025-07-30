@@ -41,8 +41,9 @@ namespace TourManagement_BE.Controllers
                         {
                             FeatureId = f.FeatureId,
                             PackageId = f.PackageId,
-                            FeatureName = f.FeatureName,
-                            FeatureValue = f.FeatureValue,
+                            NumberOfTours = f.NumberOfTours,
+                            NumberOfTourAttribute = f.NumberOfTourAttribute,
+                            PostVideo = f.PostVideo,
                             IsActive = f.IsActive
                         }).ToList()
                 }).ToList();
@@ -78,8 +79,9 @@ namespace TourManagement_BE.Controllers
                         {
                             FeatureId = f.FeatureId,
                             PackageId = f.PackageId,
-                            FeatureName = f.FeatureName,
-                            FeatureValue = f.FeatureValue,
+                            NumberOfTours = f.NumberOfTours,
+                            NumberOfTourAttribute = f.NumberOfTourAttribute,
+                            PostVideo = f.PostVideo,
                             IsActive = f.IsActive
                         }).ToList()
                 }).ToList();
@@ -118,8 +120,9 @@ namespace TourManagement_BE.Controllers
                         {
                             FeatureId = f.FeatureId,
                             PackageId = f.PackageId,
-                            FeatureName = f.FeatureName,
-                            FeatureValue = f.FeatureValue,
+                            NumberOfTours = f.NumberOfTours,
+                            NumberOfTourAttribute = f.NumberOfTourAttribute,
+                            PostVideo = f.PostVideo,
                             IsActive = true
                         }).ToList()
                 }).ToList();
@@ -156,8 +159,9 @@ namespace TourManagement_BE.Controllers
                         {
                             FeatureId = f.FeatureId,
                             PackageId = f.PackageId,
-                            FeatureName = f.FeatureName,
-                            FeatureValue = f.FeatureValue,
+                            NumberOfTours = f.NumberOfTours,
+                            NumberOfTourAttribute = f.NumberOfTourAttribute,
+                            PostVideo = f.PostVideo,
                             IsActive = true
                         }).ToList()
                 }).ToList();
@@ -210,8 +214,9 @@ namespace TourManagement_BE.Controllers
                 var newFeature = new ServicePackageFeature
                 {
                     PackageId = request.PackageId,
-                    FeatureName = request.FeatureName,
-                    FeatureValue = request.FeatureValue,
+                    NumberOfTours = request.NumberOfTours,
+                    NumberOfTourAttribute = request.NumberOfTourAttribute,
+                    PostVideo = request.PostVideo,
                     IsActive = request.IsActive
                 };
 
@@ -281,18 +286,9 @@ namespace TourManagement_BE.Controllers
                     return NotFound(new { Message = $"Feature with ID {request.FeatureId} not found" });
                 }
 
-                var duplicateFeature = await context.ServicePackageFeatures
-                    .AnyAsync(f => f.PackageId == feature.PackageId &&
-                                  f.FeatureName == request.FeatureName &&
-                                  f.FeatureId != request.FeatureId);
-
-                if (duplicateFeature)
-                {
-                    return Conflict(new { Message = "Feature with this name already exists for this package" });
-                }
-
-                feature.FeatureName = request.FeatureName.Trim();
-                feature.FeatureValue = request.FeatureValue.Trim();
+                feature.NumberOfTours = request.NumberOfTours;
+                feature.NumberOfTourAttribute = request.NumberOfTourAttribute;
+                feature.PostVideo = request.PostVideo;
                 feature.IsActive = request.IsActive;
 
                 context.ServicePackageFeatures.Update(feature);
@@ -338,7 +334,7 @@ namespace TourManagement_BE.Controllers
             });
         }
 
-        [HttpPatch("ToggleServicePackageFeatureStatus/{packageId}")]
+        [HttpPatch("ToggleServicePackageFeatureStatus/{featureid}")]
         public async Task<IActionResult> ToggleServicePackageFeatureStatus(int featureid)
         {
             var service = await context.ServicePackageFeatures.FindAsync(featureid);
@@ -379,8 +375,9 @@ namespace TourManagement_BE.Controllers
                         {
                             FeatureId = f.FeatureId,
                             PackageId = f.PackageId,
-                            FeatureName = f.FeatureName,
-                            FeatureValue = f.FeatureValue,
+                            NumberOfTours = f.NumberOfTours,
+                            NumberOfTourAttribute = f.NumberOfTourAttribute,
+                            PostVideo = f.PostVideo,
                             IsActive = true
                         }).ToList()
                 })
@@ -413,8 +410,9 @@ namespace TourManagement_BE.Controllers
                         {
                             FeatureId = f.FeatureId,
                             PackageId = f.PackageId,
-                            FeatureName = f.FeatureName,
-                            FeatureValue = f.FeatureValue,
+                            NumberOfTours = f.NumberOfTours,
+                            NumberOfTourAttribute = f.NumberOfTourAttribute,
+                            PostVideo = f.PostVideo,
                             IsActive = f.IsActive
                         }).ToList()
                 })
@@ -428,11 +426,11 @@ namespace TourManagement_BE.Controllers
             return Ok(services);
         }
 
-        [HttpGet("CheckSlotTourOperatorPackageService/{touroperatorid}")]
-        public IActionResult CheckSlotTourOperatorPackageService(int touroperatorid)
+        [HttpGet("CheckSlotTourOperatorPackageService/{userid}")]
+        public IActionResult CheckSlotTourOperatorPackageService(int userid)
         {
-            var activePackage = context.PurchasedServicePackages
-                .Where(p => p.TourOperatorId == touroperatorid && p.EndDate > DateTime.UtcNow && p.IsActive)
+            var activePackage = context.PurchasedServicePackages.Include(t => t.TourOperator).ThenInclude(u => u.User)
+                .Where(p => p.TourOperator.User.UserId == userid && p.EndDate > DateTime.UtcNow && p.IsActive)
                 .OrderByDescending(p => p.ActivationDate)
                 .Select(u => new CheckSlotTourOperatorResponse
                 {
