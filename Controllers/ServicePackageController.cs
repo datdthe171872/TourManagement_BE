@@ -426,11 +426,11 @@ namespace TourManagement_BE.Controllers
             return Ok(services);
         }
 
-        [HttpGet("CheckSlotTourOperatorPackageService/{touroperatorid}")]
-        public IActionResult CheckSlotTourOperatorPackageService(int touroperatorid)
+        [HttpGet("CheckSlotTourOperatorPackageService/{userid}")]
+        public IActionResult CheckSlotTourOperatorPackageService(int userid)
         {
-            var activePackage = context.PurchasedServicePackages
-                .Where(p => p.TourOperatorId == touroperatorid && p.EndDate > DateTime.UtcNow && p.IsActive)
+            var activePackage = context.PurchasedServicePackages.Include(t => t.TourOperator).ThenInclude(u => u.User)
+                .Where(p => p.TourOperator.User.UserId == userid && p.EndDate > DateTime.UtcNow && p.IsActive)
                 .OrderByDescending(p => p.ActivationDate)
                 .Select(u => new CheckSlotTourOperatorResponse
                 {

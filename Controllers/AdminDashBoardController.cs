@@ -174,7 +174,7 @@ namespace TourManagement_BE.Controllers
             // Tìm kiếm theo tên tour operator
             if (!string.IsNullOrWhiteSpace(keyword))
             {
-                query = query.Where(p => p.TourOperator.User.UserName.Contains(keyword));
+                query = query.Where(p => p.TourOperator.CompanyName.Contains(keyword));
             }
 
             var totalRecords = await query.CountAsync();
@@ -210,14 +210,14 @@ namespace TourManagement_BE.Controllers
 
 
 
-        [HttpGet("ViewPaymentPackageHistory/{tourOperatorId}")]
-        public IActionResult ViewPaymentPackageHistory(int tourOperatorId, int pageNumber = 1, int pageSize = 10)
+        [HttpGet("ViewPaymentPackageHistory/{userid}")]
+        public IActionResult ViewPaymentPackageHistory(int userid, int pageNumber = 1, int pageSize = 10)
         {
             if (pageNumber <= 0) pageNumber = 1;
             if (pageSize <= 0) pageSize = 10;
 
-            var query = context.PurchaseTransactions
-                .Where(p => p.TourOperatorId == tourOperatorId);
+            var query = context.PurchaseTransactions.Include(t => t.TourOperator).ThenInclude(to => to.User)
+                .Where(p => p.TourOperator.UserId == userid);
 
             var totalRecords = query.Count();
 
@@ -346,9 +346,7 @@ namespace TourManagement_BE.Controllers
             {
                 keyword = keyword.ToLower();
                 query = query.Where(u =>
-                    u.UserName.ToLower().Contains(keyword) ||
-                    u.Email.ToLower().Contains(keyword) ||
-                    u.UserId.ToString().Contains(keyword)
+                    u.UserName.ToLower().Contains(keyword)
                 );
             }
 
@@ -394,6 +392,23 @@ namespace TourManagement_BE.Controllers
             context.SaveChanges();
 
             return Ok(new { message = "User status updated successfully." });
+        }
+
+        [HttpPatch("UpdateAccountStatus/{userid}")]
+        public async Task<IActionResult> UpdateAccountStatus(int userid)
+        {
+            var user = await context.Users.FindAsync(userid);
+            if (user == null)
+                return NotFound("TourMedia not found.");
+
+            user.IsActive = !user.IsActive;
+
+            await context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = $"User has been {(user.IsActive ? "activated" : "deactivated")}",
+            });
         }
 
 

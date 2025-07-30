@@ -98,7 +98,7 @@ namespace TourManagement_BE.Controllers
 
             var totalRecords = await query.CountAsync();
 
-            var payment = await query.Where(p => p.PackageId != 3 )
+            var payment = await query
                 .OrderByDescending(p => p.CreatedAt)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
@@ -144,12 +144,12 @@ namespace TourManagement_BE.Controllers
             // Tìm kiếm theo tên tour operator
             if (!string.IsNullOrWhiteSpace(keyword))
             {
-                query = query.Where(p => p.TourOperator.User.UserName.Contains(keyword));
+                query = query.Where(p => p.TourOperator.CompanyName.Contains(keyword));
             }
 
             var totalRecords = await query.CountAsync();
 
-            var data = await query.Where(p => p.PackageId != 3)
+            var data = await query
                 .OrderByDescending(p => p.CreatedAt)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
@@ -180,18 +180,18 @@ namespace TourManagement_BE.Controllers
 
 
 
-        [HttpGet("ViewPaymentPackageHistory/{tourOperatorId}")]
-        public IActionResult ViewPaymentPackageHistory(int tourOperatorId, int pageNumber = 1, int pageSize = 10)
+        [HttpGet("ViewPaymentPackageHistory/{userid}")]
+        public IActionResult ViewPaymentPackageHistory(int userid, int pageNumber = 1, int pageSize = 10)
         {
             if (pageNumber <= 0) pageNumber = 1;
             if (pageSize <= 0) pageSize = 10;
 
-            var query = context.PurchaseTransactions
-                .Where(p => p.TourOperatorId == tourOperatorId);
+            var query = context.PurchaseTransactions.Include(t => t.TourOperator).ThenInclude(to => to.User)
+                .Where(p => p.TourOperator.UserId == userid);
 
             var totalRecords = query.Count();
 
-            var history = query.Where(p => p.PackageId != 3)
+            var history = query
                 .OrderByDescending(p => p.CreatedAt)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
