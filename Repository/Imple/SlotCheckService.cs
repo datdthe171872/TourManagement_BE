@@ -27,8 +27,8 @@ namespace TourManagement_BE.Repository.Interface
             if (activePackage == null) return null;
 
             var feature = activePackage.Package.ServicePackageFeatures.FirstOrDefault();
-            var numberOfTourAttribute = feature?.NumberOfTourAttribute ?? 0;
-            var numberoftours = feature?.NumberOfTours ?? 0;
+            //var numberOfTourAttribute = feature?.NumberOfTourAttribute ?? 0;
+            //var numberoftours = feature?.NumberOfTours ?? 0;
 
             return new CheckSlotTourOperatorResponse
             {
@@ -37,9 +37,9 @@ namespace TourManagement_BE.Repository.Interface
                 PackageId = activePackage.PackageId,
                 EndDate = activePackage.EndDate,
                 NumOfToursUsed = activePackage.NumOfToursUsed,
-                NumberOfTourAttribute = numberOfTourAttribute,
-                NumberOfTours = numberoftours,
-                PostVideo = feature?.PostVideo ?? false
+                //NumberOfTourAttribute = numberOfTourAttribute,
+                //NumberOfTours = numberoftours,
+                //PostVideo = feature?.PostVideo ?? false
             };
         }
 

@@ -15,6 +15,14 @@ public partial class ServicePackage
 
     public decimal? DiscountPercentage { get; set; }
 
+    public int MaxTour { get; set; }
+
+    public int MaxImage { get; set; }
+
+    public bool MaxVideo { get; set; }
+
+    public bool TourGuideFunction { get; set; }
+
     public bool IsActive { get; set; }
 
     public virtual ICollection<PurchaseTransaction> PurchaseTransactions { get; set; } = new List<PurchaseTransaction>();

@@ -41,9 +41,9 @@ namespace TourManagement_BE.Controllers
                         {
                             FeatureId = f.FeatureId,
                             PackageId = f.PackageId,
-                            NumberOfTours = f.NumberOfTours,
-                            NumberOfTourAttribute = f.NumberOfTourAttribute,
-                            PostVideo = f.PostVideo,
+                            //NumberOfTours = f.NumberOfTours,
+                            //NumberOfTourAttribute = f.NumberOfTourAttribute,
+                            //PostVideo = f.PostVideo,
                             IsActive = f.IsActive
                         }).ToList()
                 }).ToList();
@@ -79,9 +79,9 @@ namespace TourManagement_BE.Controllers
                         {
                             FeatureId = f.FeatureId,
                             PackageId = f.PackageId,
-                            NumberOfTours = f.NumberOfTours,
-                            NumberOfTourAttribute = f.NumberOfTourAttribute,
-                            PostVideo = f.PostVideo,
+                            //NumberOfTours = f.NumberOfTours,
+                            //NumberOfTourAttribute = f.NumberOfTourAttribute,
+                            //PostVideo = f.PostVideo,
                             IsActive = f.IsActive
                         }).ToList()
                 }).ToList();
@@ -120,9 +120,9 @@ namespace TourManagement_BE.Controllers
                         {
                             FeatureId = f.FeatureId,
                             PackageId = f.PackageId,
-                            NumberOfTours = f.NumberOfTours,
-                            NumberOfTourAttribute = f.NumberOfTourAttribute,
-                            PostVideo = f.PostVideo,
+                            //NumberOfTours = f.NumberOfTours,
+                            //NumberOfTourAttribute = f.NumberOfTourAttribute,
+                            //PostVideo = f.PostVideo,
                             IsActive = true
                         }).ToList()
                 }).ToList();
@@ -159,9 +159,9 @@ namespace TourManagement_BE.Controllers
                         {
                             FeatureId = f.FeatureId,
                             PackageId = f.PackageId,
-                            NumberOfTours = f.NumberOfTours,
-                            NumberOfTourAttribute = f.NumberOfTourAttribute,
-                            PostVideo = f.PostVideo,
+                            //NumberOfTours = f.NumberOfTours,
+                            //NumberOfTourAttribute = f.NumberOfTourAttribute,
+                            //PostVideo = f.PostVideo,
                             IsActive = true
                         }).ToList()
                 }).ToList();
@@ -214,9 +214,9 @@ namespace TourManagement_BE.Controllers
                 var newFeature = new ServicePackageFeature
                 {
                     PackageId = request.PackageId,
-                    NumberOfTours = request.NumberOfTours,
-                    NumberOfTourAttribute = request.NumberOfTourAttribute,
-                    PostVideo = request.PostVideo,
+                    //NumberOfTours = request.NumberOfTours,
+                    //NumberOfTourAttribute = request.NumberOfTourAttribute,
+                    //PostVideo = request.PostVideo,
                     IsActive = request.IsActive
                 };
 
@@ -286,9 +286,9 @@ namespace TourManagement_BE.Controllers
                     return NotFound(new { Message = $"Feature with ID {request.FeatureId} not found" });
                 }
 
-                feature.NumberOfTours = request.NumberOfTours;
-                feature.NumberOfTourAttribute = request.NumberOfTourAttribute;
-                feature.PostVideo = request.PostVideo;
+                //feature.NumberOfTours = request.NumberOfTours;
+                //feature.NumberOfTourAttribute = request.NumberOfTourAttribute;
+                //feature.PostVideo = request.PostVideo;
                 feature.IsActive = request.IsActive;
 
                 context.ServicePackageFeatures.Update(feature);
@@ -375,9 +375,9 @@ namespace TourManagement_BE.Controllers
                         {
                             FeatureId = f.FeatureId,
                             PackageId = f.PackageId,
-                            NumberOfTours = f.NumberOfTours,
-                            NumberOfTourAttribute = f.NumberOfTourAttribute,
-                            PostVideo = f.PostVideo,
+                            //NumberOfTours = f.NumberOfTours,
+                            //NumberOfTourAttribute = f.NumberOfTourAttribute,
+                            //PostVideo = f.PostVideo,
                             IsActive = true
                         }).ToList()
                 })
@@ -410,9 +410,9 @@ namespace TourManagement_BE.Controllers
                         {
                             FeatureId = f.FeatureId,
                             PackageId = f.PackageId,
-                            NumberOfTours = f.NumberOfTours,
-                            NumberOfTourAttribute = f.NumberOfTourAttribute,
-                            PostVideo = f.PostVideo,
+                            //NumberOfTours = f.NumberOfTours,
+                            //NumberOfTourAttribute = f.NumberOfTourAttribute,
+                            //PostVideo = f.PostVideo,
                             IsActive = f.IsActive
                         }).ToList()
                 })

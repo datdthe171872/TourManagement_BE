@@ -21,9 +21,9 @@ namespace TourManagement_BE.Mapping.ServiceMapping
             {
                 servicePackage.ServicePackageFeatures.Add(new ServicePackageFeature
                 {
-                    NumberOfTours = featureRequest.NumberOfTours,
-                    NumberOfTourAttribute = featureRequest.NumberOfTourAttribute,
-                    PostVideo = featureRequest.PostVideo,
+                    //NumberOfTours = featureRequest.NumberOfTours,
+                    //NumberOfTourAttribute = featureRequest.NumberOfTourAttribute,
+                    //PostVideo = featureRequest.PostVideo,
                     IsActive = true,
                     Package = servicePackage 
                 });
