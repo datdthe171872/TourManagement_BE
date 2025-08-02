@@ -78,7 +78,7 @@ namespace TourManagement_BE.Migrations
                         .HasDefaultValue("Pending");
 
                     b.Property<decimal?>("TotalPrice")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<int>("TourId")
                         .HasColumnType("int");
@@ -91,49 +91,11 @@ namespace TourManagement_BE.Migrations
 
                     b.HasIndex("DepartureDateId");
 
-                    b.HasIndex("TourId");
+                    b.HasIndex(new[] { "TourId" }, "IX_Bookings_TourId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex(new[] { "UserId" }, "IX_Bookings_UserId");
 
                     b.ToTable("Bookings");
-                });
-
-            modelBuilder.Entity("TourManagement_BE.Data.Models.BookingExtraCharge", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("BookingId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Content")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<int>("ExtraChargeId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<int?>("Quantity")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(1);
-
-                    b.HasKey("Id")
-                        .HasName("PK__BookingE__3214EC072D708871");
-
-                    b.HasIndex("BookingId");
-
-                    b.HasIndex("ExtraChargeId");
-
-                    b.ToTable("BookingExtraCharges");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.DepartureDate", b =>
@@ -159,39 +121,9 @@ namespace TourManagement_BE.Migrations
                     b.HasKey("Id")
                         .HasName("PK__Departur__3214EC07D728106D");
 
-                    b.HasIndex("TourId");
+                    b.HasIndex(new[] { "TourId" }, "IX_DepartureDates_TourId");
 
                     b.ToTable("DepartureDates");
-                });
-
-            modelBuilder.Entity("TourManagement_BE.Data.Models.ExtraCharge", b =>
-                {
-                    b.Property<int>("ExtraChargeId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ExtraChargeId"));
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.HasKey("ExtraChargeId")
-                        .HasName("PK__ExtraCha__23A84331F76C775E");
-
-                    b.ToTable("ExtraCharges");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.GuideLanguage", b =>
@@ -216,9 +148,9 @@ namespace TourManagement_BE.Migrations
                     b.HasKey("Id")
                         .HasName("PK__GuideLan__3214EC0754BC5DEE");
 
-                    b.HasIndex("GuideId");
+                    b.HasIndex(new[] { "GuideId" }, "IX_GuideLanguages_GuideId");
 
-                    b.HasIndex("LanguageId");
+                    b.HasIndex(new[] { "LanguageId" }, "IX_GuideLanguages_LanguageId");
 
                     b.ToTable("GuideLanguages");
                 });
@@ -242,10 +174,16 @@ namespace TourManagement_BE.Migrations
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("(getdate())");
 
+                    b.Property<decimal?>("ExtraCost")
+                        .HasColumnType("decimal(18, 2)");
+
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
+
+                    b.Property<int>("ReportId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Title")
                         .HasMaxLength(255)
@@ -254,7 +192,9 @@ namespace TourManagement_BE.Migrations
                     b.HasKey("NoteId")
                         .HasName("PK__GuideNot__EACE355F7D9F9B80");
 
-                    b.HasIndex("AssignmentId");
+                    b.HasIndex("ReportId");
+
+                    b.HasIndex(new[] { "AssignmentId" }, "IX_GuideNotes_AssignmentId");
 
                     b.ToTable("GuideNotes");
                 });
@@ -288,7 +228,7 @@ namespace TourManagement_BE.Migrations
                     b.HasKey("Id")
                         .HasName("PK__GuideNot__3214EC078F6A2553");
 
-                    b.HasIndex("NoteId");
+                    b.HasIndex(new[] { "NoteId" }, "IX_GuideNoteMedia_NoteId");
 
                     b.ToTable("GuideNoteMedia");
                 });
@@ -333,9 +273,9 @@ namespace TourManagement_BE.Migrations
                     b.HasKey("RatingId")
                         .HasName("PK__GuideRat__FCCDF87C1044E830");
 
-                    b.HasIndex("AssignmentId");
+                    b.HasIndex(new[] { "AssignmentId" }, "IX_GuideRatings_AssignmentId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex(new[] { "UserId" }, "IX_GuideRatings_UserId");
 
                     b.ToTable("GuideRatings");
                 });
@@ -377,7 +317,7 @@ namespace TourManagement_BE.Migrations
                     b.HasKey("MediaId")
                         .HasName("PK__Itinerar__B2C2B5CFEA6D2966");
 
-                    b.HasIndex("ItineraryId");
+                    b.HasIndex(new[] { "ItineraryId" }, "IX_ItineraryMedia_ItineraryId");
 
                     b.ToTable("ItineraryMedia");
                 });
@@ -420,9 +360,7 @@ namespace TourManagement_BE.Migrations
                         .HasDefaultValueSql("(getdate())");
 
                     b.Property<bool>("IsRead")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
+                        .HasColumnType("bit");
 
                     b.Property<string>("Message")
                         .IsRequired()
@@ -449,7 +387,7 @@ namespace TourManagement_BE.Migrations
                     b.HasKey("NotificationId")
                         .HasName("PK__Notifica__20B2F72112345678");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex(new[] { "UserId" }, "IX_Notifications_UserId");
 
                     b.ToTable("Notifications");
                 });
@@ -506,11 +444,11 @@ namespace TourManagement_BE.Migrations
                     b.HasKey("PaymentId")
                         .HasName("PK__Payments__9B556A389E758151");
 
-                    b.HasIndex("BookingId");
+                    b.HasIndex(new[] { "BookingId" }, "IX_Payments_BookingId");
 
-                    b.HasIndex("PaymentTypeId");
+                    b.HasIndex(new[] { "PaymentTypeId" }, "IX_Payments_PaymentTypeId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex(new[] { "UserId" }, "IX_Payments_UserId");
 
                     b.ToTable("Payments");
                 });
@@ -555,7 +493,8 @@ namespace TourManagement_BE.Migrations
                         .HasColumnType("decimal(18, 2)");
 
                     b.Property<string>("ContentCode")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime?>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -586,9 +525,9 @@ namespace TourManagement_BE.Migrations
                     b.HasKey("TransactionId")
                         .HasName("PK__Purchase__55433A6B7EA420F9");
 
-                    b.HasIndex("PackageId");
+                    b.HasIndex(new[] { "PackageId" }, "IX_PurchaseTransactions_PackageId");
 
-                    b.HasIndex("TourOperatorId");
+                    b.HasIndex(new[] { "TourOperatorId" }, "IX_PurchaseTransactions_TourOperatorId");
 
                     b.ToTable("PurchaseTransactions");
                 });
@@ -634,11 +573,11 @@ namespace TourManagement_BE.Migrations
                     b.HasKey("PurchaseId")
                         .HasName("PK__Purchase__6B0A6BBE22291CBE");
 
-                    b.HasIndex("PackageId");
+                    b.HasIndex(new[] { "PackageId" }, "IX_PurchasedServicePackages_PackageId");
 
-                    b.HasIndex("TourOperatorId");
+                    b.HasIndex(new[] { "TourOperatorId" }, "IX_PurchasedServicePackages_TourOperatorId");
 
-                    b.HasIndex("TransactionId");
+                    b.HasIndex(new[] { "TransactionId" }, "IX_PurchasedServicePackages_TransactionId");
 
                     b.ToTable("PurchasedServicePackages");
                 });
@@ -652,25 +591,21 @@ namespace TourManagement_BE.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("ExpiryDate")
-                        .HasColumnType("datetime");
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsUsed")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
+                        .HasColumnType("bit");
 
                     b.Property<string>("Token")
                         .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
-                    b.HasKey("Id")
-                        .HasName("PK__ResetPas__3214EC07ABCD1234");
+                    b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex(new[] { "UserId" }, "IX_ResetPasswordTokens_UserId");
 
                     b.ToTable("ResetPasswordTokens");
                 });
@@ -729,9 +664,9 @@ namespace TourManagement_BE.Migrations
                     b.HasKey("Id")
                         .HasName("PK__SavedTou__3214EC0795DB6045");
 
-                    b.HasIndex("TourId");
+                    b.HasIndex(new[] { "TourId" }, "IX_SavedTours_TourId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex(new[] { "UserId" }, "IX_SavedTours_UserId");
 
                     b.ToTable("SavedTours");
                 });
@@ -757,9 +692,6 @@ namespace TourManagement_BE.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
 
-                    b.Property<int>("MaxTours")
-                        .HasColumnType("int");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -772,6 +704,37 @@ namespace TourManagement_BE.Migrations
                         .HasName("PK__ServiceP__322035CC2CFB51A1");
 
                     b.ToTable("ServicePackages");
+                });
+
+            modelBuilder.Entity("TourManagement_BE.Data.Models.ServicePackageFeature", b =>
+                {
+                    b.Property<int>("FeatureId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FeatureId"));
+
+                    b.Property<string>("FeatureName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("FeatureValue")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("PackageId")
+                        .HasColumnType("int");
+
+                    b.HasKey("FeatureId")
+                        .HasName("PK__ServiceP__82230BC98B4657F8");
+
+                    b.HasIndex("PackageId");
+
+                    b.ToTable("ServicePackageFeatures");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.Tour", b =>
@@ -810,13 +773,13 @@ namespace TourManagement_BE.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("PriceOfAdults")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<decimal>("PriceOfChildren")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<decimal>("PriceOfInfants")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<int?>("SlotsBooked")
                         .ValueGeneratedOnAdd()
@@ -848,7 +811,7 @@ namespace TourManagement_BE.Migrations
                     b.HasKey("TourId")
                         .HasName("PK__Tours__604CEA3014B7154A");
 
-                    b.HasIndex("TourOperatorId");
+                    b.HasIndex(new[] { "TourOperatorId" }, "IX_Tours_TourOperatorId");
 
                     b.ToTable("Tours");
                 });
@@ -881,9 +844,6 @@ namespace TourManagement_BE.Migrations
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("(getdate())");
 
-                    b.Property<string>("Summary")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<decimal?>("TotalExtraCost")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(18, 2)")
@@ -895,9 +855,9 @@ namespace TourManagement_BE.Migrations
                     b.HasKey("ReportId")
                         .HasName("PK__TourAcce__D5BD480579C896E8");
 
-                    b.HasIndex("BookingId");
+                    b.HasIndex(new[] { "BookingId" }, "IX_TourAcceptanceReports_BookingId");
 
-                    b.HasIndex("TourGuideId");
+                    b.HasIndex(new[] { "TourGuideId" }, "IX_TourAcceptanceReports_TourGuideId");
 
                     b.ToTable("TourAcceptanceReports");
                 });
@@ -932,9 +892,9 @@ namespace TourManagement_BE.Migrations
                     b.HasKey("CancellationId")
                         .HasName("PK__TourCanc__6A2D9A3A1E33ECEB");
 
-                    b.HasIndex("CancelledBy");
+                    b.HasIndex(new[] { "CancelledBy" }, "IX_TourCancellations_CancelledBy");
 
-                    b.HasIndex("TourId");
+                    b.HasIndex(new[] { "TourId" }, "IX_TourCancellations_TourId");
 
                     b.ToTable("TourCancellations");
                 });
@@ -961,7 +921,7 @@ namespace TourManagement_BE.Migrations
                     b.HasKey("Id")
                         .HasName("PK__TourExpe__3214EC0771B42547");
 
-                    b.HasIndex("TourId");
+                    b.HasIndex(new[] { "TourId" }, "IX_TourExperiences_TourId");
 
                     b.ToTable("TourExperiences");
                 });
@@ -988,11 +948,11 @@ namespace TourManagement_BE.Migrations
                     b.HasKey("TourGuideId")
                         .HasName("PK__TourGuid__2F0E035344C0797A");
 
-                    b.HasIndex("TourOperatorId");
+                    b.HasIndex(new[] { "TourOperatorId" }, "IX_TourGuides_TourOperatorId");
 
                     b.HasIndex(new[] { "UserId" }, "UQ__TourGuid__1788CC4D814900F4")
                         .IsUnique()
-                        .HasFilter("[UserId] IS NOT NULL");
+                        .HasFilter("([UserId] IS NOT NULL)");
 
                     b.ToTable("TourGuides");
                 });
@@ -1035,9 +995,9 @@ namespace TourManagement_BE.Migrations
                     b.HasKey("Id")
                         .HasName("PK__TourGuid__3214EC073C3A4EB5");
 
-                    b.HasIndex("BookingId");
+                    b.HasIndex(new[] { "BookingId" }, "IX_TourGuideAssignments_BookingId");
 
-                    b.HasIndex("TourGuideId");
+                    b.HasIndex(new[] { "TourGuideId" }, "IX_TourGuideAssignments_TourGuideId");
 
                     b.ToTable("TourGuideAssignments");
                 });
@@ -1077,7 +1037,7 @@ namespace TourManagement_BE.Migrations
                     b.HasKey("ItineraryId")
                         .HasName("PK__TourItin__361216C6A8FF1462");
 
-                    b.HasIndex("TourId");
+                    b.HasIndex(new[] { "TourId" }, "IX_TourItineraries_TourId");
 
                     b.ToTable("TourItineraries");
                 });
@@ -1109,7 +1069,7 @@ namespace TourManagement_BE.Migrations
                     b.HasKey("Id")
                         .HasName("PK__TourMedi__3214EC07762CE9DE");
 
-                    b.HasIndex("TourId");
+                    b.HasIndex(new[] { "TourId" }, "IX_TourMedia_TourId");
 
                     b.ToTable("TourMedia");
                 });
@@ -1184,7 +1144,7 @@ namespace TourManagement_BE.Migrations
 
                     b.HasIndex(new[] { "UserId" }, "UQ__TourOper__1788CC4D657A0885")
                         .IsUnique()
-                        .HasFilter("[UserId] IS NOT NULL");
+                        .HasFilter("([UserId] IS NOT NULL)");
 
                     b.ToTable("TourOperators");
                 });
@@ -1222,7 +1182,7 @@ namespace TourManagement_BE.Migrations
                     b.HasKey("Id")
                         .HasName("PK__TourOper__3214EC076E5C56CE");
 
-                    b.HasIndex("TourOperatorId");
+                    b.HasIndex(new[] { "TourOperatorId" }, "IX_TourOperatorMedia_TourOperatorId");
 
                     b.ToTable("TourOperatorMedia");
                 });
@@ -1264,9 +1224,9 @@ namespace TourManagement_BE.Migrations
                     b.HasKey("RatingId")
                         .HasName("PK__TourRati__FCCDF87C99F24843");
 
-                    b.HasIndex("TourId");
+                    b.HasIndex(new[] { "TourId" }, "IX_TourRatings_TourId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex(new[] { "UserId" }, "IX_TourRatings_UserId");
 
                     b.ToTable("TourRatings");
                 });
@@ -1316,7 +1276,7 @@ namespace TourManagement_BE.Migrations
                     b.HasKey("UserId")
                         .HasName("PK__Users__1788CC4C6EA58613");
 
-                    b.HasIndex("RoleId");
+                    b.HasIndex(new[] { "RoleId" }, "IX_Users_RoleId");
 
                     b.HasIndex(new[] { "Email" }, "UQ__Users__A9D10534A733E8F8")
                         .IsUnique();
@@ -1329,8 +1289,8 @@ namespace TourManagement_BE.Migrations
                     b.HasOne("TourManagement_BE.Data.Models.DepartureDate", "DepartureDate")
                         .WithMany("Bookings")
                         .HasForeignKey("DepartureDateId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("FK_Bookings_DepartureDates");
 
                     b.HasOne("TourManagement_BE.Data.Models.Tour", "Tour")
                         .WithMany("Bookings")
@@ -1349,25 +1309,6 @@ namespace TourManagement_BE.Migrations
                     b.Navigation("Tour");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("TourManagement_BE.Data.Models.BookingExtraCharge", b =>
-                {
-                    b.HasOne("TourManagement_BE.Data.Models.Booking", "Booking")
-                        .WithMany("BookingExtraCharges")
-                        .HasForeignKey("BookingId")
-                        .IsRequired()
-                        .HasConstraintName("FK__BookingEx__Booki__40058253");
-
-                    b.HasOne("TourManagement_BE.Data.Models.ExtraCharge", "ExtraCharge")
-                        .WithMany("BookingExtraCharges")
-                        .HasForeignKey("ExtraChargeId")
-                        .IsRequired()
-                        .HasConstraintName("FK__BookingEx__Extra__40F9A68C");
-
-                    b.Navigation("Booking");
-
-                    b.Navigation("ExtraCharge");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.DepartureDate", b =>
@@ -1406,7 +1347,15 @@ namespace TourManagement_BE.Migrations
                         .IsRequired()
                         .HasConstraintName("FK__GuideNote__Assig__47A6A41B");
 
+                    b.HasOne("TourManagement_BE.Data.Models.TourAcceptanceReport", "Report")
+                        .WithMany("GuideNotes")
+                        .HasForeignKey("ReportId")
+                        .IsRequired()
+                        .HasConstraintName("FK_GuideNotes_TourAcceptanceReports");
+
                     b.Navigation("Assignment");
+
+                    b.Navigation("Report");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.GuideNoteMedia", b =>
@@ -1540,8 +1489,7 @@ namespace TourManagement_BE.Migrations
                         .WithMany("ResetPasswordTokens")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK__ResetPass__UserI__12345678");
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -1563,6 +1511,17 @@ namespace TourManagement_BE.Migrations
                     b.Navigation("Tour");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("TourManagement_BE.Data.Models.ServicePackageFeature", b =>
+                {
+                    b.HasOne("TourManagement_BE.Data.Models.ServicePackage", "Package")
+                        .WithMany("ServicePackageFeatures")
+                        .HasForeignKey("PackageId")
+                        .IsRequired()
+                        .HasConstraintName("FK__ServicePa__Packa__5CD6CB2B");
+
+                    b.Navigation("Package");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.Tour", b =>
@@ -1736,8 +1695,6 @@ namespace TourManagement_BE.Migrations
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.Booking", b =>
                 {
-                    b.Navigation("BookingExtraCharges");
-
                     b.Navigation("Payments");
 
                     b.Navigation("TourAcceptanceReports");
@@ -1748,11 +1705,6 @@ namespace TourManagement_BE.Migrations
             modelBuilder.Entity("TourManagement_BE.Data.Models.DepartureDate", b =>
                 {
                     b.Navigation("Bookings");
-                });
-
-            modelBuilder.Entity("TourManagement_BE.Data.Models.ExtraCharge", b =>
-                {
-                    b.Navigation("BookingExtraCharges");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.GuideNote", b =>
@@ -1785,6 +1737,8 @@ namespace TourManagement_BE.Migrations
                     b.Navigation("PurchaseTransactions");
 
                     b.Navigation("PurchasedServicePackages");
+
+                    b.Navigation("ServicePackageFeatures");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.Tour", b =>
@@ -1804,6 +1758,11 @@ namespace TourManagement_BE.Migrations
                     b.Navigation("TourMedia");
 
                     b.Navigation("TourRatings");
+                });
+
+            modelBuilder.Entity("TourManagement_BE.Data.Models.TourAcceptanceReport", b =>
+                {
+                    b.Navigation("GuideNotes");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.TourGuide", b =>

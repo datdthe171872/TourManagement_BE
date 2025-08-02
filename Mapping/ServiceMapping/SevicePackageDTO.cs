@@ -13,22 +13,12 @@ namespace TourManagement_BE.Mapping.ServiceMapping
                 Description = u.Description,
                 Price = u.Price,
                 DiscountPercentage = u.DiscountPercentage,
+                MaxTour = u.MaxTour,
+                MaxImage = u.MaxImage,
+                MaxVideo = u.MaxVideo,
+                TourGuideFunction = u.TourGuideFunction,
                 IsActive = true,
-                ServicePackageFeatures = new List<ServicePackageFeature>()
             };
-
-            foreach (var featureRequest in u.ServicePackageFeaturesRequests)
-            {
-                servicePackage.ServicePackageFeatures.Add(new ServicePackageFeature
-                {
-                    NumberOfTours = featureRequest.NumberOfTours,
-                    NumberOfTourAttribute = featureRequest.NumberOfTourAttribute,
-                    PostVideo = featureRequest.PostVideo,
-                    IsActive = true,
-                    Package = servicePackage 
-                });
-            }
-
             return servicePackage;
         }
     }

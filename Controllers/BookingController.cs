@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using TourManagement_BE.Data.Context;
 using TourManagement_BE.Data.DTO.Request;
+using TourManagement_BE.Data.DTO.Response;
 using TourManagement_BE.Repository.Interface;
 using TourManagement_BE.Service;
 using TourManagement_BE.Helper.Constant;
@@ -30,7 +31,7 @@ namespace TourManagement_BE.Controllers
         [HttpGet]
         public async Task<IActionResult> GetBookings([FromQuery] BookingSearchRequest request)
         {
-            var result = await _bookingService.GetBookingsAsync(request);
+            var result = await _bookingService.GetBookingsDetailedAsync(request);
             return Ok(result);
         }
 
@@ -118,7 +119,7 @@ namespace TourManagement_BE.Controllers
             {
                 TourName = request.TourName
             };
-            var result = await _bookingService.GetCustomerBookingsAsync(searchRequest, userId);
+            var result = await _bookingService.GetCustomerBookingsDetailedAsync(searchRequest, userId);
             return Ok(result);
         }
 
@@ -137,7 +138,7 @@ namespace TourManagement_BE.Controllers
                 TourName = request.TourName,
                 UserName = request.UserName
             };
-            var result = await _bookingService.GetTourOperatorBookingsAsync(searchRequest, userId);
+            var result = await _bookingService.GetTourOperatorBookingsDetailedAsync(searchRequest, userId);
             return Ok(result);
         }
 
@@ -151,10 +152,66 @@ namespace TourManagement_BE.Controllers
                 TourName = request.TourName,
                 UserName = request.UserName
             };
-            var result = await _bookingService.GetAllBookingsForAdminAsync(searchRequest);
+            var result = await _bookingService.GetAllBookingsForAdminDetailedAsync(searchRequest);
             return Ok(result);
         }
 
+        // API 4: Update Payment Status (Tour Operator role only)
+        [HttpPut("update-payment-status")]
+        [Authorize(Roles = Roles.TourOperator)]
+        public async Task<IActionResult> UpdatePaymentStatus([FromBody] UpdatePaymentStatusRequest request)
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+                if (userIdClaim == null)
+                    return Unauthorized("Không xác định được người dùng");
+                
+                int userId = int.Parse(userIdClaim.Value);
+                
+                // Get tour operator ID from user ID
+                var tourOperator = await _dbContext.TourOperators
+                    .FirstOrDefaultAsync(to => to.UserId == userId);
+                
+                if (tourOperator == null)
+                    return Forbid("Bạn không phải là Tour Operator");
+                
+                var result = await _bookingService.UpdatePaymentStatusAsync(request, tourOperator.TourOperatorId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
+        // API 5: Update Booking Status (Tour Operator role only)
+        [HttpPut("update-booking-status")]
+        [Authorize(Roles = Roles.TourOperator)]
+        public async Task<IActionResult> UpdateBookingStatus([FromBody] UpdateBookingStatusRequest request)
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+                if (userIdClaim == null)
+                    return Unauthorized("Không xác định được người dùng");
+                
+                int userId = int.Parse(userIdClaim.Value);
+                
+                // Get tour operator ID from user ID
+                var tourOperator = await _dbContext.TourOperators
+                    .FirstOrDefaultAsync(to => to.UserId == userId);
+                
+                if (tourOperator == null)
+                    return Forbid("Bạn không phải là Tour Operator");
+                
+                var result = await _bookingService.UpdateBookingStatusAsync(request, tourOperator.TourOperatorId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 } 

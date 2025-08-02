@@ -35,7 +35,7 @@ namespace TourManagement_BE.Mapping.TourMapper.ListTourResponseMapper
             CreateMap<DepartureDate, DepartureDateDto>();
             CreateMap<TourItinerary, TourItineraryDto>();
             CreateMap<TourMedia, TourMediaDto>();
-            CreateMap<TourRating, TourRatingDto>()
+            CreateMap<TourRating, TourRatingDto>().ForMember(dest => dest.Avatar , opt => opt.MapFrom(src => src.User.Avatar))
             .ForMember(dest => dest.TourRating_Username, opt => opt.MapFrom(src => src.User.UserName));
             CreateMap<ItineraryMedia, ItineraryMediaDto>();
 

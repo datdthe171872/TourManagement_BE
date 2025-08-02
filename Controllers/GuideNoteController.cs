@@ -17,13 +17,14 @@ namespace TourManagement_BE.Controllers
     public class GuideNoteController : ControllerBase
     {
         private readonly IGuideNoteService _guideNoteService;
+
         public GuideNoteController(IGuideNoteService guideNoteService)
         {
             _guideNoteService = guideNoteService;
         }
 
         // Lấy danh sách note của guide hiện tại
-        [HttpGet]
+        [HttpGet("notes")]
         public async Task<ActionResult<List<GuideNoteResponse>>> GetMyNotes()
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
@@ -32,7 +33,7 @@ namespace TourManagement_BE.Controllers
         }
 
         // Thêm note mới
-        [HttpPost]
+        [HttpPost("notes")]
         public async Task<ActionResult> CreateNote([FromBody] CreateGuideNoteRequest request)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
@@ -41,7 +42,7 @@ namespace TourManagement_BE.Controllers
         }
 
         // Sửa note
-        [HttpPut("{id}")]
+        [HttpPut("notes/{id}")]
         public async Task<ActionResult> UpdateNote(int id, [FromBody] UpdateGuideNoteRequest request)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
@@ -50,7 +51,7 @@ namespace TourManagement_BE.Controllers
         }
 
         // Xoá note
-        [HttpDelete("{id}")]
+        [HttpDelete("notes/{id}")]
         public async Task<ActionResult> DeleteNote(int id)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));

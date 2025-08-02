@@ -37,6 +37,8 @@ public partial class Tour
 
     public string? TourStatus { get; set; }
 
+    public string TourAvartar { get; set; } = null!;
+
     public bool IsActive { get; set; }
 
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();

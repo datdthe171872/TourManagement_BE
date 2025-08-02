@@ -77,9 +77,13 @@ public partial class MyDBContext : DbContext
     public virtual DbSet<User> Users { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Data Source=MSI\\SQLEXPRESS;Initial Catalog=SEP490_G35; Trusted_Connection=SSPI;Encrypt=false;TrustServerCertificate=true");
-
+    {
+        var builder = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+        IConfigurationRoot configuration = builder.Build();
+        optionsBuilder.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
+    }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Booking>(entity =>
@@ -285,7 +289,7 @@ public partial class MyDBContext : DbContext
 
             entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.AmountPaid)
-                .HasDefaultValue(0.0m)
+                .HasDefaultValue(0m)
                 .HasColumnType("decimal(18, 2)");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.PaymentDate)
@@ -432,7 +436,7 @@ public partial class MyDBContext : DbContext
             entity.HasKey(e => e.PackageId).HasName("PK__ServiceP__322035CC2CFB51A1");
 
             entity.Property(e => e.DiscountPercentage)
-                .HasDefaultValue(0.0m)
+                .HasDefaultValue(0m)
                 .HasColumnType("decimal(5, 2)");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(255);
@@ -442,6 +446,8 @@ public partial class MyDBContext : DbContext
         modelBuilder.Entity<ServicePackageFeature>(entity =>
         {
             entity.HasKey(e => e.FeatureId).HasName("PK__ServiceP__82230BC98B4657F8");
+
+            entity.Property(e => e.FeatureName).HasMaxLength(100);
 
             entity.HasOne(d => d.Package).WithMany(p => p.ServicePackageFeatures)
                 .HasForeignKey(d => d.PackageId)
@@ -466,6 +472,7 @@ public partial class MyDBContext : DbContext
             entity.Property(e => e.SlotsBooked).HasDefaultValue(0);
             entity.Property(e => e.StartPoint).HasMaxLength(255);
             entity.Property(e => e.Title).HasMaxLength(255);
+            entity.Property(e => e.TourAvartar).HasMaxLength(255);
             entity.Property(e => e.TourStatus)
                 .HasMaxLength(50)
                 .HasDefaultValue("Active");
@@ -491,7 +498,7 @@ public partial class MyDBContext : DbContext
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
             entity.Property(e => e.TotalExtraCost)
-                .HasDefaultValue(0.0m)
+                .HasDefaultValue(0m)
                 .HasColumnType("decimal(18, 2)");
 
             entity.HasOne(d => d.Booking).WithMany(p => p.TourAcceptanceReports)

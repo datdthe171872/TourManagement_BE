@@ -34,6 +34,8 @@
 
         public string? TourStatus { get; set; }
 
+        public string TourAvartar { get; set; } = null!;
+
         public double? AverageRating { get; set; }
 
         public bool IsActive { get; set; }

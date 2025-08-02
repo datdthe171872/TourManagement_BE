@@ -49,6 +49,8 @@ namespace TourManagement_BE.Data.DTO.Response.TourResponse
 
         public string? TourStatus { get; set; }
 
+        public string TourAvartar { get; set; }
+
         public bool IsActive { get; set; }
 
         public List<DepartureDateDto> DepartureDates { get; set; } = new();

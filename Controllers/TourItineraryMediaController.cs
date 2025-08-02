@@ -41,13 +41,6 @@ namespace TourManagement_BE.Controllers
             if (slotInfo == null)
                 return BadRequest("No active service package found.");
 
-            int maxMediaPerItinerary = slotInfo.NumberOfTourAttribute == 0 ? int.MaxValue : slotInfo.NumberOfTourAttribute;
-            int currentCount = itinerary.ItineraryMedia.Count(m => m.IsActive);
-            int remainingSlots = maxMediaPerItinerary - currentCount;
-
-            if (remainingSlots <= 0)
-                return BadRequest("Gói dịch vụ hiện tại không cho phép thêm media vào itinerary này.");
-
             var m = request;
 
             if (m.MediaFile == null || m.MediaFile.Length == 0)
@@ -70,8 +63,19 @@ namespace TourManagement_BE.Controllers
             if (!isImage && !isVideo)
                 return BadRequest("Unsupported file type. Only image and video are allowed.");
 
-            if (isVideo && !slotInfo.PostVideo)
+            // ✅ Check MaxVideo
+            if (isVideo && !slotInfo.MaxVideo)
                 return BadRequest("Gói dịch vụ hiện tại không cho phép upload video trong itinerary media.");
+
+            // ✅ Check MaxImage
+            if (isImage && slotInfo.MaxImage > 0)
+            {
+                int currentImageCount = itinerary.ItineraryMedia
+                    .Count(x => x.IsActive && x.MediaType.ToLower() == "image");
+
+                if (currentImageCount >= slotInfo.MaxImage)
+                    return BadRequest($"Gói hiện tại chỉ cho phép tối đa {slotInfo.MaxImage} ảnh cho mỗi lịch trình.");
+            }
 
             string uploadedUrl;
 
@@ -109,6 +113,7 @@ namespace TourManagement_BE.Controllers
 
             return Ok(new { message = "Itinerary media created successfully." });
         }
+
 
         [HttpDelete("SoftDeleteTourItineraryMedia/{id}")]
         public async Task<IActionResult> SoftDeleteTourItineraryMedia(int id)

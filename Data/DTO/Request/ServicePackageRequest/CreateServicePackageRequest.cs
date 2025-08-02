@@ -10,10 +10,16 @@ namespace TourManagement_BE.Data.DTO.Request.ServicePackageRequest
 
         public decimal Price { get; set; }
 
-        public int DurationInDay { get; set; }
-
         public decimal? DiscountPercentage { get; set; }
 
-        public List<CreateServicePackageFeaturesRequest> ServicePackageFeaturesRequests { get; set; } = new();
+        public int MaxTour { get; set; }
+
+        public int MaxImage { get; set; }
+
+        public bool MaxVideo { get; set; }
+
+        public bool TourGuideFunction { get; set; }
+
+        //public List<CreateServicePackageFeaturesRequest> ServicePackageFeaturesRequests { get; set; } = new();
     }
 }

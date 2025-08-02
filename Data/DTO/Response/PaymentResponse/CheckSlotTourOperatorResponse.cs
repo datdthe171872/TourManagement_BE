@@ -20,11 +20,13 @@
 
         public int? NumOfToursUsed { get; set; }
 
-        public int NumberOfTours { get; set; }
+        public int MaxTour { get; set; }
 
-        public int NumberOfTourAttribute { get; set; } 
+        public int MaxImage { get; set; }
 
-        public bool PostVideo { get; set; }
+        public bool MaxVideo { get; set; }
+
+        public bool TourGuideFunction { get; set; }
 
         public bool IsActive { get; set; }
 

@@ -13,6 +13,7 @@ public interface INotificationService
     Task CreateNotificationAsync(int userId, string title, string message, string type, string? relatedEntityId = null);
     Task CreateBookingSuccessNotificationAsync(int userId, int bookingId);
     Task CreateGuideNoteNotificationAsync(int userId, int guideNoteId);
+    Task CreateTourAcceptanceReportNotificationAsync(int userId, int reportId);
     Task CreateFeedbackNotificationAsync(int userId, int feedbackId);
     Task CreateRegistrationSuccessNotificationAsync(int userId);
 } 

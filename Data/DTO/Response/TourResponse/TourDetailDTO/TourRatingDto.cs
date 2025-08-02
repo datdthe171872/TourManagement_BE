@@ -10,6 +10,8 @@ namespace TourManagement_BE.Data.DTO.Response.TourResponse.TourDetailDTO
 
         public string? TourRating_Username { get; set; }
 
+        public string? Avatar { get; set; }
+
         public int? Rating { get; set; }
 
         public string? Comment { get; set; }

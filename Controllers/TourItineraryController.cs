@@ -40,13 +40,13 @@ namespace TourManagement_BE.Controllers
             if (slotInfo == null)
                 return BadRequest("No remaining service package. Please purchase a package to create itinerary.");
 
-            int maxTourItineraries = slotInfo.NumberOfTourAttribute == 0 ? int.MaxValue : slotInfo.NumberOfTourAttribute;
+            //int maxTourItineraries = slotInfo.NumberOfTourAttribute == 0 ? int.MaxValue : slotInfo.NumberOfTourAttribute;
 
             int currentActiveItineraries = tour.TourItineraries.Count(i => i.IsActive);
-            if (currentActiveItineraries >= maxTourItineraries)
+            /*if (currentActiveItineraries >= maxTourItineraries)
             {
                 return BadRequest($"You have reached the maximum number of tour itineraries ({maxTourItineraries}) allowed by your current package.");
-            }
+            }*/
 
             // Kiểm tra số ngày tối đa theo DurationInDays
             if (!int.TryParse(tour.DurationInDays, out var maxDays))
