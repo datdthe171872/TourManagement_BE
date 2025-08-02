@@ -1,0 +1,139 @@
+### Variables
+@baseUrl = http://localhost:5298
+
+### Admin Login
+# @name adminLogin
+POST {{baseUrl}}/api/Auth/login
+Content-Type: application/json
+
+{
+  "userName": "admin",
+  "password": "123456"
+}
+
+### Tour Operator Login
+# @name operatorLogin
+POST {{baseUrl}}/api/Auth/login
+Content-Type: application/json
+
+{
+  "userName": "operator1",
+  "password": "123456"
+}
+
+### Customer Login
+# @name customerLogin
+POST {{baseUrl}}/api/Auth/login
+Content-Type: application/json
+
+{
+  "userName": "customer1",
+  "password": "123456"
+}
+
+### ===== ADMIN APIs =====
+
+### Admin: Get All Feedbacks (with search)
+GET {{baseUrl}}/api/Feedback/admin?Username=test&RatingId=1&PageNumber=1&PageSize=10
+Authorization: Bearer {{adminLogin.response.body.token}}
+
+### Admin: Get All Feedbacks (without search)
+GET {{baseUrl}}/api/Feedback/admin?PageNumber=1&PageSize=10
+Authorization: Bearer {{adminLogin.response.body.token}}
+
+### Admin: Update Feedback Status (Activate)
+PUT {{baseUrl}}/api/Feedback/update-status
+Authorization: Bearer {{adminLogin.response.body.token}}
+Content-Type: application/json
+
+{
+  "ratingId": 1,
+  "isActive": true
+}
+
+### Admin: Update Feedback Status (Deactivate)
+PUT {{baseUrl}}/api/Feedback/update-status
+Authorization: Bearer {{adminLogin.response.body.token}}
+Content-Type: application/json
+
+{
+  "ratingId": 1,
+  "isActive": false
+}
+
+### ===== TOUR OPERATOR APIs =====
+
+### Tour Operator: Get Feedbacks for their tours
+GET {{baseUrl}}/api/Feedback/tour-operator?RatingId=1&PageNumber=1&PageSize=10
+Authorization: Bearer {{operatorLogin.response.body.token}}
+
+### Tour Operator: Get Feedbacks for their tours (without search)
+GET {{baseUrl}}/api/Feedback/tour-operator?PageNumber=1&PageSize=10
+Authorization: Bearer {{operatorLogin.response.body.token}}
+
+### Tour Operator: Report Feedback
+POST {{baseUrl}}/api/Feedback/report
+Authorization: Bearer {{operatorLogin.response.body.token}}
+Content-Type: application/json
+
+{
+  "ratingId": 1,
+  "reason": "Feedback này chứa nội dung không phù hợp và xúc phạm đến dịch vụ của chúng tôi"
+}
+
+### ===== CUSTOMER APIs =====
+
+### Customer: Create Feedback (with image)
+POST {{baseUrl}}/api/Feedback
+Authorization: Bearer {{customerLogin.response.body.token}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="TourId"
+
+1
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="Rating"
+
+5
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="Comment"
+
+Tour rất tuyệt vời! Hướng dẫn viên rất nhiệt tình và chuyên nghiệp.
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="ImageFile"; filename="feedback_image.jpg"
+Content-Type: image/jpeg
+
+< ./feedback_image.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Customer: Create Feedback (without image)
+POST {{baseUrl}}/api/Feedback
+Authorization: Bearer {{customerLogin.response.body.token}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="TourId"
+
+1
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="Rating"
+
+4
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="Comment"
+
+Tour khá tốt, nhưng có thể cải thiện thêm về dịch vụ ăn uống.
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Customer: Get My Feedbacks
+GET {{baseUrl}}/api/Feedback/my-feedbacks
+Authorization: Bearer {{customerLogin.response.body.token}}
+
+### ===== PUBLIC APIs =====
+
+### Get All Feedbacks (Public - removed)
+# This API has been removed and replaced with role-specific APIs
+
+### Get Feedback Detail (Public - removed)
+# This API has been removed and replaced with role-specific APIs 

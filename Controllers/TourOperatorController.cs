@@ -214,4 +214,43 @@ public class TourOperatorController : ControllerBase
             return BadRequest(ex.Message);
         }
     }
+
+    /// <summary>
+    /// Lấy danh sách tour guide của tour operator với tìm kiếm theo username và lọc theo trạng thái active
+    /// </summary>
+    /// <param name="request">Thông tin tìm kiếm và phân trang</param>
+    /// <returns>Danh sách tour guide</returns>
+    [HttpGet("tourguides")]
+    [Authorize(Roles = "Tour Operator")]
+    public async Task<IActionResult> GetTourGuides([FromQuery] TourGuideSearchRequest request)
+    {
+        try
+        {
+            // Lấy TourOperatorId của operator hiện tại
+            var operatorUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var tourOperator = await _context.TourOperators
+                .FirstOrDefaultAsync(o => o.UserId == operatorUserId && o.IsActive);
+            
+            if (tourOperator == null)
+            {
+                return NotFound(new { message = "Không tìm thấy thông tin TourOperator cho user này." });
+            }
+
+            var result = await _tourOperatorService.GetTourGuidesAsync(tourOperator.TourOperatorId, request);
+            
+            if (result.TourGuides == null || !result.TourGuides.Any())
+            {
+                return Ok(new {
+                    message = "Không tìm thấy tour guide nào phù hợp với từ khóa tìm kiếm.",
+                    data = result
+                });
+            }
+            
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Có lỗi xảy ra khi lấy danh sách tour guide", error = ex.Message });
+        }
+    }
 } 

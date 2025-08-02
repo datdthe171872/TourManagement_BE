@@ -372,4 +372,61 @@ public class TourOperatorService : ITourOperatorService
 
         return response;
     }
+
+    public async Task<TourGuideListResponse> GetTourGuidesAsync(int tourOperatorId, TourGuideSearchRequest request)
+    {
+        var query = _context.TourGuides
+            .Include(tg => tg.User)
+            .Where(tg => tg.TourOperatorId == tourOperatorId)
+            .AsQueryable();
+
+        // Apply IsActive filter if specified
+        if (request.IsActive.HasValue)
+        {
+            query = query.Where(tg => tg.IsActive == request.IsActive.Value);
+        }
+
+        // Apply Username search filter
+        if (!string.IsNullOrWhiteSpace(request.Username))
+        {
+            query = query.Where(tg => tg.User != null && 
+                                    tg.User.UserName != null && 
+                                    tg.User.UserName.Contains(request.Username));
+        }
+
+        // Get total count for pagination
+        var totalCount = await query.CountAsync();
+
+        // Apply pagination
+        var tourGuides = await query
+            .Skip((request.PageNumber - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .Select(tg => new TourGuideResponse
+            {
+                TourGuideId = tg.TourGuideId,
+                UserId = tg.UserId,
+                UserName = tg.User != null ? tg.User.UserName : null,
+                Email = tg.User != null ? tg.User.Email : null,
+                PhoneNumber = tg.User != null ? tg.User.PhoneNumber : null,
+                Address = tg.User != null ? tg.User.Address : null,
+                Avatar = tg.User != null ? tg.User.Avatar : null,
+                IsActive = tg.IsActive,
+                TourOperatorId = tg.TourOperatorId
+            })
+            .ToListAsync();
+
+        // Calculate pagination info
+        var totalPages = (int)Math.Ceiling((double)totalCount / request.PageSize);
+
+        return new TourGuideListResponse
+        {
+            TourGuides = tourGuides,
+            TotalCount = totalCount,
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize,
+            TotalPages = totalPages,
+            HasNextPage = request.PageNumber < totalPages,
+            HasPreviousPage = request.PageNumber > 1
+        };
+    }
 }

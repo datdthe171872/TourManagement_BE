@@ -13,6 +13,7 @@ public class DepartureDateWithBookingResponse
     public int TotalBookings { get; set; }
     public int AvailableSlots { get; set; }
     public List<BookingInfo> Bookings { get; set; } = new List<BookingInfo>();
+    public List<TourGuideInfo> TourGuides { get; set; } = new List<TourGuideInfo>();
 }
 
 public class BookingInfo

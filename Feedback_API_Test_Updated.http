@@ -1,44 +1,53 @@
-### Test Feedback API - Updated Version
-
-### 1. Get All Feedbacks (with search and pagination)
-GET {{baseUrl}}/api/Feedback?pageNumber=1&pageSize=10
-Authorization: Bearer {{token}}
-
-### 2. Get Feedback by ID
-GET {{baseUrl}}/api/Feedback/1
-Authorization: Bearer {{token}}
-
-### 3. Create New Feedback
+### Create Feedback with Image Upload
 POST {{baseUrl}}/api/Feedback
 Authorization: Bearer {{token}}
-Content-Type: application/json
+Content-Type: multipart/form-data
 
-{
-  "tourId": 1,
-  "userId": 1,
-  "rating": 5,
-  "comment": "Tour rất tuyệt vời! Hướng dẫn viên rất nhiệt tình.",
-  "mediaUrl": "https://example.com/feedback-image.jpg"
-}
+# Form Data:
+# TourId: 1
+# Rating: 5
+# Comment: "Tour rất tuyệt vời!"
+# ImageFile: [Select file]
 
-### 4. Update Feedback
-PUT {{baseUrl}}/api/Feedback/1
+### Create Feedback without Image
+POST {{baseUrl}}/api/Feedback
 Authorization: Bearer {{token}}
-Content-Type: application/json
+Content-Type: multipart/form-data
 
-{
-  "rating": 4,
-  "comment": "Tour tốt, nhưng có thể cải thiện thêm về dịch vụ.",
-  "mediaUrl": "https://example.com/updated-feedback-image.jpg"
-}
+# Form Data:
+# TourId: 1
+# Rating: 4
+# Comment: "Tour khá tốt"
 
-### 5. Soft Delete Feedback
-DELETE {{baseUrl}}/api/Feedback/1
-Authorization: Bearer {{token}}
-
-### 6. Get My Feedbacks (NEW API - Get all feedbacks of logged-in user)
+### Get My Feedbacks (Authenticated User)
 GET {{baseUrl}}/api/Feedback/my-feedbacks
 Authorization: Bearer {{token}}
+
+### Update Feedback Status (Admin Only)
+PUT {{baseUrl}}/api/Feedback/update-status
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "ratingId": 1,
+  "isActive": false
+}
+
+### Activate Feedback (Admin Only)
+PUT {{baseUrl}}/api/Feedback/update-status
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "ratingId": 1,
+  "isActive": true
+}
+
+### Get All Feedbacks (Public)
+GET {{baseUrl}}/api/Feedback?PageNumber=1&PageSize=10
+
+### Get Feedback Detail
+GET {{baseUrl}}/api/Feedback/1
 
 ### Variables
 @baseUrl = http://localhost:5298

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace TourManagement_BE.Data.DTO.Response.DepartureDateResponse;
 
@@ -11,4 +12,5 @@ public class DepartureDateResponse
     public bool IsActive { get; set; }
     public int TotalBookings { get; set; }
     public int AvailableSlots { get; set; }
+    public List<TourGuideInfo> TourGuides { get; set; } = new List<TourGuideInfo>();
 } 
