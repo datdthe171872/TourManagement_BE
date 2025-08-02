@@ -180,6 +180,10 @@ public partial class MyDBContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__GuideNote__Assig__47A6A41B");
 
+            entity.HasOne(d => d.DepartureDate).WithMany(p => p.GuideNotes)
+                .HasForeignKey(d => d.DepartureDateId)
+                .HasConstraintName("FK_GuideNotes_DepartureDates");
+
             entity.HasOne(d => d.Report).WithMany(p => p.GuideNotes)
                 .HasForeignKey(d => d.ReportId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -582,11 +586,6 @@ public partial class MyDBContext : DbContext
             entity.Property(e => e.AssignedDate).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.IsLeadGuide).HasDefaultValue(false);
-
-            entity.HasOne(d => d.Booking).WithMany(p => p.TourGuideAssignments)
-                .HasForeignKey(d => d.BookingId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TourGuide__Booki__59C55456");
 
             entity.HasOne(d => d.TourGuide).WithMany(p => p.TourGuideAssignments)
                 .HasForeignKey(d => d.TourGuideId)

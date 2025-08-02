@@ -103,15 +103,15 @@ namespace TourManagement_BE.Service
             await _context.SaveChangesAsync();
 
             // Tạo notification cho user liên quan đến booking
-            var booking = await _context.TourGuideAssignments
-                .Where(a => a.Id == request.AssignmentId)
-                .Select(a => a.Booking)
-                .FirstOrDefaultAsync();
+            //var booking = await _context.TourGuideAssignments
+            //    .Where(a => a.Id == request.AssignmentId)
+            //    .Select(a => a.Booking)
+            //    .FirstOrDefaultAsync();
             
-            if (booking != null)
-            {
-                await _notificationService.CreateGuideNoteNotificationAsync(booking.UserId, note.NoteId);
-            }
+            //if (booking != null)
+            //{
+            //    await _notificationService.CreateGuideNoteNotificationAsync(booking.UserId, note.NoteId);
+            //}
 
             // Thêm media nếu có
             if (request.MediaUrls != null && request.MediaUrls.Count > 0)

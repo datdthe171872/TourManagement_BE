@@ -9,6 +9,8 @@ public partial class TourCancellation
 
     public int TourId { get; set; }
 
+    public int DepartureDateId { get; set; }
+
     public int CancelledBy { get; set; }
 
     public DateTime? CancelledAt { get; set; }
