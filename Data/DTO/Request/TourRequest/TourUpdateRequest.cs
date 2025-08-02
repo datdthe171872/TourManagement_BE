@@ -33,6 +33,8 @@ namespace TourManagement_BE.Data.DTO.Request.TourRequest
 
         public string? TourStatus { get; set; }
 
+        public IFormFile? TourAvartarFile { get; set; }
+
         public bool IsActive { get; set; }
 
         public List<DepartureDateDto> ? DepartureDates { get; set; } = new();

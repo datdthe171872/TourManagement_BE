@@ -40,13 +40,13 @@ namespace TourManagement_BE.Controllers
             if (slotInfo == null)
                 return BadRequest("No remaining time to create tour experience. Please purchase a service package.");
 
-            int maxTourExperiences = slotInfo.NumberOfTourAttribute == 0 ? int.MaxValue : slotInfo.NumberOfTourAttribute;
+            //int maxTourExperiences = slotInfo.NumberOfTourAttribute == 0 ? int.MaxValue : slotInfo.NumberOfTourAttribute;
 
             int currentActiveExperiences = tour.TourExperiences.Count(e => e.IsActive);
-            if (currentActiveExperiences >= maxTourExperiences)
+            /*if (currentActiveExperiences >= maxTourExperiences)
             {
                 return BadRequest($"You have reached the maximum number of tour experiences ({maxTourExperiences}) for your current package.");
-            }
+            }*/
 
             var exp = new TourExperience
             {

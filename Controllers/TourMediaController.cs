@@ -41,13 +41,6 @@ namespace TourManagement_BE.Controllers
             if (slotInfo == null)
                 return BadRequest("No active service package found.");
 
-            int maxMediaPerTour = slotInfo.NumberOfTourAttribute == 0 ? int.MaxValue : slotInfo.NumberOfTourAttribute;
-            int currentCount = tour.TourMedia.Count(m => m.IsActive);
-            int remainingSlots = maxMediaPerTour - currentCount;
-
-            if (remainingSlots <= 0)
-                return BadRequest("Gói dịch vụ hiện tại không cho phép thêm media vào tour này.");
-
             var m = request;
 
             if (m.MediaFile == null || m.MediaFile.Length == 0)
@@ -70,8 +63,17 @@ namespace TourManagement_BE.Controllers
             if (!isImage && !isVideo)
                 return BadRequest("Unsupported file type. Only image and video are allowed.");
 
-            if (isVideo && !slotInfo.PostVideo)
+            if (isVideo && !slotInfo.MaxVideo)
                 return BadRequest("Gói dịch vụ hiện tại không cho phép upload video trong tour media.");
+
+            if (isImage && slotInfo.MaxImage > 0)
+            {
+                int currentImageCount = tour.TourMedia
+                    .Count(x => x.IsActive && x.MediaType.ToLower() == "image");
+
+                if (currentImageCount >= slotInfo.MaxImage)
+                    return BadRequest($"Gói hiện tại chỉ cho phép tối đa {slotInfo.MaxImage} ảnh cho mỗi tour.");
+            }
 
             string uploadedUrl;
 

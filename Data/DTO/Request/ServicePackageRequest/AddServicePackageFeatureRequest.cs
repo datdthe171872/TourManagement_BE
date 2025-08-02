@@ -4,13 +4,12 @@ namespace TourManagement_BE.Data.DTO.Request.ServicePackageRequest
 {
     public class AddServicePackageFeatureRequest
     {
+        [Required]
         public int PackageId { get; set; }
         [Required]
-        public int NumberOfTours { get; set; }
+        public string FeatureName { get; set; } = null!;
         [Required]
-        public int NumberOfTourAttribute { get; set; }
-        [Required]
-        public bool PostVideo { get; set; }
+        public string FeatureValue { get; set; } = null!;
 
         public bool IsActive { get; set; } = true;
     }

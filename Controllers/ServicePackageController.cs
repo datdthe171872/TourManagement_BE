@@ -35,17 +35,11 @@ namespace TourManagement_BE.Controllers
                     Price = u.Price,
                     DiscountPercentage = u.DiscountPercentage,
                     TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
+                    MaxTour = u.MaxTour,
+                    MaxImage = u.MaxImage,
+                    MaxVideo = u.MaxVideo,
+                    TourGuideFunction = u.TourGuideFunction,
                     IsActive = u.IsActive,
-                    ServicePackageFeaturesResponses = u.ServicePackageFeatures.Where(f => f.IsActive)
-                        .Select(f => new ServicePackageFeaturesResponse
-                        {
-                            FeatureId = f.FeatureId,
-                            PackageId = f.PackageId,
-                            //NumberOfTours = f.NumberOfTours,
-                            //NumberOfTourAttribute = f.NumberOfTourAttribute,
-                            //PostVideo = f.PostVideo,
-                            IsActive = f.IsActive
-                        }).ToList()
                 }).ToList();
 
             if (!services.Any())
@@ -73,17 +67,11 @@ namespace TourManagement_BE.Controllers
                     Price = u.Price,
                     DiscountPercentage = u.DiscountPercentage,
                     TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
+                    MaxTour = u.MaxTour,
+                    MaxImage = u.MaxImage,
+                    MaxVideo = u.MaxVideo,
+                    TourGuideFunction = u.TourGuideFunction,
                     IsActive = u.IsActive,
-                    ServicePackageFeaturesResponses = u.ServicePackageFeatures.Where(f => f.IsActive)
-                        .Select(f => new ServicePackageFeaturesResponse
-                        {
-                            FeatureId = f.FeatureId,
-                            PackageId = f.PackageId,
-                            //NumberOfTours = f.NumberOfTours,
-                            //NumberOfTourAttribute = f.NumberOfTourAttribute,
-                            //PostVideo = f.PostVideo,
-                            IsActive = f.IsActive
-                        }).ToList()
                 }).ToList();
 
             if (!services.Any())
@@ -105,7 +93,7 @@ namespace TourManagement_BE.Controllers
         [HttpGet("ListAllServicePackageForCustomer")]
         public IActionResult ListAllServicePackageForCustomer()
         {
-            var services = context.ServicePackages.
+            var services = context.ServicePackages.Where(u => u.IsActive == true).
                 Select(u => new ListServicePackageResponse
                 {
                     PackageId = u.PackageId,
@@ -114,17 +102,11 @@ namespace TourManagement_BE.Controllers
                     Price = u.Price,
                     DiscountPercentage = u.DiscountPercentage,
                     TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
-                    IsActive = true,
-                    ServicePackageFeaturesResponses = u.ServicePackageFeatures.Where(f => f.IsActive)
-                        .Select(f => new ServicePackageFeaturesResponse
-                        {
-                            FeatureId = f.FeatureId,
-                            PackageId = f.PackageId,
-                            //NumberOfTours = f.NumberOfTours,
-                            //NumberOfTourAttribute = f.NumberOfTourAttribute,
-                            //PostVideo = f.PostVideo,
-                            IsActive = true
-                        }).ToList()
+                    MaxTour = u.MaxTour,
+                    MaxImage = u.MaxImage,
+                    MaxVideo = u.MaxVideo,
+                    TourGuideFunction = u.TourGuideFunction,
+                    IsActive = u.IsActive,
                 }).ToList();
 
 
@@ -144,7 +126,7 @@ namespace TourManagement_BE.Controllers
 
             var totalRecords = context.ServicePackages.Count();
 
-            var services = context.ServicePackages.
+            var services = context.ServicePackages.Where(u =>  u.IsActive == true).
                 Select(u => new ListServicePackageResponse
                 {
                     PackageId = u.PackageId,
@@ -153,17 +135,11 @@ namespace TourManagement_BE.Controllers
                     Price = u.Price,
                     DiscountPercentage = u.DiscountPercentage,
                     TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
-                    IsActive = true,
-                    ServicePackageFeaturesResponses = u.ServicePackageFeatures.Where(f => f.IsActive)
-                        .Select(f => new ServicePackageFeaturesResponse
-                        {
-                            FeatureId = f.FeatureId,
-                            PackageId = f.PackageId,
-                            //NumberOfTours = f.NumberOfTours,
-                            //NumberOfTourAttribute = f.NumberOfTourAttribute,
-                            //PostVideo = f.PostVideo,
-                            IsActive = true
-                        }).ToList()
+                    MaxTour = u.MaxTour,
+                    MaxImage = u.MaxImage,
+                    MaxVideo = u.MaxVideo,
+                    TourGuideFunction = u.TourGuideFunction,
+                    IsActive = u.IsActive,
                 }).ToList();
 
             if (!services.Any())
@@ -214,9 +190,8 @@ namespace TourManagement_BE.Controllers
                 var newFeature = new ServicePackageFeature
                 {
                     PackageId = request.PackageId,
-                    //NumberOfTours = request.NumberOfTours,
-                    //NumberOfTourAttribute = request.NumberOfTourAttribute,
-                    //PostVideo = request.PostVideo,
+                    FeatureName = request.FeatureName,
+                    FeatureValue = request.FeatureValue,
                     IsActive = request.IsActive
                 };
 
@@ -286,9 +261,8 @@ namespace TourManagement_BE.Controllers
                     return NotFound(new { Message = $"Feature with ID {request.FeatureId} not found" });
                 }
 
-                //feature.NumberOfTours = request.NumberOfTours;
-                //feature.NumberOfTourAttribute = request.NumberOfTourAttribute;
-                //feature.PostVideo = request.PostVideo;
+                feature.FeatureName = request.FeatureName;
+                feature.FeatureValue = request.FeatureValue;
                 feature.IsActive = request.IsActive;
 
                 context.ServicePackageFeatures.Update(feature);
@@ -360,7 +334,7 @@ namespace TourManagement_BE.Controllers
         public IActionResult ViewDetailPackageServicForCustomere(int packageid)
         {
             var services = context.ServicePackages
-                .Where(u => u.PackageId == packageid)
+                .Where(u => u.PackageId == packageid && u.IsActive == true)
                 .Select(u => new ListServicePackageResponse
                 {
                     PackageId = u.PackageId,
@@ -369,17 +343,11 @@ namespace TourManagement_BE.Controllers
                     Price = u.Price,
                     DiscountPercentage = u.DiscountPercentage,
                     TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
-                    IsActive = true,
-                    ServicePackageFeaturesResponses = u.ServicePackageFeatures.Where(f => f.IsActive)
-                        .Select(f => new ServicePackageFeaturesResponse
-                        {
-                            FeatureId = f.FeatureId,
-                            PackageId = f.PackageId,
-                            //NumberOfTours = f.NumberOfTours,
-                            //NumberOfTourAttribute = f.NumberOfTourAttribute,
-                            //PostVideo = f.PostVideo,
-                            IsActive = true
-                        }).ToList()
+                    MaxTour = u.MaxTour,
+                    MaxImage = u.MaxImage,
+                    MaxVideo = u.MaxVideo,
+                    TourGuideFunction = u.TourGuideFunction,
+                    IsActive = u.IsActive,
                 })
                 .FirstOrDefault();
 
@@ -404,17 +372,11 @@ namespace TourManagement_BE.Controllers
                     Price = u.Price,
                     DiscountPercentage = u.DiscountPercentage,
                     TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
+                    MaxTour = u.MaxTour,
+                    MaxImage = u.MaxImage,
+                    MaxVideo = u.MaxVideo,
+                    TourGuideFunction = u.TourGuideFunction,
                     IsActive = u.IsActive,
-                    ServicePackageFeaturesResponses = u.ServicePackageFeatures.Where(f => f.IsActive)
-                        .Select(f => new ServicePackageFeaturesResponse
-                        {
-                            FeatureId = f.FeatureId,
-                            PackageId = f.PackageId,
-                            //NumberOfTours = f.NumberOfTours,
-                            //NumberOfTourAttribute = f.NumberOfTourAttribute,
-                            //PostVideo = f.PostVideo,
-                            IsActive = f.IsActive
-                        }).ToList()
                 })
                 .FirstOrDefault();
 
@@ -429,27 +391,37 @@ namespace TourManagement_BE.Controllers
         [HttpGet("CheckSlotTourOperatorPackageService/{userid}")]
         public IActionResult CheckSlotTourOperatorPackageService(int userid)
         {
-            var activePackage = context.PurchasedServicePackages.Include(t => t.TourOperator).ThenInclude(u => u.User)
-                .Where(p => p.TourOperator.User.UserId == userid && p.EndDate > DateTime.UtcNow && p.IsActive)
+            var activePackage = context.PurchasedServicePackages
+                .Include(p => p.TourOperator)
+                    .ThenInclude(t => t.User)
+                .Include(p => p.Package) 
+                .Where(p => p.TourOperator.User.UserId == userid
+                        && p.EndDate > DateTime.UtcNow
+                        && p.IsActive)
                 .OrderByDescending(p => p.ActivationDate)
-                .Select(u => new CheckSlotTourOperatorResponse
+                .Select(p => new CheckSlotTourOperatorResponse
                 {
-                    PurchaseId = u.PackageId,
-                    TourOperatorId = u.TourOperatorId,
-                    TourOperatorName = u.TourOperator.User.UserName,
-                    PackageId = u.PackageId,
-                    PackageName = u.Package.Name,
-                    TransactionId = u.TransactionId,
-                    ActivationDate = u.ActivationDate,
-                    EndDate = u.EndDate,
-                    IsActive = u.IsActive,
-                    CreatedAt = u.CreatedAt
+                    PurchaseId = p.PurchaseId, 
+                    TourOperatorId = p.TourOperatorId,
+                    TourOperatorName = p.TourOperator.User.UserName,
+                    PackageId = p.PackageId,
+                    PackageName = p.Package.Name,
+                    TransactionId = p.TransactionId,
+                    ActivationDate = p.ActivationDate,
+                    EndDate = p.EndDate,
+                    NumOfToursUsed = p.NumOfToursUsed, 
+                    MaxTour = p.Package.MaxTour, 
+                    MaxImage = p.Package.MaxImage,
+                    MaxVideo = p.Package.MaxVideo, 
+                    TourGuideFunction = p.Package.TourGuideFunction,
+                    IsActive = p.IsActive,
+                    CreatedAt = p.CreatedAt
                 })
                 .FirstOrDefault();
 
             if (activePackage == null)
             {
-                return NotFound("Not found.");
+                return NotFound("No active service package found for this user.");
             }
 
             return Ok(activePackage);

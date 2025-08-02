@@ -41,13 +41,13 @@ namespace TourManagement_BE.Controllers
             if (slotInfo == null)
                 return BadRequest("No remaining time to create departure date. Please purchase a service package.");
 
-            int maxDepartureDates = slotInfo.NumberOfTourAttribute == 0 ? int.MaxValue : slotInfo.NumberOfTourAttribute;
+            /*int maxDepartureDates = slotInfo.NumberOfTourAttribute == 0 ? int.MaxValue : slotInfo.NumberOfTourAttribute;*/
 
             int currentActiveDepartureDates = tour.DepartureDates.Count(d => d.IsActive);
-            if (currentActiveDepartureDates >= maxDepartureDates)
+            /*if (currentActiveDepartureDates >= maxDepartureDates)
             {
                 return BadRequest($"You have reached the maximum number of departure dates ({maxDepartureDates}) for your current package.");
-            }
+            }*/
 
             var today = DateTime.UtcNow.AddHours(7).Date;
 

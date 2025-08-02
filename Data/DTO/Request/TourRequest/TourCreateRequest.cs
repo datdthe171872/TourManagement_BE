@@ -1,4 +1,5 @@
-﻿using TourManagement_BE.Data.DTO.Request.TourRequest.TourRequestDTO.Create;
+﻿using System.ComponentModel.DataAnnotations;
+using TourManagement_BE.Data.DTO.Request.TourRequest.TourRequestDTO.Create;
 
 namespace TourManagement_BE.Data.DTO.Request.TourRequest
 {
@@ -27,6 +28,13 @@ namespace TourManagement_BE.Data.DTO.Request.TourRequest
         public int MinSlots { get; set; }
 
         public string? Note { get; set; }
+
+        //public string TourAvartar { get; set; } = null!;
+
+        [Required]
+        public IFormFile TourAvartarFile { get; set; } 
+
+        public string? TourAvartarUrl { get; set; }
 
         public List<DepartureDateCreateDto> DepartureDates { get; set; } = new();
         public List<TourExperienceCreateDto> TourExperiences { get; set; } = new();
