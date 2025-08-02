@@ -172,4 +172,41 @@ public class NotificationService : INotificationService
             reportId.ToString()
         );
     }
+
+    public async Task CreateFeedbackViolationNotificationAsync(int userId, int feedbackId)
+    {
+        await CreateNotificationAsync(
+            userId,
+            "Vi phạm tiêu chuẩn cộng đồng",
+            "Feedback của bạn đã vi phạm tiêu chuẩn cộng đồng và đã bị ẩn.",
+            "FeedbackViolation",
+            feedbackId.ToString()
+        );
+    }
+
+    public async Task CreateFeedbackReportNotificationAsync(int adminUserId, int ratingId, string reason, int tourOperatorId)
+    {
+        // Lấy thông tin chi tiết của feedback
+        var feedback = await _context.TourRatings
+            .Include(tr => tr.User)
+            .Include(tr => tr.Tour)
+            .FirstOrDefaultAsync(tr => tr.RatingId == ratingId);
+
+        // Lấy thông tin chi tiết của tour operator
+        var tourOperator = await _context.TourOperators
+            .Include(to => to.User)
+            .FirstOrDefaultAsync(to => to.TourOperatorId == tourOperatorId);
+
+        string feedbackContent = feedback?.Comment ?? "Nội dung không khả dụng";
+        string tourOperatorName = tourOperator?.User?.UserName ?? "Tour Operator không xác định";
+        string tourName = feedback?.Tour?.Title ?? "Tour không xác định";
+
+        await CreateNotificationAsync(
+            adminUserId,
+            "Báo cáo Feedback mới",
+            $"Có một feedback về tour '{tourName}' bị báo cáo bởi {tourOperatorName}. Nội dung feedback: '{feedbackContent}'. Lý do báo cáo: {reason}",
+            "FeedbackReport",
+            ratingId.ToString()
+        );
+    }
 } 

@@ -1,0 +1,19 @@
+### Get all TourGuides of TourOperator with search and pagination
+GET {{baseUrl}}/api/TourOperator/tourguides?Username=guide&IsActive=true&PageNumber=1&PageSize=10
+Authorization: Bearer {{token}}
+
+### Get all TourGuides of TourOperator (active only)
+GET {{baseUrl}}/api/TourOperator/tourguides?IsActive=true&PageNumber=1&PageSize=10
+Authorization: Bearer {{token}}
+
+### Get all TourGuides of TourOperator (inactive only)
+GET {{baseUrl}}/api/TourOperator/tourguides?IsActive=false&PageNumber=1&PageSize=10
+Authorization: Bearer {{token}}
+
+### Get all TourGuides of TourOperator (all statuses)
+GET {{baseUrl}}/api/TourOperator/tourguides?PageNumber=1&PageSize=10
+Authorization: Bearer {{token}}
+
+### Search TourGuides by Username
+GET {{baseUrl}}/api/TourOperator/tourguides?Username=john&PageNumber=1&PageSize=10
+Authorization: Bearer {{token}} 

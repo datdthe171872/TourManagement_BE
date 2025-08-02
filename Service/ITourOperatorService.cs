@@ -12,4 +12,5 @@ public interface ITourOperatorService
     Task<TourOperatorDetailResponse?> UpdateTourOperatorAsync(int id, UpdateTourOperatorRequest request);
     Task<bool> SoftDeleteTourOperatorAsync(int id);
     Task<TourOperatorDashboardResponse> GetDashboardStats(int operatorId);
+    Task<TourGuideListResponse> GetTourGuidesAsync(int tourOperatorId, TourGuideSearchRequest request);
 }

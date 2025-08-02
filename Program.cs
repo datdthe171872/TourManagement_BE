@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System;
 using System.Text;
+using System.Linq;
 using TourManagement_BE.Data.Context;
 using TourManagement_BE.Helper.Common;
 using TourManagement_BE.Mapping;
@@ -14,6 +15,7 @@ using TourManagement_BE.Service;
 using TourManagement_BE.Helper;
 using Microsoft.Extensions.Options;
 using TourManagement_BE.BackgroundServices;
+using TourManagement_BE.Helper.Common;
 
 namespace TourManagement_BE
 {
@@ -178,7 +180,64 @@ namespace TourManagement_BE
             app.UseAuthorization();
             app.MapControllers();
 
+            // Initialize default admin account
+            InitializeDefaultAdmin(app.Services);
+
             app.Run();
+        }
+
+        private static void InitializeDefaultAdmin(IServiceProvider serviceProvider)
+        {
+            using var scope = serviceProvider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<MyDBContext>();
+
+            try
+            {
+                // Check if Admin role exists, if not create it
+                var adminRole = context.Roles.FirstOrDefault(r => r.RoleName == "Admin");
+                if (adminRole == null)
+                {
+                    adminRole = new Data.Models.Role
+                    {
+                        RoleName = "Admin",
+                        IsActive = true
+                    };
+                    context.Roles.Add(adminRole);
+                    context.SaveChanges();
+                }
+
+                // Check if default admin user exists
+                var adminUser = context.Users.FirstOrDefault(u => u.UserName == "admin");
+                if (adminUser == null)
+                {
+                                         // Create default admin user
+                     adminUser = new Data.Models.User
+                     {
+                         UserName = "admin",
+                         Email = "admin@gmail.com",
+                         Password = PasswordHelper.HashPassword("123456"),
+                         Address = "System Admin",
+                         PhoneNumber = "0000000000",
+                         RoleId = adminRole.RoleId,
+                         IsActive = true
+                     };
+                    context.Users.Add(adminUser);
+                    context.SaveChanges();
+
+                                         Console.WriteLine("✅ Default admin account created successfully!");
+                     Console.WriteLine("Username: admin");
+                     Console.WriteLine("Password: 123456");
+                     Console.WriteLine("Email: admin@gmail.com");
+                }
+                else
+                {
+                    Console.WriteLine("ℹ️  Default admin account already exists.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error creating default admin account: {ex.Message}");
+            }
         }
     }
 }

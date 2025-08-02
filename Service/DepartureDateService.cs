@@ -83,6 +83,12 @@ public class DepartureDateService : IDepartureDateService
             })
             .ToListAsync();
 
+        // Thêm thông tin TourGuide cho mỗi departureDate
+        foreach (var departureDate in departureDates)
+        {
+            departureDate.TourGuides = await GetTourGuidesForDepartureDateAsync(departureDate.Id);
+        }
+
         return departureDates;
     }
 
@@ -104,6 +110,12 @@ public class DepartureDateService : IDepartureDateService
                 AvailableSlots = dd.Tour.MaxSlots - (dd.Tour.SlotsBooked ?? 0)
             })
             .ToListAsync();
+
+        // Thêm thông tin TourGuide cho mỗi departureDate
+        foreach (var departureDate in departureDates)
+        {
+            departureDate.TourGuides = await GetTourGuidesForDepartureDateAsync(departureDate.Id);
+        }
 
         return departureDates;
     }
@@ -159,6 +171,12 @@ public class DepartureDateService : IDepartureDateService
             })
             .ToListAsync();
 
+        // Thêm thông tin TourGuide cho mỗi departureDate
+        foreach (var departureDate in departureDatesWithBookings)
+        {
+            departureDate.TourGuides = await GetTourGuidesForDepartureDateAsync(departureDate.Id);
+        }
+
         return departureDatesWithBookings;
     }
 
@@ -198,6 +216,38 @@ public class DepartureDateService : IDepartureDateService
             })
             .ToListAsync();
 
+        // Thêm thông tin TourGuide cho mỗi departureDate
+        foreach (var departureDate in departureDates)
+        {
+            departureDate.TourGuides = await GetTourGuidesForDepartureDateAsync(departureDate.Id);
+        }
+
         return departureDates;
+    }
+
+    // Helper method để lấy thông tin TourGuide cho một departureDate
+    private async Task<List<TourGuideInfo>> GetTourGuidesForDepartureDateAsync(int departureDateId)
+    {
+        var tourGuides = await _context.TourGuideAssignments
+            .Include(tga => tga.TourGuide)
+            .ThenInclude(tg => tg.User)
+            .Include(tga => tga.Booking)
+            .Where(tga => tga.Booking.DepartureDateId == departureDateId &&
+                         tga.IsActive)
+            .Select(tga => new TourGuideInfo
+            {
+                TourGuideId = tga.TourGuideId,
+                UserId = tga.TourGuide.UserId,
+                UserName = tga.TourGuide.User != null ? tga.TourGuide.User.UserName : null,
+                Email = tga.TourGuide.User != null ? tga.TourGuide.User.Email : null,
+                PhoneNumber = tga.TourGuide.User != null ? tga.TourGuide.User.PhoneNumber : null,
+                IsActive = tga.TourGuide.IsActive,
+                AssignmentId = tga.Id,
+                AssignedDate = tga.AssignedDate,
+                IsLeadGuide = tga.IsLeadGuide
+            })
+            .ToListAsync();
+
+        return tourGuides;
     }
 } 

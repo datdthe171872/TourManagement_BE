@@ -1,95 +1,28 @@
-# Feedback API - Updated Version
+# Feedback API Documentation - Updated Version
 
 ## Overview
-Feedback API cung cấp các chức năng quản lý feedback/đánh giá tour. API đã được cập nhật với tính năng mới để lấy tất cả feedback của user đã đăng nhập.
 
-## Base URL
-```
-http://localhost:5298/api/Feedback
-```
+API Feedback đã được cập nhật với các tính năng mới:
+- Upload ảnh trực tiếp khi tạo feedback
+- Quản lý trạng thái IsActive cho Admin
+- Notification tự động khi feedback bị ẩn
+- Authorization cho các endpoint cần thiết
 
-## Authentication
-Tất cả API đều yêu cầu JWT token trong header:
-```
-Authorization: Bearer <your_jwt_token>
-```
+## Endpoints
 
-## API Endpoints
+### 1. Create Feedback with Image Upload
 
-### 1. Get All Feedbacks
-**GET** `/api/Feedback`
+**Endpoint:** `POST /api/Feedback`
 
-Lấy danh sách tất cả feedback với tìm kiếm và phân trang.
+**Authorization:** Required (Bearer Token)
 
-**Query Parameters:**
-- `pageNumber` (int, optional): Số trang (mặc định: 1)
-- `pageSize` (int, optional): Số lượng item mỗi trang (mặc định: 10)
-- `tourId` (int, optional): Lọc theo tour ID
-- `userId` (int, optional): Lọc theo user ID
-- `rating` (int, optional): Lọc theo rating
+**Content-Type:** `multipart/form-data`
 
-**Response:**
-```json
-{
-  "feedbacks": [
-    {
-      "ratingId": 1,
-      "tourId": 1,
-      "userId": 1,
-      "rating": 5,
-      "comment": "Tour rất tuyệt vời!",
-      "mediaUrl": "https://example.com/image.jpg",
-      "createdAt": "2024-01-01T10:00:00Z",
-      "isActive": true,
-      "tourName": "Tour Hà Nội - Sapa",
-      "userName": "Nguyễn Văn A",
-      "userEmail": "user@example.com"
-    }
-  ],
-  "totalCount": 1,
-  "pageNumber": 1,
-  "pageSize": 10,
-  "totalPages": 1
-}
-```
-
-### 2. Get Feedback by ID
-**GET** `/api/Feedback/{id}`
-
-Lấy chi tiết feedback theo ID.
-
-**Response:**
-```json
-{
-  "ratingId": 1,
-  "tourId": 1,
-  "userId": 1,
-  "rating": 5,
-  "comment": "Tour rất tuyệt vời!",
-  "mediaUrl": "https://example.com/image.jpg",
-  "createdAt": "2024-01-01T10:00:00Z",
-  "isActive": true,
-  "tourName": "Tour Hà Nội - Sapa",
-  "userName": "Nguyễn Văn A",
-  "userEmail": "user@example.com"
-}
-```
-
-### 3. Create New Feedback
-**POST** `/api/Feedback`
-
-Tạo feedback mới.
-
-**Request Body:**
-```json
-{
-  "tourId": 1,
-  "userId": 1,
-  "rating": 5,
-  "comment": "Tour rất tuyệt vời! Hướng dẫn viên rất nhiệt tình.",
-  "mediaUrl": "https://example.com/feedback-image.jpg"
-}
-```
+**Request Parameters:**
+- `TourId` (int, required): ID của tour
+- `Rating` (int, optional): Đánh giá từ 1-5
+- `Comment` (string, optional): Nội dung feedback
+- `ImageFile` (file, optional): File ảnh (jpg, jpeg, png, gif, max 10MB)
 
 **Response:**
 ```json
@@ -98,104 +31,114 @@ Tạo feedback mới.
   "data": {
     "ratingId": 1,
     "tourId": 1,
-    "userId": 1,
+    "userId": 123,
     "rating": 5,
-    "comment": "Tour rất tuyệt vời! Hướng dẫn viên rất nhiệt tình.",
-    "mediaUrl": "https://example.com/feedback-image.jpg",
-    "createdAt": "2024-01-01T10:00:00Z",
+    "comment": "Tour rất tuyệt vời!",
+    "mediaUrl": "https://res.cloudinary.com/...",
+    "createdAt": "2024-01-01T00:00:00Z",
     "isActive": true,
     "tourName": "Tour Hà Nội - Sapa",
-    "userName": "Nguyễn Văn A",
-    "userEmail": "user@example.com"
+    "userName": "john_doe",
+    "userEmail": "john@example.com"
   }
 }
 ```
 
-### 4. Update Feedback
-**PUT** `/api/Feedback/{id}`
+### 2. Get My Feedbacks
 
-Cập nhật feedback.
+**Endpoint:** `GET /api/Feedback/my-feedbacks`
 
-**Request Body:**
-```json
-{
-  "rating": 4,
-  "comment": "Tour tốt, nhưng có thể cải thiện thêm về dịch vụ.",
-  "mediaUrl": "https://example.com/updated-feedback-image.jpg"
-}
-```
-
-**Response:**
-```json
-{
-  "message": "Cập nhật feedback thành công",
-  "data": {
-    "ratingId": 1,
-    "tourId": 1,
-    "userId": 1,
-    "rating": 4,
-    "comment": "Tour tốt, nhưng có thể cải thiện thêm về dịch vụ.",
-    "mediaUrl": "https://example.com/updated-feedback-image.jpg",
-    "createdAt": "2024-01-01T10:00:00Z",
-    "isActive": true,
-    "tourName": "Tour Hà Nội - Sapa",
-    "userName": "Nguyễn Văn A",
-    "userEmail": "user@example.com"
-  }
-}
-```
-
-### 5. Soft Delete Feedback
-**DELETE** `/api/Feedback/{id}`
-
-Xóa mềm feedback.
-
-**Response:**
-```json
-{
-  "message": "Xóa feedback thành công"
-}
-```
-
-### 6. Get My Feedbacks (NEW)
-**GET** `/api/Feedback/my-feedbacks`
-
-**Lấy tất cả feedback của user đã đăng nhập.** Đây là API mới được thêm vào.
+**Authorization:** Required (Bearer Token)
 
 **Response:**
 ```json
 {
   "message": "Lấy danh sách feedback thành công",
   "data": {
-    "feedbacks": [
-      {
-        "ratingId": 1,
-        "tourId": 1,
-        "userId": 1,
-        "rating": 5,
-        "comment": "Tour rất tuyệt vời!",
-        "mediaUrl": "https://example.com/image.jpg",
-        "createdAt": "2024-01-01T10:00:00Z",
-        "isActive": true,
-        "tourName": "Tour Hà Nội - Sapa",
-        "userName": "Nguyễn Văn A",
-        "userEmail": "user@example.com"
-      }
-    ],
-    "totalCount": 1,
+    "feedbacks": [...],
+    "totalCount": 5,
     "pageNumber": 1,
-    "pageSize": 1,
+    "pageSize": 5,
     "totalPages": 1
   }
 }
 ```
+
+### 3. Update Feedback Status (Admin Only)
+
+**Endpoint:** `PUT /api/Feedback/update-status`
+
+**Authorization:** Required (Admin Role)
+
+**Content-Type:** `application/json`
+
+**Request Body:**
+```json
+{
+  "ratingId": 1,
+  "isActive": false
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Cập nhật trạng thái feedback thành công - đã ẩn"
+}
+```
+
+### 4. Get All Feedbacks (Public)
+
+**Endpoint:** `GET /api/Feedback`
+
+**Authorization:** Not Required
+
+**Query Parameters:**
+- `TourId` (int, optional): Lọc theo tour
+- `UserId` (int, optional): Lọc theo user
+- `Rating` (int, optional): Lọc theo rating
+- `PageNumber` (int, default: 1): Số trang
+- `PageSize` (int, default: 10): Số item trên trang
+
+### 5. Get Feedback Detail
+
+**Endpoint:** `GET /api/Feedback/{id}`
+
+**Authorization:** Not Required
+
+## Features
+
+### Image Upload
+- Hỗ trợ upload ảnh trực tiếp khi tạo feedback
+- Tự động upload lên Cloudinary
+- Validate file size (max 10MB) và file type
+- Lưu URL ảnh vào database
+
+### Admin Management
+- Chỉ Admin có thể thay đổi trạng thái IsActive
+- Khi ẩn feedback, tự động gửi notification cho user
+- Notification có nội dung: "Feedback của bạn đã vi phạm tiêu chuẩn cộng đồng và đã bị ẩn."
+
+### Authorization
+- Create Feedback: Yêu cầu đăng nhập
+- Get My Feedbacks: Yêu cầu đăng nhập
+- Update Status: Yêu cầu role Admin
+- Get All Feedbacks: Public access
+- Get Feedback Detail: Public access
+
+### Validation
+- File size validation (max 10MB)
+- File type validation (jpg, jpeg, png, gif)
+- Rating validation (1-5)
+- Comment length validation (max 1000 characters)
+- Duplicate feedback prevention
 
 ## Error Responses
 
 ### 400 Bad Request
 ```json
 {
-  "message": "User đã đánh giá tour này rồi"
+  "message": "Kích thước file không được vượt quá 10MB"
 }
 ```
 
@@ -206,24 +149,33 @@ Xóa mềm feedback.
 }
 ```
 
+### 403 Forbidden
+```json
+{
+  "message": "Access denied"
+}
+```
+
 ### 404 Not Found
 ```json
 {
-  "message": "Không tìm thấy thông tin feedback với id này."
+  "message": "Không tìm thấy feedback với id này."
 }
 ```
 
 ### 500 Internal Server Error
 ```json
 {
-  "message": "Có lỗi xảy ra khi lấy danh sách feedback",
-  "error": "Error details"
+  "message": "Có lỗi xảy ra khi tạo feedback",
+  "error": "Error details..."
 }
 ```
 
 ## Notes
 
-1. **API `my-feedbacks`** là tính năng mới được thêm vào để user có thể xem tất cả feedback của mình.
-2. API này sử dụng JWT token để xác định user đã đăng nhập.
-3. Tất cả feedback được sắp xếp theo thời gian tạo mới nhất.
-4. API trả về thông tin đầy đủ bao gồm tên tour, tên user và email. 
+- User chỉ cần nhập TourId, Rating, Comment khi tạo feedback
+- UserId được tự động lấy từ JWT token
+- IsActive mặc định là true khi tạo feedback
+- Chỉ Admin mới có thể thay đổi IsActive
+- Khi IsActive = false, feedback sẽ không hiển thị trong danh sách public
+- Notification được gửi tự động khi feedback bị ẩn 

@@ -15,5 +15,7 @@ public interface INotificationService
     Task CreateGuideNoteNotificationAsync(int userId, int guideNoteId);
     Task CreateTourAcceptanceReportNotificationAsync(int userId, int reportId);
     Task CreateFeedbackNotificationAsync(int userId, int feedbackId);
+    Task CreateFeedbackViolationNotificationAsync(int userId, int feedbackId);
+    Task CreateFeedbackReportNotificationAsync(int adminUserId, int ratingId, string reason, int tourOperatorId);
     Task CreateRegistrationSuccessNotificationAsync(int userId);
 } 
