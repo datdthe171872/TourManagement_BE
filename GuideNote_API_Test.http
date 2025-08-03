@@ -1,158 +1,64 @@
-### Guide Note API Tests
+### GuideNote API Tests
 
-### 1. Lấy danh sách Assignment có sẵn cho Tour Guide hiện tại
-GET https://localhost:7001/api/GuideNote/assignments
-Authorization: Bearer {{jwt_token}}
-Content-Type: application/json
+### 1. Get My Notes (GET)
+GET https://localhost:7012/api/GuideNote/notes
+Authorization: Bearer {{token}}
 
-###
+### 2. Upload Attachment (POST)
+POST https://localhost:7012/api/GuideNote/upload-attachment
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
 
-### 2. Lấy danh sách Guide Note của Tour Guide hiện tại
-GET https://localhost:7001/api/GuideNote
-Authorization: Bearer {{jwt_token}}
-Content-Type: application/json
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="test-image.jpg"
+Content-Type: image/jpeg
 
-###
+< ./test-image.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
 
-### 2. Tạo mới Guide Note
-POST https://localhost:7001/api/GuideNote
-Authorization: Bearer {{jwt_token}}
+### 3. Create Note with Attachments (POST)
+POST https://localhost:7012/api/GuideNote/notes
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "assignmentId": 1,
-  "title": "Ghi chú về khách hàng",
-  "content": "Khách hàng có yêu cầu đặc biệt về ăn chay. Cần chuẩn bị thực đơn phù hợp cho bữa trưa và bữa tối.",
-  "mediaUrls": [
-    "https://example.com/dietary-requirements.jpg",
-    "https://example.com/restaurant-menu.jpg"
+  "bookingId": 1,
+  "title": "Test Note with Attachments",
+  "content": "This is a test note content with image attachments",
+  "attachmentUrls": [
+    "/uploads/guidenotes/abc123.jpg",
+    "/uploads/guidenotes/def456.png"
   ]
 }
 
-###
-
-### 3. Tạo Guide Note với title và content đơn giản
-POST https://localhost:7001/api/GuideNote
-Authorization: Bearer {{jwt_token}}
+### 4. Update Note (PUT)
+PUT https://localhost:7012/api/GuideNote/notes/1
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "assignmentId": 2,
-  "title": "Lịch trình ngày đầu tiên",
-  "content": "8:00 - Đón khách tại sân bay\n9:00 - Check-in khách sạn\n10:00 - Bắt đầu tour tham quan"
+  "title": "Updated Test Note",
+  "content": "This is an updated test note content",
+  "mediaUrls": []
 }
 
-###
+### 5. Delete Note (DELETE)
+DELETE https://localhost:7012/api/GuideNote/notes/1
+Authorization: Bearer {{token}}
 
-### 4. Tạo Guide Note chỉ với assignmentId và content
-POST https://localhost:7001/api/GuideNote
-Authorization: Bearer {{jwt_token}}
+### 6. Get My Bookings (GET)
+GET https://localhost:7012/api/GuideNote/my-bookings
+Authorization: Bearer {{token}}
+
+### 7. TourOperator Get All Notes (GET)
+GET https://localhost:7012/api/GuideNote/tour-operator/notes
+Authorization: Bearer {{tour_operator_token}}
+
+### 8. TourOperator Update Extra Cost (PUT)
+PUT https://localhost:7012/api/GuideNote/notes/1/extra-cost
+Authorization: Bearer {{tour_operator_token}}
 Content-Type: application/json
 
 {
-  "assignmentId": 3,
-  "content": "Ghi chú quan trọng: Khách hàng có trẻ em 5 tuổi, cần chuẩn bị ghế ngồi an toàn trên xe."
-}
-
-###
-
-### 5. Cập nhật Guide Note (thay thế {noteId} bằng ID thực tế)
-PUT https://localhost:7001/api/GuideNote/1
-Authorization: Bearer {{jwt_token}}
-Content-Type: application/json
-
-{
-  "title": "Ghi chú cập nhật về khách hàng",
-  "content": "Khách hàng có yêu cầu đặc biệt về ăn chay. Cần chuẩn bị thực đơn phù hợp. Đã liên hệ với nhà hàng và họ đã đồng ý chuẩn bị thực đơn chay.",
-  "mediaUrls": [
-    "https://example.com/updated-dietary-requirements.jpg",
-    "https://example.com/restaurant-confirmation.jpg"
-  ]
-}
-
-###
-
-### 6. Cập nhật Guide Note chỉ thay đổi content
-PUT https://localhost:7001/api/GuideNote/2
-Authorization: Bearer {{jwt_token}}
-Content-Type: application/json
-
-{
-  "title": "Lịch trình ngày đầu tiên",
-  "content": "8:00 - Đón khách tại sân bay\n9:00 - Check-in khách sạn\n10:00 - Bắt đầu tour tham quan\n12:00 - Ăn trưa tại nhà hàng địa phương\n14:00 - Tiếp tục tham quan"
-}
-
-###
-
-### 7. Xóa Guide Note (thay thế {noteId} bằng ID thực tế)
-DELETE https://localhost:7001/api/GuideNote/1
-Authorization: Bearer {{jwt_token}}
-
-###
-
-### 8. Test lỗi - Tạo Guide Note với assignmentId không tồn tại
-POST https://localhost:7001/api/GuideNote
-Authorization: Bearer {{jwt_token}}
-Content-Type: application/json
-
-{
-  "assignmentId": 999,
-  "title": "Test lỗi",
-  "content": "Test tạo note với assignment không tồn tại"
-}
-
-###
-
-### 9. Test lỗi - Tạo Guide Note không có assignmentId
-POST https://localhost:7001/api/GuideNote
-Authorization: Bearer {{jwt_token}}
-Content-Type: application/json
-
-{
-  "title": "Test lỗi",
-  "content": "Test tạo note không có assignmentId"
-}
-
-###
-
-### 10. Test lỗi - Cập nhật Guide Note không tồn tại
-PUT https://localhost:7001/api/GuideNote/999
-Authorization: Bearer {{jwt_token}}
-Content-Type: application/json
-
-{
-  "title": "Test lỗi",
-  "content": "Test cập nhật note không tồn tại"
-}
-
-###
-
-### 11. Test lỗi - Cập nhật Guide Note không có title
-PUT https://localhost:7001/api/GuideNote/1
-Authorization: Bearer {{jwt_token}}
-Content-Type: application/json
-
-{
-  "content": "Test cập nhật note không có title"
-}
-
-###
-
-### 12. Test lỗi - Xóa Guide Note không tồn tại
-DELETE https://localhost:7001/api/GuideNote/999
-Authorization: Bearer {{jwt_token}}
-
-###
-
-### 13. Test lỗi - Truy cập API không có token
-GET https://localhost:7001/api/GuideNote
-Content-Type: application/json
-
-###
-
-### 14. Test lỗi - Truy cập API với token không hợp lệ
-GET https://localhost:7001/api/GuideNote
-Authorization: Bearer invalid_token
-Content-Type: application/json
-
-### 
+  "extraCost": 50.00
+} 

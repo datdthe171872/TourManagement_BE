@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Threading.Tasks;
 using TourManagement_BE.Data.Context;
 using TourManagement_BE.Data.DTO.Request;
@@ -114,6 +115,27 @@ namespace TourManagement_BE.Controllers
             return Ok();
         }
 
+        [HttpPut("cancel/{bookingId}")]
+        [Authorize(Roles = Roles.Customer)]
+        public async Task<IActionResult> CancelBooking(int bookingId)
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+                if (userIdClaim == null)
+                    return Unauthorized("Không xác định được người dùng");
+                
+                int userId = int.Parse(userIdClaim.Value);
+                
+                var result = await _bookingService.CancelBookingAsync(bookingId, userId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         // API 1: Get bookings for Customer (Customer role only)
         [HttpGet("customer")]
         [Authorize(Roles = Roles.Customer)]
@@ -214,6 +236,35 @@ namespace TourManagement_BE.Controllers
                     return Forbid("Bạn không phải là Tour Operator");
                 
                 var result = await _bookingService.UpdateBookingStatusAsync(request, tourOperator.TourOperatorId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                                 return BadRequest(ex.Message);
+             }
+         }
+
+        // API 6: Toggle Booking Visibility (Tour Operator role only)
+        [HttpPut("toggle-visibility/{bookingId}")]
+        [Authorize(Roles = Roles.TourOperator)]
+        public async Task<IActionResult> ToggleBookingVisibility(int bookingId)
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+                if (userIdClaim == null)
+                    return Unauthorized("Không xác định được người dùng");
+                
+                int userId = int.Parse(userIdClaim.Value);
+                
+                // Get tour operator ID from user ID
+                var tourOperator = await _dbContext.TourOperators
+                    .FirstOrDefaultAsync(to => to.UserId == userId);
+                
+                if (tourOperator == null)
+                    return Forbid("Bạn không phải là Tour Operator");
+                
+                var result = await _bookingService.ToggleBookingVisibilityAsync(bookingId, tourOperator.TourOperatorId);
                 return Ok(result);
             }
             catch (Exception ex)

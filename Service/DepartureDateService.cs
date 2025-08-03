@@ -231,9 +231,7 @@ public class DepartureDateService : IDepartureDateService
         var tourGuides = await _context.TourGuideAssignments
             .Include(tga => tga.TourGuide)
             .ThenInclude(tg => tg.User)
-            //.Include(tga => tga.Booking)
-            //.Where(tga => tga.Booking.DepartureDateId == departureDateId &&
-            //             tga.IsActive)
+            .Where(tga => tga.DepartureDateId == departureDateId && tga.IsActive)
             .Select(tga => new TourGuideInfo
             {
                 TourGuideId = tga.TourGuideId,

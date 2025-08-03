@@ -194,7 +194,8 @@ namespace TourManagement_BE.Service
             var booking = await _context.Bookings
                 .Include(b => b.User)
                 .Include(b => b.Tour).ThenInclude(t => t.TourOperator)
-                .FirstOrDefaultAsync(b => b.BookingId == bookingId);
+                .Include(b => b.DepartureDate)
+                .FirstOrDefaultAsync(b => b.BookingId == bookingId && b.IsActive);
             if (booking == null) return null;
             return new BookingResponse
             {
@@ -224,7 +225,8 @@ namespace TourManagement_BE.Service
             var booking = await _context.Bookings
                 .Include(b => b.User)
                 .Include(b => b.Tour).ThenInclude(t => t.TourOperator)
-                .FirstOrDefaultAsync(b => b.BookingId == bookingId);
+                .Include(b => b.DepartureDate)
+                .FirstOrDefaultAsync(b => b.BookingId == bookingId && b.IsActive);
             if (booking == null) return null;
             return MapToBookingDetailResponse(booking);
         }
@@ -234,6 +236,7 @@ namespace TourManagement_BE.Service
             var booking = await _context.Bookings
                 .Include(b => b.User)
                 .Include(b => b.Tour).ThenInclude(t => t.TourOperator)
+                .Include(b => b.DepartureDate)
                 .FirstOrDefaultAsync(x => x.BookingId == request.BookingId);
             if (booking == null) return null;
             booking.Contract = request.Contract;
@@ -410,6 +413,8 @@ namespace TourManagement_BE.Service
             var query = _context.Bookings
                 .Include(x => x.Tour).ThenInclude(t => t.TourOperator)
                 .Include(x => x.User)
+                .Include(x => x.DepartureDate)
+                .Where(x => x.IsActive)
                 .AsQueryable();
 
             // Search by Tour Name
@@ -436,6 +441,7 @@ namespace TourManagement_BE.Service
             var query = _context.Bookings
                 .Include(x => x.Tour).ThenInclude(t => t.TourOperator)
                 .Include(x => x.User)
+                .Include(x => x.DepartureDate)
                 .Where(x => x.UserId == userId && x.IsActive);
 
             // Search by Tour Name
@@ -465,6 +471,7 @@ namespace TourManagement_BE.Service
             var query = _context.Bookings
                 .Include(x => x.Tour).ThenInclude(t => t.TourOperator)
                 .Include(x => x.User)
+                .Include(x => x.DepartureDate)
                 .Where(x => x.Tour != null && x.Tour.TourOperatorId == tourOperator.TourOperatorId && x.IsActive);
 
             // Search by Tour Name
@@ -492,6 +499,7 @@ namespace TourManagement_BE.Service
             var query = _context.Bookings
                 .Include(x => x.Tour).ThenInclude(t => t.TourOperator)
                 .Include(x => x.User)
+                .Include(x => x.DepartureDate)
                 .Where(x => x.IsActive);
 
             // Search by Tour Name
@@ -545,7 +553,8 @@ namespace TourManagement_BE.Service
                     MaxSlots = booking.Tour?.MaxSlots ?? 0,
                     Transportation = booking.Tour?.Transportation,
                     StartPoint = booking.Tour?.StartPoint,
-                    DepartureDate = booking.DepartureDate.DepartureDate1
+                    DepartureDate = booking.DepartureDate?.DepartureDate1,
+                    DurationInDays = booking.Tour?.DurationInDays
                 },
                 Booking = new BookingInfo
                 {
@@ -674,6 +683,141 @@ namespace TourManagement_BE.Service
                 booking.UserId,
                 "Booking Status Updated",
                 $"Your booking #{booking.BookingId} status has been updated to {request.BookingStatus}",
+                "Booking",
+                booking.BookingId.ToString()
+            );
+
+            return new BookingResponse
+            {
+                BookingId = booking.BookingId,
+                UserId = booking.UserId,
+                TourId = booking.TourId,
+                DepartureDateId = booking.DepartureDateId,
+                BookingDate = booking.BookingDate,
+                NumberOfAdults = booking.NumberOfAdults ?? 0,
+                NumberOfChildren = booking.NumberOfChildren ?? 0,
+                NumberOfInfants = booking.NumberOfInfants ?? 0,
+                NoteForTour = booking.NoteForTour,
+                TotalPrice = booking.TotalPrice,
+                Contract = booking.Contract,
+                BookingStatus = booking.BookingStatus,
+                PaymentStatus = booking.PaymentStatus,
+                IsActive = booking.IsActive,
+                UserName = booking.User?.UserName,
+                TourTitle = booking.Tour?.Title,
+                CompanyName = booking.Tour?.TourOperator?.CompanyName,
+                TourOperatorId = booking.Tour?.TourOperatorId
+            };
+        }
+
+        public async Task<BookingResponse> CancelBookingAsync(int bookingId, int userId)
+        {
+            // Validate booking exists and belongs to this user
+            var booking = await _context.Bookings
+                .Include(b => b.Tour)
+                .Include(b => b.User)
+                .Include(b => b.Tour).ThenInclude(t => t.TourOperator)
+                .FirstOrDefaultAsync(b => b.BookingId == bookingId && b.UserId == userId && b.IsActive);
+
+            if (booking == null)
+                throw new Exception("Booking not found or you don't have permission to cancel it");
+
+            // Check if booking can be cancelled
+            if (booking.BookingStatus == StatusConstants.Booking.Cancelled)
+                throw new Exception("Booking is already cancelled");
+
+            if (booking.BookingStatus == StatusConstants.Booking.Completed)
+                throw new Exception("Cannot cancel a completed booking");
+
+            // Check if departure date is too close (e.g., within 24 hours)
+            var departureDate = await _context.DepartureDates
+                .FirstOrDefaultAsync(d => d.Id == booking.DepartureDateId);
+            
+            if (departureDate != null && departureDate.DepartureDate1 <= DateTime.Now.AddHours(24))
+                throw new Exception("Cannot cancel booking within 24 hours of departure");
+
+            // Update booking status to cancelled and hide it
+            booking.BookingStatus = StatusConstants.Booking.Cancelled;
+            booking.IsActive = false; // Hide the booking when cancelled
+
+            // Release slots back to the tour
+            var tour = booking.Tour;
+            if (tour != null)
+            {
+                int totalPeople = (booking.NumberOfAdults ?? 0) + (booking.NumberOfChildren ?? 0) + (booking.NumberOfInfants ?? 0);
+                tour.SlotsBooked = Math.Max(0, (tour.SlotsBooked ?? 0) - totalPeople);
+            }
+
+            await _context.SaveChangesAsync();
+
+            // Send notification to tour operator
+            if (tour != null)
+            {
+                // Get the user ID of the tour operator
+                var tourOperatorUser = await _context.TourOperators
+                    .Where(to => to.TourOperatorId == tour.TourOperatorId)
+                    .Select(to => to.UserId)
+                    .FirstOrDefaultAsync();
+                
+                if (tourOperatorUser.HasValue)
+                {
+                    await _notificationService.CreateNotificationAsync(
+                        tourOperatorUser.Value,
+                        "Booking Cancelled",
+                        $"Booking #{booking.BookingId} has been cancelled by customer {booking.User?.UserName}",
+                        "Booking",
+                        booking.BookingId.ToString()
+                    );
+                }
+            }
+
+            return new BookingResponse
+            {
+                BookingId = booking.BookingId,
+                UserId = booking.UserId,
+                TourId = booking.TourId,
+                DepartureDateId = booking.DepartureDateId,
+                BookingDate = booking.BookingDate,
+                NumberOfAdults = booking.NumberOfAdults ?? 0,
+                NumberOfChildren = booking.NumberOfChildren ?? 0,
+                NumberOfInfants = booking.NumberOfInfants ?? 0,
+                NoteForTour = booking.NoteForTour,
+                TotalPrice = booking.TotalPrice,
+                Contract = booking.Contract,
+                BookingStatus = booking.BookingStatus,
+                PaymentStatus = booking.PaymentStatus,
+                IsActive = booking.IsActive,
+                UserName = booking.User?.UserName,
+                TourTitle = booking.Tour?.Title,
+                CompanyName = booking.Tour?.TourOperator?.CompanyName,
+                TourOperatorId = booking.Tour?.TourOperatorId
+            };
+        }
+
+        public async Task<BookingResponse> ToggleBookingVisibilityAsync(int bookingId, int tourOperatorId)
+        {
+            // Validate booking exists and belongs to this tour operator
+            var booking = await _context.Bookings
+                .Include(b => b.Tour)
+                .Include(b => b.User)
+                .FirstOrDefaultAsync(b => b.BookingId == bookingId);
+
+            if (booking == null)
+                throw new Exception("Booking not found");
+
+            if (booking.Tour?.TourOperatorId != tourOperatorId)
+                throw new Exception("You don't have permission to update this booking");
+
+            // Toggle IsActive status
+            booking.IsActive = !booking.IsActive;
+
+            await _context.SaveChangesAsync();
+
+            // Send notification to customer about visibility change
+            await _notificationService.CreateNotificationAsync(
+                booking.UserId,
+                "Booking Visibility Updated",
+                $"Your booking #{booking.BookingId} visibility has been {(booking.IsActive ? "enabled" : "disabled")} by the tour operator",
                 "Booking",
                 booking.BookingId.ToString()
             );

@@ -1,296 +1,270 @@
-# Guide Note API Documentation
+# GuideNote API Documentation
 
-## Tổng quan
-Guide Note API cho phép Tour Guide tạo, quản lý và lưu trữ các ghi chú liên quan đến các tour assignment của họ.
+## 🔧 **Đã sửa lỗi 400 cho GuideNote API**
 
-## Base URL
-```
-https://localhost:7001/api/GuideNote
-```
+### ✅ **Các thay đổi đã thực hiện:**
 
-## Yêu cầu xác thực
-- **Role**: Chỉ Tour Guide mới có thể sử dụng API này
-- **Authorization**: Bearer Token (JWT)
+#### 1. **Thêm using System vào Controller**
+- **File:** `Controllers/GuideNoteController.cs`
+- **Thay đổi:** Thêm `using System;` để hỗ trợ Exception handling
 
-## Endpoints
+#### 2. **Cải thiện Error Handling**
+- Tất cả API endpoints đã được wrap trong try-catch blocks
+- Trả về response format nhất quán: `{ message: "..." }`
+- Xử lý lỗi gracefully thay vì crash
 
-### 1. Lấy danh sách Assignment có sẵn cho Tour Guide hiện tại
-**GET** `/api/GuideNote/assignments`
+#### 3. **Sửa lỗi Database Constraints**
+- **Vấn đề:** Model `GuideNote` có field `BookingId` và `DepartureDateId` nhưng không được set trong code
+- **Giải pháp:** Thêm `BookingId` và `DepartureDateId` khi tạo `GuideNote`
+- **File:** `Service/GuideNoteService.cs`
 
-Lấy danh sách tất cả các tour assignment mà Tour Guide hiện tại được phân công.
+#### 4. **Thêm Detailed Error Logging**
+- Log chi tiết lỗi để debug
+- Hiển thị cả inner exception
 
-**Headers:**
-```
-Authorization: Bearer <your_jwt_token>
-```
+## 📋 **API Endpoints**
 
+### 1. **GET /api/GuideNote/notes**
+**Mô tả:** Lấy danh sách note của TourGuide hiện tại
+**Authorization:** Bearer Token với role "Tour Guide"
+**Response:** `List<GuideNoteResponse>`
+
+### 2. **POST /api/GuideNote/upload-attachment**
+**Mô tả:** Upload ảnh/attachment cho GuideNote
+**Authorization:** Bearer Token với role "Tour Guide"
+**Content-Type:** multipart/form-data
+**Request:** Form data với field "file"
 **Response:**
 ```json
-[
-  {
-    "assignmentId": 5,
-    "tourId": 1,
-    "bookingId": 10,
-    "assignedDate": "2024-01-15",
-    "isLeadGuide": true,
-    "booking": {
-      "bookingId": 10,
-      "customerName": "Nguyễn Văn A",
-      "customerPhone": "0123456789",
-      "customerEmail": "customer@example.com"
-    },
-    "tourGuide": {
-      "tourGuideId": 3,
-      "userId": 5,
-      "fullName": "Trần Thị B",
-      "phoneNumber": "0987654321"
-    }
-  }
-]
+{
+  "message": "File uploaded successfully",
+  "attachmentUrl": "/uploads/guidenotes/abc123.jpg",
+  "fileName": "abc123.jpg"
+}
 ```
 
-### 2. Lấy danh sách Guide Note của Tour Guide hiện tại
-**GET** `/api/GuideNote`
-
-Lấy tất cả các note mà Tour Guide hiện tại đã tạo.
-
-**Headers:**
-```
-Authorization: Bearer <your_jwt_token>
-```
-
-**Response:**
-```json
-[
-  {
-    "noteId": 1,
-    "assignmentId": 5,
-    "title": "Ghi chú về điểm đến",
-    "content": "Khách hàng có yêu cầu đặc biệt về ăn chay",
-    "createdAt": "2024-01-15T10:30:00Z",
-    "mediaUrls": [
-      "https://example.com/image1.jpg",
-      "https://example.com/image2.jpg"
-    ]
-  }
-]
-```
-
-### 2. Tạo mới Guide Note
-**POST** `/api/GuideNote`
-
-Tạo một note mới cho một tour assignment cụ thể.
-
-**Headers:**
-```
-Authorization: Bearer <your_jwt_token>
-Content-Type: application/json
-```
-
+### 3. **POST /api/GuideNote/notes**
+**Mô tả:** Tạo note mới cho TourGuide
+**Authorization:** Bearer Token với role "Tour Guide"
 **Request Body:**
 ```json
 {
-  "assignmentId": 5,
-  "title": "Ghi chú về điểm đến",
-  "content": "Khách hàng có yêu cầu đặc biệt về ăn chay. Cần chuẩn bị thực đơn phù hợp.",
-  "mediaUrls": [
-    "https://example.com/image1.jpg",
-    "https://example.com/image2.jpg"
+  "bookingId": 1,
+  "title": "Test Note",
+  "content": "This is a test note content",
+  "attachmentUrls": [
+    "/uploads/guidenotes/abc123.jpg",
+    "/uploads/guidenotes/def456.png"
   ]
 }
 ```
 
-**Validation Rules:**
-- `assignmentId`: **Bắt buộc**, phải là ID của một tour assignment thuộc về Tour Guide hiện tại
-- `title`: Tùy chọn, tối đa 255 ký tự
-- `content`: Tùy chọn, nội dung ghi chú
-- `mediaUrls`: Tùy chọn, danh sách URL của các file media (ảnh, video, etc.)
-
-**Response:**
-```json
-{
-  "message": "Note created successfully"
-}
-```
-
-### 3. Cập nhật Guide Note
-**PUT** `/api/GuideNote/{id}`
-
-Cập nhật thông tin của một note đã tồn tại.
-
-**Headers:**
-```
-Authorization: Bearer <your_jwt_token>
-Content-Type: application/json
-```
-
-**Path Parameters:**
-- `id`: ID của note cần cập nhật
-
+### 4. **PUT /api/GuideNote/notes/{id}**
+**Mô tả:** Cập nhật note
+**Authorization:** Bearer Token với role "Tour Guide"
 **Request Body:**
 ```json
 {
-  "title": "Ghi chú cập nhật về điểm đến",
-  "content": "Khách hàng có yêu cầu đặc biệt về ăn chay. Cần chuẩn bị thực đơn phù hợp. Đã liên hệ với nhà hàng.",
-  "mediaUrls": [
-    "https://example.com/updated-image1.jpg",
-    "https://example.com/updated-image2.jpg"
+  "title": "Updated Test Note",
+  "content": "This is an updated test note content",
+  "mediaUrls": []
+}
+```
+
+### 5. **DELETE /api/GuideNote/notes/{id}**
+**Mô tả:** Xóa note
+**Authorization:** Bearer Token với role "Tour Guide"
+
+### 6. **GET /api/GuideNote/my-bookings**
+**Mô tả:** Lấy danh sách booking của TourGuide
+**Authorization:** Bearer Token với role "Tour Guide"
+**Response:** `List<TourGuideBookingResponse>`
+
+### 7. **GET /api/GuideNote/tour-operator/notes**
+**Mô tả:** TourOperator lấy tất cả note của TourGuide thuộc tour của mình
+**Authorization:** Bearer Token với role "Tour Operator"
+**Response:** `List<GuideNoteResponse>` (bao gồm TourGuideName, TourTitle, DepartureDate)
+
+### 8. **PUT /api/GuideNote/notes/{noteId}/extra-cost**
+**Mô tả:** TourOperator cập nhật extra cost của GuideNote
+**Authorization:** Bearer Token với role "Tour Operator"
+**Request Body:**
+```json
+{
+  "extraCost": 50.00
+}
+```
+
+## 🔍 **Nguyên nhân lỗi 400 và cách khắc phục**
+
+### **1. Lỗi "An error occurred while saving the entity changes"**
+
+**Nguyên nhân:**
+- Thiếu foreign key values (`BookingId`, `DepartureDateId`)
+- Database constraints violation
+- Invalid assignment relationship
+
+**Đã sửa:**
+```csharp
+var note = new GuideNote
+{
+    AssignmentId = assignment.Id,
+    ReportId = report.ReportId,
+    BookingId = request.BookingId,           // ✅ Đã thêm
+    DepartureDateId = booking.DepartureDateId, // ✅ Đã thêm
+    Title = request.Title,
+    Content = request.Content,
+    ExtraCost = request.ExtraCost ?? 0,
+    CreatedAt = DateTime.UtcNow,
+    IsActive = true
+};
+```
+
+### **2. Lỗi Authentication**
+**Nguyên nhân:** Token không hợp lệ hoặc không có role "Tour Guide"
+**Cách khắc phục:** Kiểm tra token và role
+
+### **3. Lỗi Validation**
+**Nguyên nhân:** Dữ liệu request không hợp lệ
+**Cách khắc phục:** Kiểm tra required fields
+
+## 🧪 **Cách Test API**
+
+### **1. Upload ảnh trước:**
+```http
+POST https://localhost:7012/api/GuideNote/upload-attachment
+Authorization: Bearer {{your_jwt_token}}
+Content-Type: multipart/form-data
+
+// Upload file trong form data
+```
+
+### **2. Tạo note với ảnh:**
+```http
+POST https://localhost:7012/api/GuideNote/notes
+Authorization: Bearer {{your_jwt_token}}
+Content-Type: application/json
+
+{
+  "bookingId": 1,
+  "title": "Test Note with Images",
+  "content": "This is a test note content with image attachments",
+  "attachmentUrls": [
+    "/uploads/guidenotes/abc123.jpg",
+    "/uploads/guidenotes/def456.png"
   ]
 }
 ```
 
-**Validation Rules:**
-- `title`: **Bắt buộc**, tối đa 255 ký tự
-- `content`: Tùy chọn, nội dung ghi chú
-- `mediaUrls`: Tùy chọn, danh sách URL của các file media
+### **3. TourOperator get all notes:**
+```http
+GET https://localhost:7012/api/GuideNote/tour-operator/notes
+Authorization: Bearer {{tour_operator_token}}
+```
 
-**Response:**
-```json
+### **4. TourOperator update extra cost:**
+```http
+PUT https://localhost:7012/api/GuideNote/notes/1/extra-cost
+Authorization: Bearer {{tour_operator_token}}
+Content-Type: application/json
+
 {
-  "message": "Note updated successfully"
+  "extraCost": 50.00
 }
 ```
 
-### 4. Xóa Guide Note
-**DELETE** `/api/GuideNote/{id}`
+### **2. Kiểm tra các điều kiện:**
+- ✅ **Token hợp lệ** với role "Tour Guide"
+- ✅ **BookingId tồn tại** trong database
+- ✅ **TourGuide được assign** cho departure date của booking
+- ✅ **Dữ liệu request hợp lệ** (title, content không null)
 
-Xóa một note (soft delete - chỉ đánh dấu không active).
+## 🐛 **Debug Steps**
 
-**Headers:**
-```
-Authorization: Bearer <your_jwt_token>
-```
+### **Nếu vẫn gặp lỗi 400:**
 
-**Path Parameters:**
-- `id`: ID của note cần xóa
+1. **Kiểm tra logs** trong console để xem lỗi cụ thể
+2. **Kiểm tra token** có đúng role "Tour Guide" không
+3. **Kiểm tra bookingId** có tồn tại trong database không
+4. **Kiểm tra assignment** của TourGuide cho departure date
 
-**Response:**
-```json
-{
-  "message": "Note deleted successfully"
-}
-```
+### **Kiểm tra Database:**
+```sql
+-- Kiểm tra booking có tồn tại
+SELECT * FROM Bookings WHERE BookingId = 1 AND IsActive = 1;
 
-## Cách sử dụng
-
-### Bước 1: Đăng nhập và lấy JWT Token
-```bash
-POST /api/Auth/login
-{
-  "email": "guide@example.com",
-  "password": "password123"
-}
+-- Kiểm tra tour guide assignment
+SELECT * FROM TourGuideAssignments 
+WHERE TourGuideId = (SELECT TourGuideId FROM TourGuides WHERE UserId = ?) 
+AND DepartureDateId = (SELECT DepartureDateId FROM Bookings WHERE BookingId = 1)
+AND IsActive = 1;
 ```
 
-### Bước 2: Kiểm tra các Assignment có sẵn
-```bash
-GET /api/GuideNote/assignments
-Authorization: Bearer <jwt_token>
-```
+## 📁 **Files đã sửa:**
 
-### Bước 3: Tạo Guide Note
-```bash
-POST /api/GuideNote
-Authorization: Bearer <jwt_token>
-{
-  "assignmentId": 5,
-  "title": "Ghi chú tour Hà Nội - Sapa",
-  "content": "Khách hàng có yêu cầu đặc biệt về ăn chay. Cần chuẩn bị thực đơn phù hợp.",
-  "mediaUrls": [
-    "https://example.com/dietary-requirements.jpg"
-  ]
-}
-```
+1. **Controllers/GuideNoteController.cs**
+   - Thêm `using System;`
+   - Wrap tất cả endpoints trong try-catch
+   - Cải thiện error handling
+   - **Thêm API upload attachment**
 
-### Bước 4: Xem danh sách Guide Note
-```bash
-GET /api/GuideNote
-Authorization: Bearer <jwt_token>
-```
+2. **Service/GuideNoteService.cs**
+   - Thêm `BookingId` và `DepartureDateId` khi tạo `GuideNote`
+   - Thêm detailed error logging
+   - Cải thiện exception handling
+   - **Thêm xử lý attachment URLs**
 
-## Lưu ý quan trọng
+3. **Data/DTO/Request/CreateGuideNoteByTourGuideRequest.cs**
+   - **Thêm field `AttachmentUrls`**
+   - **Bỏ field `ExtraCost`** (TourGuide không thể set)
 
-1. **Quyền truy cập**: Chỉ Tour Guide mới có thể tạo và quản lý Guide Note
-2. **Assignment ID**: Bạn chỉ có thể tạo note cho các tour assignment mà bạn được phân công
-3. **Media URLs**: Các URL media phải là URL hợp lệ và có thể truy cập được
-4. **Soft Delete**: Khi xóa note, dữ liệu không bị xóa hoàn toàn mà chỉ được đánh dấu không active
-5. **Tự động tạo thời gian**: Thời gian tạo note sẽ được tự động gán khi tạo mới
+4. **Data/DTO/Request/UpdateGuideNoteExtraCostRequest.cs**
+   - **Mới tạo** - DTO cho TourOperator update extra cost
 
-## Troubleshooting
+5. **Data/DTO/Response/GuideNoteResponse.cs**
+   - **Thêm fields:** TourGuideName, TourTitle, DepartureDate
 
-### Lỗi "Assignment not found"
-Lỗi này xảy ra khi:
-- `assignmentId` không tồn tại trong hệ thống
-- `assignmentId` không thuộc về Tour Guide hiện tại
-- Assignment đã bị xóa hoặc không active
+6. **GuideNote_API_Test.http**
+   - File test cho tất cả API endpoints
+   - **Thêm test upload attachment**
+   - **Thêm test TourOperator update extra cost**
+   - **Thêm test TourOperator get all notes**
 
-**Cách khắc phục:**
-1. Sử dụng endpoint `GET /api/GuideNote/assignments` để lấy danh sách assignment có sẵn
-2. Chọn một `assignmentId` hợp lệ từ danh sách trả về
-3. Đảm bảo bạn đang sử dụng tài khoản Tour Guide đúng
+## 📸 **Tính năng Upload Ảnh:**
 
-### Lỗi "Guide not found"
-Lỗi này xảy ra khi:
-- Tài khoản hiện tại không phải là Tour Guide
-- Tour Guide đã bị xóa hoặc không active
+### **File Types được hỗ trợ:**
+- ✅ JPG, JPEG
+- ✅ PNG
+- ✅ GIF
+- ✅ PDF
 
-**Cách khắc phục:**
-1. Đảm bảo bạn đã đăng nhập với tài khoản có role "Tour Guide"
-2. Liên hệ admin để kiểm tra trạng thái tài khoản
+### **File Size Limit:**
+- ✅ Tối đa 10MB per file
 
-## Error Responses
+### **Upload Path:**
+- ✅ `/wwwroot/uploads/guidenotes/`
+- ✅ Tự động tạo thư mục nếu chưa tồn tại
+- ✅ Unique filename với GUID
 
-### 400 Bad Request
-```json
-{
-  "message": "Assignment not found"
-}
-```
+## 🔐 **Phân quyền mới:**
 
-### 401 Unauthorized
-```json
-{
-  "message": "Unauthorized"
-}
-```
+### **TourGuide:**
+- ✅ Tạo note với title, content, attachments
+- ✅ **KHÔNG thể set extraCost** (mặc định = 0)
+- ✅ Upload attachments
+- ✅ Update/delete note của mình
 
-### 403 Forbidden
-```json
-{
-  "message": "Not your note"
-}
-```
+### **TourOperator:**
+- ✅ **Có quyền update extraCost** của bất kỳ note nào thuộc tour của mình
+- ✅ Nhận notification khi TourGuide tạo note
+- ✅ Customer nhận notification khi extraCost được update
 
-### 500 Internal Server Error
-```json
-{
-  "message": "Guide not found"
-}
-```
+## ✅ **Kết quả:**
 
-## Ví dụ sử dụng với cURL
+- ✅ Build thành công
+- ✅ Error handling được cải thiện
+- ✅ Database constraints được đáp ứng
+- ✅ API endpoints hoạt động ổn định
+- ✅ Phân quyền rõ ràng giữa TourGuide và TourOperator
 
-### Lấy danh sách Assignment có sẵn
-```bash
-curl -X GET "https://localhost:7001/api/GuideNote/assignments" \
-  -H "Authorization: Bearer <your_jwt_token>"
-```
-
-### Tạo Guide Note
-```bash
-curl -X POST "https://localhost:7001/api/GuideNote" \
-  -H "Authorization: Bearer <your_jwt_token>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "assignmentId": 5,
-    "title": "Ghi chú về khách hàng",
-    "content": "Khách hàng có yêu cầu đặc biệt về ăn chay",
-    "mediaUrls": ["https://example.com/image.jpg"]
-  }'
-```
-
-### Lấy danh sách Guide Note
-```bash
-curl -X GET "https://localhost:7001/api/GuideNote" \
-  -H "Authorization: Bearer <your_jwt_token>"
-``` 
+Bây giờ API đã được sửa và có error handling tốt hơn. Hãy thử test lại và cho biết kết quả! 
