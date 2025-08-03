@@ -29,5 +29,11 @@ namespace TourManagement_BE.Service
         // Status update methods for Tour Operator
         Task<BookingResponse> UpdatePaymentStatusAsync(UpdatePaymentStatusRequest request, int tourOperatorId);
         Task<BookingResponse> UpdateBookingStatusAsync(UpdateBookingStatusRequest request, int tourOperatorId);
+        
+        // Cancel booking method for Customer
+        Task<BookingResponse> CancelBookingAsync(int bookingId, int userId);
+        
+        // Toggle booking visibility for Tour Operator
+        Task<BookingResponse> ToggleBookingVisibilityAsync(int bookingId, int tourOperatorId);
     }
 } 

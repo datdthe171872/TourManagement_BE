@@ -8,8 +8,11 @@ namespace TourManagement_BE.Service
     public interface IGuideNoteService
     {
         Task<List<GuideNoteResponse>> GetNotesByGuideUserIdAsync(int userId);
-        //Task CreateNoteAsync(int userId, CreateGuideNoteRequest request);
+        Task CreateNoteByTourGuideAsync(int userId, CreateGuideNoteByTourGuideRequest request);
         Task UpdateNoteAsync(int userId, int noteId, UpdateGuideNoteRequest request);
         Task DeleteNoteAsync(int userId, int noteId);
+        Task<List<TourGuideBookingResponse>> GetMyBookingsAsync(int userId);
+        Task UpdateNoteExtraCostAsync(int tourOperatorId, int noteId, UpdateGuideNoteExtraCostRequest request);
+        Task<List<GuideNoteResponse>> GetNotesByTourOperatorAsync(int tourOperatorId);
     }
 } 

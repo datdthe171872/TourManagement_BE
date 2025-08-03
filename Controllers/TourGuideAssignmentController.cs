@@ -8,6 +8,7 @@ using TourManagement_BE.Data.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace TourManagement_BE.Controllers
 {
@@ -25,10 +26,22 @@ namespace TourManagement_BE.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateAssignment([FromBody] CreateTourGuideAssignmentRequest request)
         {
+            // Kiểm tra xem tour guide đã được assign cho departure date này chưa
+            var existingAssignment = await _context.TourGuideAssignments
+                .FirstOrDefaultAsync(a => a.TourId == request.TourId && 
+                                        a.DepartureDateId == request.DepartureDateId && 
+                                        a.TourGuideId == request.TourGuideId && 
+                                        a.IsActive);
+            
+            if (existingAssignment != null)
+            {
+                return BadRequest("Tour guide đã được assign cho departure date này");
+            }
+
             var assignment = new TourGuideAssignment
             {
                 TourId = request.TourId,
-                //BookingId = request.BookingId,
+                DepartureDateId = request.DepartureDateId,
                 TourGuideId = request.TourGuideId,
                 AssignedDate = request.AssignedDate != null ? DateOnly.FromDateTime(request.AssignedDate.Value) : null,
                 IsLeadGuide = request.IsLeadGuide,
@@ -37,6 +50,57 @@ namespace TourManagement_BE.Controllers
             _context.TourGuideAssignments.Add(assignment);
             await _context.SaveChangesAsync();
             return Ok("Assignment created successfully");
+        }
+
+        [HttpPost("multiple")]
+        public async Task<IActionResult> CreateMultipleAssignments([FromBody] CreateMultipleTourGuideAssignmentRequest request)
+        {
+            if (request.TourGuides == null || !request.TourGuides.Any())
+            {
+                return BadRequest("Danh sách tour guide không được để trống");
+            }
+
+            var assignments = new List<TourGuideAssignment>();
+            var existingAssignments = await _context.TourGuideAssignments
+                .Where(a => a.TourId == request.TourId && 
+                           a.DepartureDateId == request.DepartureDateId && 
+                           a.IsActive)
+                .ToListAsync();
+
+            foreach (var tourGuide in request.TourGuides)
+            {
+                // Kiểm tra xem tour guide đã được assign chưa
+                var existingAssignment = existingAssignments
+                    .FirstOrDefault(a => a.TourGuideId == tourGuide.TourGuideId);
+                
+                if (existingAssignment != null)
+                {
+                    continue; // Bỏ qua nếu đã được assign
+                }
+
+                var assignment = new TourGuideAssignment
+                {
+                    TourId = request.TourId,
+                    DepartureDateId = request.DepartureDateId,
+                    TourGuideId = tourGuide.TourGuideId,
+                    AssignedDate = DateOnly.FromDateTime(DateTime.Now),
+                    IsLeadGuide = tourGuide.IsLeadGuide,
+                    IsActive = true
+                };
+                assignments.Add(assignment);
+            }
+
+            if (assignments.Any())
+            {
+                _context.TourGuideAssignments.AddRange(assignments);
+                await _context.SaveChangesAsync();
+            }
+
+            return Ok(new { 
+                message = "Assignments created successfully", 
+                createdCount = assignments.Count,
+                totalRequested = request.TourGuides.Count
+            });
         }
 
         [HttpGet("my-assignments")]
@@ -59,6 +123,56 @@ namespace TourManagement_BE.Controllers
                 })
                 .ToListAsync();
             return Ok(assignments);
+        }
+
+        [HttpGet("departure-date/{departureDateId}")]
+        public async Task<IActionResult> GetAssignmentsByDepartureDate(int departureDateId)
+        {
+            var assignments = await _context.TourGuideAssignments
+                .Include(a => a.TourGuide)
+                .ThenInclude(tg => tg.User)
+                .Include(a => a.DepartureDate)
+                .Include(a => a.TourGuide)
+                .ThenInclude(tg => tg.GuideLanguages)
+                .ThenInclude(gl => gl.Language)
+                .Where(a => a.DepartureDateId == departureDateId && a.IsActive)
+                .Select(a => new {
+                    a.Id,
+                    a.TourId,
+                    a.DepartureDateId,
+                    a.TourGuideId,
+                    a.AssignedDate,
+                    a.IsLeadGuide,
+                    a.IsActive,
+                    TourGuideName = a.TourGuide.User.UserName,
+                    TourGuideEmail = a.TourGuide.User.Email,
+                    TourGuidePhone = a.TourGuide.User.PhoneNumber,
+                    Languages = a.TourGuide.GuideLanguages
+                        .Where(gl => gl.IsActive)
+                        .Select(gl => gl.Language.LanguageName)
+                        .ToList(),
+                    DepartureDate = a.DepartureDate.DepartureDate1
+                })
+                .ToListAsync();
+
+            return Ok(assignments);
+        }
+
+        [HttpDelete("{assignmentId}")]
+        public async Task<IActionResult> DeleteAssignment(int assignmentId)
+        {
+            var assignment = await _context.TourGuideAssignments
+                .FirstOrDefaultAsync(a => a.Id == assignmentId && a.IsActive);
+            
+            if (assignment == null)
+            {
+                return NotFound("Assignment not found");
+            }
+
+            assignment.IsActive = false;
+            await _context.SaveChangesAsync();
+            
+            return Ok("Assignment deleted successfully");
         }
 
         [HttpGet("test-auth")]
