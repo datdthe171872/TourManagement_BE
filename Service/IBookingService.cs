@@ -17,6 +17,7 @@ namespace TourManagement_BE.Service
         Task<BookingListResponse> GetTourOperatorBookingsAsync(BookingSearchRequest request, int userId);
         Task<BookingListResponse> GetAllBookingsForAdminAsync(BookingSearchRequest request);
         Task<BookingResponse> GetBookingByIdAsync(int bookingId);
+        Task<BookingDetailResponse> GetBookingByIdDetailedAsync(int bookingId);
         Task<BookingResponse> UpdateBookingContractAsync(UpdateBookingRequest request);
         
         // New detailed booking methods

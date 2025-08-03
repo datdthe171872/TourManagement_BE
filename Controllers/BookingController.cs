@@ -35,6 +35,14 @@ namespace TourManagement_BE.Controllers
             return Ok(result);
         }
 
+        [HttpGet("{bookingId}/detailed")]
+        public async Task<IActionResult> GetBookingByIdDetailed(int bookingId)
+        {
+            var result = await _bookingService.GetBookingByIdDetailedAsync(bookingId);
+            if (result == null) return NotFound();
+            return Ok(result);
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateBooking([FromBody] CreateBookingRequest request)
         {
