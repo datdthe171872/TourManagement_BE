@@ -17,7 +17,5 @@ public partial class DepartureDate
 
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
-    public virtual ICollection<GuideNote> GuideNotes { get; set; } = new List<GuideNote>();
-
     public virtual Tour Tour { get; set; } = null!;
 }

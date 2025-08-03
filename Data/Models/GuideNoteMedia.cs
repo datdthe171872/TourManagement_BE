@@ -4,6 +4,7 @@ using System.Collections.Generic;
 namespace TourManagement_BE.Data.Models;
 
 public partial class GuideNoteMedia
+
 {
     public int Id { get; set; }
 

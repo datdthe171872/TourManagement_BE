@@ -8,7 +8,7 @@ namespace TourManagement_BE.Service
     public interface IGuideNoteService
     {
         Task<List<GuideNoteResponse>> GetNotesByGuideUserIdAsync(int userId);
-        Task CreateNoteAsync(int userId, CreateGuideNoteRequest request);
+        //Task CreateNoteAsync(int userId, CreateGuideNoteRequest request);
         Task UpdateNoteAsync(int userId, int noteId, UpdateGuideNoteRequest request);
         Task DeleteNoteAsync(int userId, int noteId);
     }

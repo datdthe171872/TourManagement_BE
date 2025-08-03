@@ -9,8 +9,6 @@ public partial class TourGuideAssignment
 
     public int TourId { get; set; }
 
-    public int BookingId { get; set; }
-
     public int TourGuideId { get; set; }
 
     public int DepartureDateId { get; set; }

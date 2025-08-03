@@ -37,7 +37,7 @@ public partial class Tour
 
     public string? TourStatus { get; set; }
 
-    public string TourAvartar { get; set; } = null!;
+    public string? TourAvartar { get; set; } = null!;
 
     public bool IsActive { get; set; }
 

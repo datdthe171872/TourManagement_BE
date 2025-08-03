@@ -51,85 +51,85 @@ namespace TourManagement_BE.Service
             }).ToList();
         }
 
-        public async Task CreateNoteAsync(int userId, CreateGuideNoteRequest request)
-        {
-            var guide = await _context.TourGuides
-                .Include(g => g.User)
-                .FirstOrDefaultAsync(g => g.UserId == userId && g.IsActive);
-            if (guide == null) throw new Exception("Guide not found");
+        //public async Task CreateNoteAsync(int userId, CreateGuideNoteRequest request)
+        //{
+        //    var guide = await _context.TourGuides
+        //        .Include(g => g.User)
+        //        .FirstOrDefaultAsync(g => g.UserId == userId && g.IsActive);
+        //    if (guide == null) throw new Exception("Guide not found");
             
-            // Kiểm tra assignment có thuộc guide không
-            var assignment = await _context.TourGuideAssignments.FirstOrDefaultAsync(a => a.Id == request.AssignmentId && a.TourGuideId == guide.TourGuideId && a.IsActive);
-            if (assignment == null) throw new Exception("Assignment not found");
+        //    // Kiểm tra assignment có thuộc guide không
+        //    var assignment = await _context.TourGuideAssignments.FirstOrDefaultAsync(a => a.Id == request.AssignmentId && a.TourGuideId == guide.TourGuideId && a.IsActive);
+        //    if (assignment == null) throw new Exception("Assignment not found");
             
-            // Tìm hoặc tạo TourAcceptanceReport cho booking này
-            var report = await _context.TourAcceptanceReports
-                .FirstOrDefaultAsync(r => r.BookingId == assignment.BookingId && r.TourGuideId == guide.TourGuideId && r.IsActive);
+        //    // Tìm hoặc tạo TourAcceptanceReport cho booking này
+        //    var report = await _context.TourAcceptanceReports
+        //        .FirstOrDefaultAsync(r => r.BookingId == assignment.BookingId && r.TourGuideId == guide.TourGuideId && r.IsActive);
             
-            if (report == null)
-            {
-                // Tạo report mới nếu chưa có
-                report = new TourAcceptanceReport
-                {
-                    BookingId = assignment.BookingId,
-                    TourGuideId = guide.TourGuideId,
-                    ReportDate = DateTime.UtcNow,
-                    TotalExtraCost = 0,
-                    Notes = "Auto-generated report",
-                    IsActive = true
-                };
-                _context.TourAcceptanceReports.Add(report);
-                await _context.SaveChangesAsync();
-            }
+        //    if (report == null)
+        //    {
+        //        // Tạo report mới nếu chưa có
+        //        report = new TourAcceptanceReport
+        //        {
+        //            BookingId = assignment.BookingId,
+        //            TourGuideId = guide.TourGuideId,
+        //            ReportDate = DateTime.UtcNow,
+        //            TotalExtraCost = 0,
+        //            Notes = "Auto-generated report",
+        //            IsActive = true
+        //        };
+        //        _context.TourAcceptanceReports.Add(report);
+        //        await _context.SaveChangesAsync();
+        //    }
             
-            var note = new GuideNote
-            {
-                AssignmentId = request.AssignmentId,
-                ReportId = report.ReportId,
-                Title = request.Title,
-                Content = request.Content,
-                ExtraCost = request.ExtraCost ?? 0,
-                CreatedAt = DateTime.UtcNow,
-                IsActive = true
-            };
-            _context.GuideNotes.Add(note);
-            await _context.SaveChangesAsync();
+        //    var note = new GuideNote
+        //    {
+        //        AssignmentId = request.AssignmentId,
+        //        ReportId = report.ReportId,
+        //        Title = request.Title,
+        //        Content = request.Content,
+        //        ExtraCost = request.ExtraCost ?? 0,
+        //        CreatedAt = DateTime.UtcNow,
+        //        IsActive = true
+        //    };
+        //    _context.GuideNotes.Add(note);
+        //    await _context.SaveChangesAsync();
 
-            // Cập nhật tổng extra cost trong report
-            var totalExtraCost = await _context.GuideNotes
-                .Where(gn => gn.ReportId == report.ReportId && gn.IsActive)
-                .SumAsync(gn => gn.ExtraCost ?? 0);
-            report.TotalExtraCost = totalExtraCost;
-            await _context.SaveChangesAsync();
+        //    // Cập nhật tổng extra cost trong report
+        //    var totalExtraCost = await _context.GuideNotes
+        //        .Where(gn => gn.ReportId == report.ReportId && gn.IsActive)
+        //        .SumAsync(gn => gn.ExtraCost ?? 0);
+        //    report.TotalExtraCost = totalExtraCost;
+        //    await _context.SaveChangesAsync();
 
-            // Tạo notification cho user liên quan đến booking
-            //var booking = await _context.TourGuideAssignments
-            //    .Where(a => a.Id == request.AssignmentId)
-            //    .Select(a => a.Booking)
-            //    .FirstOrDefaultAsync();
+        //    // Tạo notification cho user liên quan đến booking
+        //    //var booking = await _context.TourGuideAssignments
+        //    //    .Where(a => a.Id == request.AssignmentId)
+        //    //    .Select(a => a.Booking)
+        //    //    .FirstOrDefaultAsync();
             
-            //if (booking != null)
-            //{
-            //    await _notificationService.CreateGuideNoteNotificationAsync(booking.UserId, note.NoteId);
-            //}
+        //    //if (booking != null)
+        //    //{
+        //    //    await _notificationService.CreateGuideNoteNotificationAsync(booking.UserId, note.NoteId);
+        //    //}
 
-            // Thêm media nếu có
-            if (request.MediaUrls != null && request.MediaUrls.Count > 0)
-            {
-                foreach (var url in request.MediaUrls)
-                {
-                    var media = new GuideNoteMedia
-                    {
-                        NoteId = note.NoteId,
-                        MediaUrl = url,
-                        UploadedAt = DateTime.UtcNow,
-                        IsActive = true
-                    };
-                    _context.GuideNoteMedia.Add(media);
-                }
-                await _context.SaveChangesAsync();
-            }
-        }
+        //    // Thêm media nếu có
+        //    if (request.MediaUrls != null && request.MediaUrls.Count > 0)
+        //    {
+        //        foreach (var url in request.MediaUrls)
+        //        {
+        //            var media = new GuideNoteMedia
+        //            {
+        //                NoteId = note.NoteId,
+        //                MediaUrl = url,
+        //                UploadedAt = DateTime.UtcNow,
+        //                IsActive = true
+        //            };
+        //            _context.GuideNoteMedia.Add(media);
+        //        }
+        //        await _context.SaveChangesAsync();
+        //    }
+        //}
 
         public async Task UpdateNoteAsync(int userId, int noteId, UpdateGuideNoteRequest request)
         {

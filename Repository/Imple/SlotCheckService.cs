@@ -2,7 +2,6 @@
 using System.Text.RegularExpressions;
 using TourManagement_BE.Data.Context;
 using TourManagement_BE.Data.DTO.Response.PaymentResponse;
-using TourManagement_BE.Data.Models;
 
 namespace TourManagement_BE.Repository.Interface
 {

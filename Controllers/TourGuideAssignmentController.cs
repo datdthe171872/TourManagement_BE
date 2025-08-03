@@ -28,7 +28,7 @@ namespace TourManagement_BE.Controllers
             var assignment = new TourGuideAssignment
             {
                 TourId = request.TourId,
-                BookingId = request.BookingId,
+                //BookingId = request.BookingId,
                 TourGuideId = request.TourGuideId,
                 AssignedDate = request.AssignedDate != null ? DateOnly.FromDateTime(request.AssignedDate.Value) : null,
                 IsLeadGuide = request.IsLeadGuide,
@@ -53,7 +53,7 @@ namespace TourManagement_BE.Controllers
                 .Select(a => new {
                     a.Id,
                     a.TourId,
-                    a.BookingId,
+                    //a.BookingId,
                     a.AssignedDate,
                     a.IsLeadGuide
                 })

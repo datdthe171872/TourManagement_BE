@@ -33,13 +33,13 @@ namespace TourManagement_BE.Controllers
         }
 
         // Thêm note mới
-        [HttpPost("notes")]
-        public async Task<ActionResult> CreateNote([FromBody] CreateGuideNoteRequest request)
-        {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            await _guideNoteService.CreateNoteAsync(userId, request);
-            return Ok("Note created successfully");
-        }
+        //[HttpPost("notes")]
+        //public async Task<ActionResult> CreateNote([FromBody] CreateGuideNoteRequest request)
+        //{
+        //    var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        //    await _guideNoteService.CreateNoteAsync(userId, request);
+        //    return Ok("Note created successfully");
+        //}
 
         // Sửa note
         [HttpPut("notes/{id}")]

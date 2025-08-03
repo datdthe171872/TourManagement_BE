@@ -61,6 +61,7 @@
 
   <ItemGroup>
     <Folder Include="Midderware\NewFolder\" />
+    <Folder Include="Migrations\" />
     <Folder Include="wwwroot\uploads\" />
   </ItemGroup>
 
