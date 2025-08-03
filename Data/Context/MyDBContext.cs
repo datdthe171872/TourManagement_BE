@@ -56,8 +56,6 @@ public partial class MyDBContext : DbContext
 
     public virtual DbSet<TourAcceptanceReport> TourAcceptanceReports { get; set; }
 
-    public virtual DbSet<TourCancellation> TourCancellations { get; set; }
-
     public virtual DbSet<TourExperience> TourExperiences { get; set; }
 
     public virtual DbSet<TourGuide> TourGuides { get; set; }
@@ -89,6 +87,8 @@ public partial class MyDBContext : DbContext
         modelBuilder.Entity<Booking>(entity =>
         {
             entity.HasKey(e => e.BookingId).HasName("PK__Bookings__73951AED69F9C654");
+
+            entity.HasIndex(e => e.DepartureDateId, "IX_Bookings_DepartureDateId");
 
             entity.HasIndex(e => e.TourId, "IX_Bookings_TourId");
 
@@ -168,6 +168,10 @@ public partial class MyDBContext : DbContext
 
             entity.HasIndex(e => e.AssignmentId, "IX_GuideNotes_AssignmentId");
 
+            entity.HasIndex(e => e.BookingId, "IX_GuideNotes_BookingId");
+
+            entity.HasIndex(e => e.ReportId, "IX_GuideNotes_ReportId");
+
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
@@ -179,6 +183,12 @@ public partial class MyDBContext : DbContext
                 .HasForeignKey(d => d.AssignmentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__GuideNote__Assig__47A6A41B");
+
+            entity.HasOne(d => d.Booking).WithMany(p => p.GuideNotes)
+                .HasForeignKey(d => d.BookingId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_GuideNotes_Bookings");
+          
 
             entity.HasOne(d => d.Report).WithMany(p => p.GuideNotes)
                 .HasForeignKey(d => d.ReportId)
@@ -210,6 +220,8 @@ public partial class MyDBContext : DbContext
 
             entity.HasIndex(e => e.AssignmentId, "IX_GuideRatings_AssignmentId");
 
+            entity.HasIndex(e => e.TourGuideId, "IX_GuideRatings_TourGuideId");
+
             entity.HasIndex(e => e.UserId, "IX_GuideRatings_UserId");
 
             entity.Property(e => e.CreatedAt)
@@ -222,6 +234,11 @@ public partial class MyDBContext : DbContext
                 .HasForeignKey(d => d.AssignmentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__GuideRati__Assig__489AC854");
+
+            entity.HasOne(d => d.TourGuide).WithMany(p => p.GuideRatings)
+                .HasForeignKey(d => d.TourGuideId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__GuideRati__TourG__4A8310C6");
 
             entity.HasOne(d => d.User).WithMany(p => p.GuideRatings)
                 .HasForeignKey(d => d.UserId)
@@ -392,9 +409,16 @@ public partial class MyDBContext : DbContext
 
         modelBuilder.Entity<ResetPasswordToken>(entity =>
         {
+            entity.HasKey(e => e.Id).HasName("PK_ResetPasswordTokens");
+
             entity.HasIndex(e => e.UserId, "IX_ResetPasswordTokens_UserId");
 
-            entity.HasOne(d => d.User).WithMany(p => p.ResetPasswordTokens).HasForeignKey(d => d.UserId);
+            entity.Property(e => e.ExpiryDate).HasColumnType("datetime2(7)");
+
+            entity.HasOne(d => d.User).WithMany(p => p.ResetPasswordTokens)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_ResetPasswordTokens_Users_UserId");
         });
 
         modelBuilder.Entity<Role>(entity =>
@@ -512,30 +536,6 @@ public partial class MyDBContext : DbContext
                 .HasConstraintName("FK__TourAccep__TourG__55F4C372");
         });
 
-        modelBuilder.Entity<TourCancellation>(entity =>
-        {
-            entity.HasKey(e => e.CancellationId).HasName("PK__TourCanc__6A2D9A3A1E33ECEB");
-
-            entity.HasIndex(e => e.CancelledBy, "IX_TourCancellations_CancelledBy");
-
-            entity.HasIndex(e => e.TourId, "IX_TourCancellations_TourId");
-
-            entity.Property(e => e.CancelledAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-
-            entity.HasOne(d => d.CancelledByNavigation).WithMany(p => p.TourCancellations)
-                .HasForeignKey(d => d.CancelledBy)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TourCance__Cance__56E8E7AB");
-
-            entity.HasOne(d => d.Tour).WithMany(p => p.TourCancellations)
-                .HasForeignKey(d => d.TourId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TourCance__TourI__57DD0BE4");
-        });
-
         modelBuilder.Entity<TourExperience>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__TourExpe__3214EC0771B42547");
@@ -575,11 +575,18 @@ public partial class MyDBContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__TourGuid__3214EC073C3A4EB5");
 
+            entity.HasIndex(e => e.DepartureDateId, "IX_TourGuideAssignments_DepartureDateId");
+
             entity.HasIndex(e => e.TourGuideId, "IX_TourGuideAssignments_TourGuideId");
 
             entity.Property(e => e.AssignedDate).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.IsLeadGuide).HasDefaultValue(false);
+
+            entity.HasOne(d => d.DepartureDate).WithMany(p => p.TourGuideAssignments)
+                .HasForeignKey(d => d.DepartureDateId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TourGuideAssignments_DepartureDates");
 
             entity.HasOne(d => d.TourGuide).WithMany(p => p.TourGuideAssignments)
                 .HasForeignKey(d => d.TourGuideId)

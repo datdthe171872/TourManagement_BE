@@ -27,6 +27,8 @@ public partial class GuideNote
 
     public virtual TourGuideAssignment Assignment { get; set; } = null!;
 
+    public virtual Booking Booking { get; set; } = null!;
+
     public virtual ICollection<GuideNoteMedia> GuideNoteMedia { get; set; } = new List<GuideNoteMedia>();
 
     public virtual TourAcceptanceReport Report { get; set; } = null!;

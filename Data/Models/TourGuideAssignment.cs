@@ -21,6 +21,8 @@ public partial class TourGuideAssignment
 
     public bool IsActive { get; set; }
 
+    public virtual DepartureDate DepartureDate { get; set; } = null!;
+
     public virtual ICollection<GuideNote> GuideNotes { get; set; } = new List<GuideNote>();
 
     public virtual ICollection<GuideRating> GuideRatings { get; set; } = new List<GuideRating>();

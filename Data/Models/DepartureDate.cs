@@ -18,4 +18,6 @@ public partial class DepartureDate
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
     public virtual Tour Tour { get; set; } = null!;
+
+    public virtual ICollection<TourGuideAssignment> TourGuideAssignments { get; set; } = new List<TourGuideAssignment>();
 }

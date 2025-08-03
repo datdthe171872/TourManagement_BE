@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TourManagement_BE.Data.Context;
 
@@ -11,9 +12,11 @@ using TourManagement_BE.Data.Context;
 namespace TourManagement_BE.Migrations
 {
     [DbContext(typeof(MyDBContext))]
-    partial class MyDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250803052412_UpdatedDatabaseSchema")]
+    partial class UpdatedDatabaseSchema
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -200,6 +203,8 @@ namespace TourManagement_BE.Migrations
 
                     b.HasKey("NoteId")
                         .HasName("PK__GuideNot__EACE355F7D9F9B80");
+
+                    b.HasIndex("DepartureDateId");
 
                     b.HasIndex(new[] { "AssignmentId" }, "IX_GuideNotes_AssignmentId");
 
@@ -992,6 +997,8 @@ namespace TourManagement_BE.Migrations
 
                     b.HasIndex(new[] { "TourGuideId" }, "IX_TourGuideAssignments_TourGuideId");
 
+                    b.HasIndex(new[] { "TourId" }, "IX_TourGuideAssignments_TourId");
+
                     b.ToTable("TourGuideAssignments");
                 });
 
@@ -1346,6 +1353,11 @@ namespace TourManagement_BE.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_GuideNotes_Bookings");
 
+                    b.HasOne("TourManagement_BE.Data.Models.DepartureDate", "DepartureDate")
+                        .WithMany("GuideNotes")
+                        .HasForeignKey("DepartureDateId")
+                        .HasConstraintName("FK_GuideNotes_DepartureDates");
+
                     b.HasOne("TourManagement_BE.Data.Models.TourAcceptanceReport", "Report")
                         .WithMany("GuideNotes")
                         .HasForeignKey("ReportId")
@@ -1355,6 +1367,8 @@ namespace TourManagement_BE.Migrations
                     b.Navigation("Assignment");
 
                     b.Navigation("Booking");
+
+                    b.Navigation("DepartureDate");
 
                     b.Navigation("Report");
                 });
@@ -1606,7 +1620,15 @@ namespace TourManagement_BE.Migrations
                         .IsRequired()
                         .HasConstraintName("FK__TourGuide__TourG__5AB9788F");
 
+                    b.HasOne("TourManagement_BE.Data.Models.Tour", "Tour")
+                        .WithMany("TourGuideAssignments")
+                        .HasForeignKey("TourId")
+                        .IsRequired()
+                        .HasConstraintName("FK_TourGuideAssignments_Tours");
+
                     b.Navigation("DepartureDate");
+
+                    b.Navigation("Tour");
 
                     b.Navigation("TourGuide");
                 });
@@ -1697,6 +1719,8 @@ namespace TourManagement_BE.Migrations
                 {
                     b.Navigation("Bookings");
 
+                    b.Navigation("GuideNotes");
+
                     b.Navigation("TourGuideAssignments");
                 });
 
@@ -1743,6 +1767,8 @@ namespace TourManagement_BE.Migrations
                     b.Navigation("SavedTours");
 
                     b.Navigation("TourExperiences");
+
+                    b.Navigation("TourGuideAssignments");
 
                     b.Navigation("TourItineraries");
 
