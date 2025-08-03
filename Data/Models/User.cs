@@ -37,8 +37,6 @@ public partial class User
 
     public virtual ICollection<SavedTour> SavedTours { get; set; } = new List<SavedTour>();
 
-    public virtual ICollection<TourCancellation> TourCancellations { get; set; } = new List<TourCancellation>();
-
     public virtual TourGuide? TourGuide { get; set; }
 
     public virtual TourOperator? TourOperator { get; set; }

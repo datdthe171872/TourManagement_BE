@@ -24,38 +24,47 @@ namespace TourManagement_BE.Controllers
         [HttpPost("PurchaseServicePackages")]
         public async Task<IActionResult> PurchaseServicePackages([FromBody] PurchaseServicePackagesRequest request)
         {
-            var tourOperatorExists = await context.TourOperators.AnyAsync(to => to.TourOperatorId == request.TourOperatorId);
-            if (!tourOperatorExists)
+            var tourOperator = await context.TourOperators
+                .FirstOrDefaultAsync(to => to.UserId == request.UserId);
+
+            if (tourOperator == null)
                 return BadRequest("TourOperator không tồn tại");
 
-            var servicePackage = await context.ServicePackages.FindAsync(request.PackageId);
-            if (servicePackage == null) return NotFound("Service package not found");
+            var servicePackage = await context.ServicePackages
+                .FindAsync(request.PackageId);
+
+            if (servicePackage == null)
+                return NotFound("Service package not found");
 
             var timeNow = DateTime.UtcNow.AddHours(7);
             var endDate = timeNow.AddYears(request.NumberYearActive);
             var contentCode = GenerateContentCode();
 
-            var purchaseTransaction = context.PurchaseTransactions.Add(new()
+            var purchaseTransaction = new PurchaseTransaction
             {
-                TourOperatorId = request.TourOperatorId,
+                TourOperatorId = tourOperator.TourOperatorId, 
                 PackageId = request.PackageId,
                 Amount = request.Amount * request.NumberYearActive,
                 PaymentMethod = request.PaymentMethod,
                 PaymentStatus = "Pending",
                 ContentCode = contentCode,
-                CreatedAt = DateTime.UtcNow.AddHours(7),
+                CreatedAt = timeNow,
                 IsActive = false,
-                PurchasedServicePackages = new List<PurchasedServicePackage> { new()
+                PurchasedServicePackages = new List<PurchasedServicePackage>
                 {
-                    TourOperatorId = request.TourOperatorId,
-                    PackageId = request.PackageId,
-                    ActivationDate = timeNow,
-                    EndDate = endDate,
-                    NumOfToursUsed = 0,
-                    IsActive = false,
-                    CreatedAt = DateTime.UtcNow.AddHours(7)
-                }}
-            }).Entity;
+                    new PurchasedServicePackage
+                    {
+                        TourOperatorId = tourOperator.TourOperatorId,
+                        PackageId = request.PackageId,
+                        ActivationDate = timeNow,
+                        EndDate = endDate,
+                        NumOfToursUsed = 0,
+                        IsActive = false,
+                        CreatedAt = timeNow
+                    }
+                }
+            };
+            context.PurchaseTransactions.Add(purchaseTransaction);
 
             await context.SaveChangesAsync();
 
@@ -66,6 +75,7 @@ namespace TourManagement_BE.Controllers
                 contentCode = contentCode
             });
         }
+
 
         [HttpPost("payment-webhook")]
         public async Task<IActionResult> PaymentWebhook([FromBody] PaymentNotification payload)

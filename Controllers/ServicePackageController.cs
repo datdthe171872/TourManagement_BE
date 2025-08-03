@@ -224,20 +224,23 @@ namespace TourManagement_BE.Controllers
                 return NotFound("Service Package not found.");
             }
 
-            if (!string.IsNullOrWhiteSpace(request.Name))
                 service.Name = request.Name;
 
-            if (!string.IsNullOrWhiteSpace(request.Description))
                 service.Description = request.Description;
 
-            if (request.Price.HasValue)
-                service.Price = request.Price.Value;
+                service.Price = request.Price;
 
-            if (request.DiscountPercentage.HasValue)
-                service.DiscountPercentage = request.DiscountPercentage.Value;
+                service.DiscountPercentage = request.DiscountPercentage;
 
-            if (request.IsActive.HasValue)
-                service.IsActive = request.IsActive.Value;
+                service.MaxTour = request.MaxTour;
+
+                service.MaxImage = request.MaxImage;
+
+                service.MaxVideo = request.MaxVideo;
+            
+                service.TourGuideFunction = request.TourGuideFunction;
+
+                service.IsActive = request.IsActive;
 
             await context.SaveChangesAsync();
 

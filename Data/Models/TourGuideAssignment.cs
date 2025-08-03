@@ -9,9 +9,9 @@ public partial class TourGuideAssignment
 
     public int TourId { get; set; }
 
-    public int BookingId { get; set; }
-
     public int TourGuideId { get; set; }
+
+    public int DepartureDateId { get; set; }
 
     public DateOnly? AssignedDate { get; set; }
 
@@ -21,7 +21,7 @@ public partial class TourGuideAssignment
 
     public bool IsActive { get; set; }
 
-    public virtual Booking Booking { get; set; } = null!;
+    public virtual DepartureDate DepartureDate { get; set; } = null!;
 
     public virtual ICollection<GuideNote> GuideNotes { get; set; } = new List<GuideNote>();
 

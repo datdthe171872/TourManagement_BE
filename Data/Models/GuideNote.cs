@@ -11,6 +11,8 @@ public partial class GuideNote
 
     public int AssignmentId { get; set; }
 
+    public int BookingId { get; set; }
+
     public string? Title { get; set; }
 
     public string? Content { get; set; }
@@ -19,9 +21,13 @@ public partial class GuideNote
 
     public DateTime? CreatedAt { get; set; }
 
+    public int? DepartureDateId { get; set; }
+
     public bool IsActive { get; set; }
 
     public virtual TourGuideAssignment Assignment { get; set; } = null!;
+
+    public virtual Booking Booking { get; set; } = null!;
 
     public virtual ICollection<GuideNoteMedia> GuideNoteMedia { get; set; } = new List<GuideNoteMedia>();
 

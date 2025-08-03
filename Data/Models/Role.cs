@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 
 namespace TourManagement_BE.Data.Models;
-
 public partial class Role
 {
     public int RoleId { get; set; }

@@ -35,13 +35,13 @@ public partial class Booking
 
     public virtual DepartureDate DepartureDate { get; set; } = null!;
 
+    public virtual ICollection<GuideNote> GuideNotes { get; set; } = new List<GuideNote>();
+
     public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
 
     public virtual Tour Tour { get; set; } = null!;
 
     public virtual ICollection<TourAcceptanceReport> TourAcceptanceReports { get; set; } = new List<TourAcceptanceReport>();
-
-    public virtual ICollection<TourGuideAssignment> TourGuideAssignments { get; set; } = new List<TourGuideAssignment>();
 
     public virtual User User { get; set; } = null!;
 }

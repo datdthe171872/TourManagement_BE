@@ -15,6 +15,8 @@ public partial class TourGuide
 
     public virtual ICollection<GuideLanguage> GuideLanguages { get; set; } = new List<GuideLanguage>();
 
+    public virtual ICollection<GuideRating> GuideRatings { get; set; } = new List<GuideRating>();
+
     public virtual ICollection<TourAcceptanceReport> TourAcceptanceReports { get; set; } = new List<TourAcceptanceReport>();
 
     public virtual ICollection<TourGuideAssignment> TourGuideAssignments { get; set; } = new List<TourGuideAssignment>();

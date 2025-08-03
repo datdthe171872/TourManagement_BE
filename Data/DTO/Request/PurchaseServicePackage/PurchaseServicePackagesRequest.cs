@@ -2,7 +2,7 @@
 {
     public class PurchaseServicePackagesRequest
     {
-        public int TourOperatorId { get; set; }
+        public int UserId { get; set; }
 
         public int PackageId { get; set; }
 
