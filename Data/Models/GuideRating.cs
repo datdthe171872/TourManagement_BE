@@ -25,5 +25,7 @@ public partial class GuideRating
 
     public virtual TourGuideAssignment Assignment { get; set; } = null!;
 
+    public virtual TourGuide TourGuide { get; set; } = null!;
+
     public virtual User User { get; set; } = null!;
 }

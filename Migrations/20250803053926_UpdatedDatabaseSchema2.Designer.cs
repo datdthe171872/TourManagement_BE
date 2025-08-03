@@ -12,8 +12,8 @@ using TourManagement_BE.Data.Context;
 namespace TourManagement_BE.Migrations
 {
     [DbContext(typeof(MyDBContext))]
-    [Migration("20250803032327_DB1")]
-    partial class DB1
+    [Migration("20250803053926_UpdatedDatabaseSchema2")]
+    partial class UpdatedDatabaseSchema2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -92,7 +92,7 @@ namespace TourManagement_BE.Migrations
                     b.HasKey("BookingId")
                         .HasName("PK__Bookings__73951AED69F9C654");
 
-                    b.HasIndex("DepartureDateId");
+                    b.HasIndex(new[] { "DepartureDateId" }, "IX_Bookings_DepartureDateId");
 
                     b.HasIndex(new[] { "TourId" }, "IX_Bookings_TourId");
 
@@ -204,9 +204,13 @@ namespace TourManagement_BE.Migrations
                     b.HasKey("NoteId")
                         .HasName("PK__GuideNot__EACE355F7D9F9B80");
 
-                    b.HasIndex("ReportId");
+                    b.HasIndex("DepartureDateId");
 
                     b.HasIndex(new[] { "AssignmentId" }, "IX_GuideNotes_AssignmentId");
+
+                    b.HasIndex(new[] { "BookingId" }, "IX_GuideNotes_BookingId");
+
+                    b.HasIndex(new[] { "ReportId" }, "IX_GuideNotes_ReportId");
 
                     b.ToTable("GuideNotes");
                 });
@@ -286,6 +290,8 @@ namespace TourManagement_BE.Migrations
                         .HasName("PK__GuideRat__FCCDF87C1044E830");
 
                     b.HasIndex(new[] { "AssignmentId" }, "IX_GuideRatings_AssignmentId");
+
+                    b.HasIndex(new[] { "TourGuideId" }, "IX_GuideRatings_TourGuideId");
 
                     b.HasIndex(new[] { "UserId" }, "IX_GuideRatings_UserId");
 
@@ -603,7 +609,7 @@ namespace TourManagement_BE.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("ExpiryDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2(7)");
 
                     b.Property<bool>("IsUsed")
                         .HasColumnType("bit");
@@ -615,7 +621,8 @@ namespace TourManagement_BE.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("PK_ResetPasswordTokens");
 
                     b.HasIndex(new[] { "UserId" }, "IX_ResetPasswordTokens_UserId");
 
@@ -890,46 +897,6 @@ namespace TourManagement_BE.Migrations
                     b.ToTable("TourAcceptanceReports");
                 });
 
-            modelBuilder.Entity("TourManagement_BE.Data.Models.TourCancellation", b =>
-                {
-                    b.Property<int>("CancellationId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CancellationId"));
-
-                    b.Property<DateTime?>("CancelledAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.Property<int>("CancelledBy")
-                        .HasColumnType("int");
-
-                    b.Property<int>("DepartureDateId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<string>("Reason")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("TourId")
-                        .HasColumnType("int");
-
-                    b.HasKey("CancellationId")
-                        .HasName("PK__TourCanc__6A2D9A3A1E33ECEB");
-
-                    b.HasIndex(new[] { "CancelledBy" }, "IX_TourCancellations_CancelledBy");
-
-                    b.HasIndex(new[] { "TourId" }, "IX_TourCancellations_TourId");
-
-                    b.ToTable("TourCancellations");
-                });
-
             modelBuilder.Entity("TourManagement_BE.Data.Models.TourExperience", b =>
                 {
                     b.Property<int>("Id")
@@ -1025,6 +992,8 @@ namespace TourManagement_BE.Migrations
 
                     b.HasKey("Id")
                         .HasName("PK__TourGuid__3214EC073C3A4EB5");
+
+                    b.HasIndex(new[] { "DepartureDateId" }, "IX_TourGuideAssignments_DepartureDateId");
 
                     b.HasIndex(new[] { "TourGuideId" }, "IX_TourGuideAssignments_TourGuideId");
 
@@ -1376,6 +1345,17 @@ namespace TourManagement_BE.Migrations
                         .IsRequired()
                         .HasConstraintName("FK__GuideNote__Assig__47A6A41B");
 
+                    b.HasOne("TourManagement_BE.Data.Models.Booking", "Booking")
+                        .WithMany("GuideNotes")
+                        .HasForeignKey("BookingId")
+                        .IsRequired()
+                        .HasConstraintName("FK_GuideNotes_Bookings");
+
+                    b.HasOne("TourManagement_BE.Data.Models.DepartureDate", "DepartureDate")
+                        .WithMany("GuideNotes")
+                        .HasForeignKey("DepartureDateId")
+                        .HasConstraintName("FK_GuideNotes_DepartureDates");
+
                     b.HasOne("TourManagement_BE.Data.Models.TourAcceptanceReport", "Report")
                         .WithMany("GuideNotes")
                         .HasForeignKey("ReportId")
@@ -1383,6 +1363,10 @@ namespace TourManagement_BE.Migrations
                         .HasConstraintName("FK_GuideNotes_TourAcceptanceReports");
 
                     b.Navigation("Assignment");
+
+                    b.Navigation("Booking");
+
+                    b.Navigation("DepartureDate");
 
                     b.Navigation("Report");
                 });
@@ -1406,6 +1390,12 @@ namespace TourManagement_BE.Migrations
                         .IsRequired()
                         .HasConstraintName("FK__GuideRati__Assig__489AC854");
 
+                    b.HasOne("TourManagement_BE.Data.Models.TourGuide", "TourGuide")
+                        .WithMany("GuideRatings")
+                        .HasForeignKey("TourGuideId")
+                        .IsRequired()
+                        .HasConstraintName("FK__GuideRati__TourG__4A8310C6");
+
                     b.HasOne("TourManagement_BE.Data.Models.User", "User")
                         .WithMany("GuideRatings")
                         .HasForeignKey("UserId")
@@ -1413,6 +1403,8 @@ namespace TourManagement_BE.Migrations
                         .HasConstraintName("FK__GuideRati__UserI__498EEC8D");
 
                     b.Navigation("Assignment");
+
+                    b.Navigation("TourGuide");
 
                     b.Navigation("User");
                 });
@@ -1518,7 +1510,8 @@ namespace TourManagement_BE.Migrations
                         .WithMany("ResetPasswordTokens")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("FK_ResetPasswordTokens_Users_UserId");
 
                     b.Navigation("User");
                 });
@@ -1583,25 +1576,6 @@ namespace TourManagement_BE.Migrations
                     b.Navigation("TourGuide");
                 });
 
-            modelBuilder.Entity("TourManagement_BE.Data.Models.TourCancellation", b =>
-                {
-                    b.HasOne("TourManagement_BE.Data.Models.User", "CancelledByNavigation")
-                        .WithMany("TourCancellations")
-                        .HasForeignKey("CancelledBy")
-                        .IsRequired()
-                        .HasConstraintName("FK__TourCance__Cance__56E8E7AB");
-
-                    b.HasOne("TourManagement_BE.Data.Models.Tour", "Tour")
-                        .WithMany("TourCancellations")
-                        .HasForeignKey("TourId")
-                        .IsRequired()
-                        .HasConstraintName("FK__TourCance__TourI__57DD0BE4");
-
-                    b.Navigation("CancelledByNavigation");
-
-                    b.Navigation("Tour");
-                });
-
             modelBuilder.Entity("TourManagement_BE.Data.Models.TourExperience", b =>
                 {
                     b.HasOne("TourManagement_BE.Data.Models.Tour", "Tour")
@@ -1632,11 +1606,19 @@ namespace TourManagement_BE.Migrations
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.TourGuideAssignment", b =>
                 {
+                    b.HasOne("TourManagement_BE.Data.Models.DepartureDate", "DepartureDate")
+                        .WithMany("TourGuideAssignments")
+                        .HasForeignKey("DepartureDateId")
+                        .IsRequired()
+                        .HasConstraintName("FK_TourGuideAssignments_DepartureDates");
+
                     b.HasOne("TourManagement_BE.Data.Models.TourGuide", "TourGuide")
                         .WithMany("TourGuideAssignments")
                         .HasForeignKey("TourGuideId")
                         .IsRequired()
                         .HasConstraintName("FK__TourGuide__TourG__5AB9788F");
+
+                    b.Navigation("DepartureDate");
 
                     b.Navigation("TourGuide");
                 });
@@ -1716,6 +1698,8 @@ namespace TourManagement_BE.Migrations
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.Booking", b =>
                 {
+                    b.Navigation("GuideNotes");
+
                     b.Navigation("Payments");
 
                     b.Navigation("TourAcceptanceReports");
@@ -1724,6 +1708,10 @@ namespace TourManagement_BE.Migrations
             modelBuilder.Entity("TourManagement_BE.Data.Models.DepartureDate", b =>
                 {
                     b.Navigation("Bookings");
+
+                    b.Navigation("GuideNotes");
+
+                    b.Navigation("TourGuideAssignments");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.GuideNote", b =>
@@ -1768,8 +1756,6 @@ namespace TourManagement_BE.Migrations
 
                     b.Navigation("SavedTours");
 
-                    b.Navigation("TourCancellations");
-
                     b.Navigation("TourExperiences");
 
                     b.Navigation("TourItineraries");
@@ -1787,6 +1773,8 @@ namespace TourManagement_BE.Migrations
             modelBuilder.Entity("TourManagement_BE.Data.Models.TourGuide", b =>
                 {
                     b.Navigation("GuideLanguages");
+
+                    b.Navigation("GuideRatings");
 
                     b.Navigation("TourAcceptanceReports");
 
@@ -1831,8 +1819,6 @@ namespace TourManagement_BE.Migrations
                     b.Navigation("ResetPasswordTokens");
 
                     b.Navigation("SavedTours");
-
-                    b.Navigation("TourCancellations");
 
                     b.Navigation("TourGuide");
 

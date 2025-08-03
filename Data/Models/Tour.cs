@@ -47,8 +47,6 @@ public partial class Tour
 
     public virtual ICollection<SavedTour> SavedTours { get; set; } = new List<SavedTour>();
 
-    public virtual ICollection<TourCancellation> TourCancellations { get; set; } = new List<TourCancellation>();
-
     public virtual ICollection<TourExperience> TourExperiences { get; set; } = new List<TourExperience>();
 
     public virtual ICollection<TourItinerary> TourItineraries { get; set; } = new List<TourItinerary>();
