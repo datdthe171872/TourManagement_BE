@@ -26,6 +26,33 @@ public class FeedbackController : ControllerBase
     }
 
     /// <summary>
+    /// Lấy chi tiết feedback theo ID
+    /// </summary>
+    /// <param name="id">ID của feedback</param>
+    /// <returns>Chi tiết feedback</returns>
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetFeedbackById(int id)
+    {
+        try
+        {
+            var result = await _feedbackService.GetFeedbackDetailAsync(id);
+            if (result == null)
+            {
+                return NotFound(new { message = "Không tìm thấy feedback với id này." });
+            }
+
+            return Ok(new { 
+                message = "Lấy chi tiết feedback thành công", 
+                data = result 
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Có lỗi xảy ra khi lấy chi tiết feedback", error = ex.Message });
+        }
+    }
+
+    /// <summary>
     /// Admin: Lấy tất cả feedback với tìm kiếm theo Username, RatingId và sắp xếp từ mới nhất
     /// </summary>
     /// <param name="request">Thông tin tìm kiếm và phân trang</param>
