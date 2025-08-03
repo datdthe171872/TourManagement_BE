@@ -62,6 +62,7 @@ namespace TourManagement_BE.Controllers
             var dep = new DepartureDate
             {
                 DepartureDate1 = request.DepartureDate1,
+                IsCancelDate = false,
                 IsActive = true
             };
 

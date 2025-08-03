@@ -644,6 +644,7 @@ namespace TourManagement_BE.Controllers
                     tour.DepartureDates.Add(new DepartureDate
                     {
                         DepartureDate1 = d.DepartureDate1,
+                        IsCancelDate = false,
                         IsActive = true
                     });
                 }
@@ -1193,6 +1194,7 @@ namespace TourManagement_BE.Controllers
                         tour.DepartureDates.Add(new DepartureDate
                         {
                             DepartureDate1 = d.DepartureDate1,
+                            IsCancelDate = false,
                             IsActive = true
                         });
                     }

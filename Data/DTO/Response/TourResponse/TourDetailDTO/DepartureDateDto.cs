@@ -8,6 +8,8 @@ namespace TourManagement_BE.Data.DTO.Response.TourResponse.TourDetailDTO
 
         public DateTime DepartureDate1 { get; set; }
 
+        public bool IsCancelDate { get; set; }
+
         public bool IsActive { get; set; }
 
     }
