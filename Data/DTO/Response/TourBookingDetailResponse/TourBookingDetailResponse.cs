@@ -1,6 +1,7 @@
 ﻿using TourManagement_BE.Data.DTO.Response.TourBookingDetailResponse;
 using TourManagement_BE.Mapping.TourBookingDetail;
 using TourManagement_BE.TourManagement_BE.Data.DTO.Response.TourBookingResponse;
+using TourManagement_BE.Data.DTO.Response;
 
 namespace TourManagement_BE.Data.DTO.Response.TourBookingResponse
 {
@@ -41,6 +42,7 @@ namespace TourManagement_BE.Data.DTO.Response.TourBookingResponse
         public List<PaymentDto> Payments { get; set; } = new();
         public TourAcceptanceReportDto? AcceptanceReport { get; set; }
         public List<BookingExtraChargesDTO>? BookingExtraCharges { get; set; } = new();
+        public List<GuideNotesInfo> GuideNotes { get; set; } = new();
     }
 
 }

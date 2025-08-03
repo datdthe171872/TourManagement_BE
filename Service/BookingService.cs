@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -218,6 +219,17 @@ namespace TourManagement_BE.Service
             };
         }
 
+        public async Task<BookingDetailResponse> GetBookingByIdDetailedAsync(int bookingId)
+        {
+            var booking = await _context.Bookings
+                .Include(b => b.User)
+                .Include(b => b.Tour).ThenInclude(t => t.TourOperator)
+                .Include(b => b.TourGuideAssignments).ThenInclude(tga => tga.GuideNotes)
+                .FirstOrDefaultAsync(b => b.BookingId == bookingId);
+            if (booking == null) return null;
+            return MapToBookingDetailResponse(booking);
+        }
+
         public async Task<BookingResponse> UpdateBookingContractAsync(UpdateBookingRequest request)
         {
             var booking = await _context.Bookings
@@ -399,7 +411,7 @@ namespace TourManagement_BE.Service
             var query = _context.Bookings
                 .Include(x => x.Tour).ThenInclude(t => t.TourOperator)
                 .Include(x => x.User)
-                .Include(x => x.DepartureDate)
+                .Include(x => x.TourGuideAssignments).ThenInclude(tga => tga.GuideNotes)
                 .AsQueryable();
 
             // Search by Tour Name
@@ -426,7 +438,7 @@ namespace TourManagement_BE.Service
             var query = _context.Bookings
                 .Include(x => x.Tour).ThenInclude(t => t.TourOperator)
                 .Include(x => x.User)
-                .Include(x => x.DepartureDate)
+                .Include(x => x.TourGuideAssignments).ThenInclude(tga => tga.GuideNotes)
                 .Where(x => x.UserId == userId && x.IsActive);
 
             // Search by Tour Name
@@ -456,7 +468,7 @@ namespace TourManagement_BE.Service
             var query = _context.Bookings
                 .Include(x => x.Tour).ThenInclude(t => t.TourOperator)
                 .Include(x => x.User)
-                .Include(x => x.DepartureDate)
+                .Include(x => x.TourGuideAssignments).ThenInclude(tga => tga.GuideNotes)
                 .Where(x => x.Tour != null && x.Tour.TourOperatorId == tourOperator.TourOperatorId && x.IsActive);
 
             // Search by Tour Name
@@ -484,7 +496,7 @@ namespace TourManagement_BE.Service
             var query = _context.Bookings
                 .Include(x => x.Tour).ThenInclude(t => t.TourOperator)
                 .Include(x => x.User)
-                .Include(x => x.DepartureDate)
+                .Include(x => x.TourGuideAssignments).ThenInclude(tga => tga.GuideNotes)
                 .Where(x => x.IsActive);
 
             // Search by Tour Name
@@ -508,6 +520,29 @@ namespace TourManagement_BE.Service
 
         private BookingDetailResponse MapToBookingDetailResponse(Booking booking)
         {
+            // Collect all guide notes from all assignments
+            var allGuideNotes = new List<GuideNotesInfo>();
+            if (booking.TourGuideAssignments != null)
+            {
+                foreach (var assignment in booking.TourGuideAssignments.Where(a => a.IsActive))
+                {
+                    if (assignment.GuideNotes != null)
+                    {
+                        var notes = assignment.GuideNotes
+                            .Where(gn => gn.IsActive)
+                            .Select(gn => new GuideNotesInfo
+                            {
+                                NoteId = gn.NoteId,
+                                Title = gn.Title,
+                                Content = gn.Content,
+                                ExtraCost = gn.ExtraCost,
+                                CreatedAt = gn.CreatedAt
+                            });
+                        allGuideNotes.AddRange(notes);
+                    }
+                }
+            }
+
             return new BookingDetailResponse
             {
                 BookingId = booking.BookingId,
@@ -543,7 +578,8 @@ namespace TourManagement_BE.Service
                     TotalPrice = booking.TotalPrice,
                     PaymentStatus = booking.PaymentStatus,
                     BookingStatus = booking.BookingStatus
-                }
+                },
+                GuideNotes = allGuideNotes
             };
         }
 

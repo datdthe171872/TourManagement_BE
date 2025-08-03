@@ -32,6 +32,9 @@ namespace TourManagement_BE.Controllers
                 .Include(b => b.Payments)
                     .ThenInclude(p => p.PaymentType)
                 .Include(b => b.TourAcceptanceReports)
+                .Include(b => b.TourGuideAssignments).ThenInclude(tga => tga.GuideNotes)
+                //.Include(b => b.BookingExtraCharges)
+                    //.ThenInclude(bec => bec.ExtraCharge)
                 .FirstOrDefault(b => b.BookingId == bookingId && b.IsActive);
 
             if (booking == null)

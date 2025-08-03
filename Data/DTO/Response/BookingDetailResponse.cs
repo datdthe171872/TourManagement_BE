@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace TourManagement_BE.Data.DTO.Response
 {
@@ -20,6 +21,9 @@ namespace TourManagement_BE.Data.DTO.Response
         
         // Payment Information
         public PaymentInfo PaymentInfo { get; set; } = new PaymentInfo();
+        
+        // Guide Notes Information
+        public List<GuideNotesInfo> GuideNotes { get; set; } = new List<GuideNotesInfo>();
     }
 
     public class TourInfo
@@ -59,5 +63,14 @@ namespace TourManagement_BE.Data.DTO.Response
         public decimal? TotalPrice { get; set; }
         public string? PaymentStatus { get; set; }
         public string? BookingStatus { get; set; }
+    }
+    
+    public class GuideNotesInfo
+    {
+        public int NoteId { get; set; }
+        public string? Title { get; set; }
+        public string? Content { get; set; }
+        public decimal? ExtraCost { get; set; }
+        public DateTime? CreatedAt { get; set; }
     }
 } 
