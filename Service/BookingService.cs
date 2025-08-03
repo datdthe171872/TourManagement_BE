@@ -224,7 +224,6 @@ namespace TourManagement_BE.Service
             var booking = await _context.Bookings
                 .Include(b => b.User)
                 .Include(b => b.Tour).ThenInclude(t => t.TourOperator)
-                .Include(b => b.TourGuideAssignments).ThenInclude(tga => tga.GuideNotes)
                 .FirstOrDefaultAsync(b => b.BookingId == bookingId);
             if (booking == null) return null;
             return MapToBookingDetailResponse(booking);
@@ -411,7 +410,6 @@ namespace TourManagement_BE.Service
             var query = _context.Bookings
                 .Include(x => x.Tour).ThenInclude(t => t.TourOperator)
                 .Include(x => x.User)
-                .Include(x => x.TourGuideAssignments).ThenInclude(tga => tga.GuideNotes)
                 .AsQueryable();
 
             // Search by Tour Name
@@ -438,7 +436,6 @@ namespace TourManagement_BE.Service
             var query = _context.Bookings
                 .Include(x => x.Tour).ThenInclude(t => t.TourOperator)
                 .Include(x => x.User)
-                .Include(x => x.TourGuideAssignments).ThenInclude(tga => tga.GuideNotes)
                 .Where(x => x.UserId == userId && x.IsActive);
 
             // Search by Tour Name
@@ -468,7 +465,6 @@ namespace TourManagement_BE.Service
             var query = _context.Bookings
                 .Include(x => x.Tour).ThenInclude(t => t.TourOperator)
                 .Include(x => x.User)
-                .Include(x => x.TourGuideAssignments).ThenInclude(tga => tga.GuideNotes)
                 .Where(x => x.Tour != null && x.Tour.TourOperatorId == tourOperator.TourOperatorId && x.IsActive);
 
             // Search by Tour Name
@@ -496,7 +492,6 @@ namespace TourManagement_BE.Service
             var query = _context.Bookings
                 .Include(x => x.Tour).ThenInclude(t => t.TourOperator)
                 .Include(x => x.User)
-                .Include(x => x.TourGuideAssignments).ThenInclude(tga => tga.GuideNotes)
                 .Where(x => x.IsActive);
 
             // Search by Tour Name
@@ -520,28 +515,26 @@ namespace TourManagement_BE.Service
 
         private BookingDetailResponse MapToBookingDetailResponse(Booking booking)
         {
-            // Collect all guide notes from all assignments
+            // Collect all guide notes from tour guide assignments for this tour and departure date
             var allGuideNotes = new List<GuideNotesInfo>();
-            if (booking.TourGuideAssignments != null)
-            {
-                foreach (var assignment in booking.TourGuideAssignments.Where(a => a.IsActive))
+            
+            // Get guide notes from tour guide assignments for this tour and departure date
+            var guideNotes = _context.TourGuideAssignments
+                .Where(tga => tga.TourId == booking.TourId && 
+                             tga.DepartureDateId == booking.DepartureDateId && 
+                             tga.IsActive)
+                .SelectMany(tga => tga.GuideNotes.Where(gn => gn.IsActive))
+                .Select(gn => new GuideNotesInfo
                 {
-                    if (assignment.GuideNotes != null)
-                    {
-                        var notes = assignment.GuideNotes
-                            .Where(gn => gn.IsActive)
-                            .Select(gn => new GuideNotesInfo
-                            {
-                                NoteId = gn.NoteId,
-                                Title = gn.Title,
-                                Content = gn.Content,
-                                ExtraCost = gn.ExtraCost,
-                                CreatedAt = gn.CreatedAt
-                            });
-                        allGuideNotes.AddRange(notes);
-                    }
-                }
-            }
+                    NoteId = gn.NoteId,
+                    Title = gn.Title,
+                    Content = gn.Content,
+                    ExtraCost = gn.ExtraCost,
+                    CreatedAt = gn.CreatedAt
+                })
+                .ToList();
+            
+            allGuideNotes.AddRange(guideNotes);
 
             return new BookingDetailResponse
             {

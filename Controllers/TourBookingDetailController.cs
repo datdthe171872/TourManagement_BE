@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using TourManagement_BE.Data.Context;
 using TourManagement_BE.Data.DTO.Response.TourBookingDetailResponse;
 using TourManagement_BE.Data.DTO.Response.TourBookingResponse;
+using TourManagement_BE.Data.DTO.Response;
 using TourManagement_BE.TourManagement_BE.Data.DTO.Response.TourBookingResponse;
 
 namespace TourManagement_BE.Controllers
@@ -32,7 +33,6 @@ namespace TourManagement_BE.Controllers
                 .Include(b => b.Payments)
                     .ThenInclude(p => p.PaymentType)
                 .Include(b => b.TourAcceptanceReports)
-                .Include(b => b.TourGuideAssignments).ThenInclude(tga => tga.GuideNotes)
                 //.Include(b => b.BookingExtraCharges)
                     //.ThenInclude(bec => bec.ExtraCharge)
                 .FirstOrDefault(b => b.BookingId == bookingId && b.IsActive);
@@ -43,6 +43,24 @@ namespace TourManagement_BE.Controllers
             }
 
             var response = _mapper.Map<TourBookingDetailResponse>(booking);
+            
+            // Populate GuideNotes manually
+            var guideNotes = context.TourGuideAssignments
+                .Where(tga => tga.TourId == booking.TourId && 
+                             tga.DepartureDateId == booking.DepartureDateId && 
+                             tga.IsActive)
+                .SelectMany(tga => tga.GuideNotes.Where(gn => gn.IsActive))
+                .Select(gn => new GuideNotesInfo
+                {
+                    NoteId = gn.NoteId,
+                    Title = gn.Title,
+                    Content = gn.Content,
+                    ExtraCost = gn.ExtraCost,
+                    CreatedAt = gn.CreatedAt
+                })
+                .ToList();
+            
+            response.GuideNotes = guideNotes;
             return Ok(response);
         }
 

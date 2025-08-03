@@ -25,18 +25,7 @@ namespace TourManagement_BE.Mapping.TourBookingDetail
                 .ForMember(dest => dest.Payments, opt => opt.MapFrom(src => src.Payments.Where(p => p.IsActive)))
                 .ForMember(dest => dest.AcceptanceReport, opt => opt.MapFrom(src =>
                     src.TourAcceptanceReports.FirstOrDefault(r => r.IsActive)))
-                .ForMember(dest => dest.GuideNotes, opt => opt.MapFrom(src =>
-                    src.TourGuideAssignments
-                        .Where(tga => tga.IsActive)
-                        .SelectMany(tga => tga.GuideNotes.Where(gn => gn.IsActive))
-                        .Select(gn => new GuideNotesInfo
-                        {
-                            NoteId = gn.NoteId,
-                            Title = gn.Title,
-                            Content = gn.Content,
-                            ExtraCost = gn.ExtraCost,
-                            CreatedAt = gn.CreatedAt
-                        })));
+                .ForMember(dest => dest.GuideNotes, opt => opt.Ignore()); // Will be populated manually
                 //.ForMember(dest => dest.BookingExtraCharges, opt => opt.MapFrom(src =>
                 //    src.BookingExtraCharges.Where(bec => bec.IsActive)));
         }
