@@ -317,4 +317,31 @@ public class DepartureDatesController : ControllerBase
             Message = "Bật lại ngày khởi hành thành công. Tất cả booking trong ngày khởi hành này đã được khôi phục thành Pending."
         });
     }
+
+    /// <summary>
+    /// Lấy tất cả ngày khởi hành của TourGuide hiện tại
+    /// </summary>
+    /// <returns>Danh sách tất cả ngày khởi hành của TourGuide</returns>
+    [HttpGet("guide")]
+    [Authorize(Roles = Roles.TourGuide)]
+    public async Task<IActionResult> GetDepartureDatesByTourGuide()
+    {
+        // Lấy UserId từ JWT token
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+        {
+            return BadRequest(new
+            {
+                Message = "Không thể xác định thông tin user"
+            });
+        }
+
+        var departureDates = await _departureDateService.GetDepartureDatesByTourGuideAsync(userId);
+        
+        return Ok(new
+        {
+            Message = "Lấy danh sách ngày khởi hành của TourGuide thành công",
+            Data = departureDates
+        });
+    }
 } 

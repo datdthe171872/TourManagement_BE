@@ -78,4 +78,15 @@ Content-Type: application/json
 # Response expected:
 # {
 #   "message": "Không thể bật lại ngày khởi hành. Vui lòng kiểm tra lại thông tin hoặc ngày khởi hành phải cách hiện tại ít nhất 5 ngày."
+# }
+
+### 9. Get DepartureDates by TourGuide
+GET {{baseUrl}}/api/DepartureDates/guide
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+# Response expected:
+# {
+#   "message": "Lấy danh sách ngày khởi hành của TourGuide thành công",
+#   "data": [...]
 # } 

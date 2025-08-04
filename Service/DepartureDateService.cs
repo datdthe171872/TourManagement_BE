@@ -447,4 +447,49 @@ public class DepartureDateService : IDepartureDateService
 
         return true;
     }
+
+    public async Task<List<DepartureDateResponse>> GetDepartureDatesByTourGuideAsync(int userId)
+    {
+        // Bước 1: Lấy TourGuideId từ UserId
+        var tourGuide = await _context.TourGuides
+            .FirstOrDefaultAsync(tg => tg.UserId == userId && tg.IsActive);
+
+        if (tourGuide == null)
+            return new List<DepartureDateResponse>();
+
+        // Bước 2: Lấy tất cả DepartureDateIds mà TourGuide này được assign
+        var departureDateIds = await _context.TourGuideAssignments
+            .Where(tga => tga.TourGuideId == tourGuide.TourGuideId && tga.IsActive)
+            .Select(tga => tga.DepartureDateId)
+            .ToListAsync();
+
+        if (!departureDateIds.Any())
+            return new List<DepartureDateResponse>();
+
+        // Bước 3: Lấy tất cả DepartureDates mà TourGuide được assign
+        var departureDates = await _context.DepartureDates
+            .Include(dd => dd.Tour)
+            .Include(dd => dd.Bookings.Where(b => b.IsActive))
+            .Where(dd => departureDateIds.Contains(dd.Id) && dd.IsActive)
+            .OrderBy(dd => dd.DepartureDate1)
+            .Select(dd => new DepartureDateResponse
+            {
+                Id = dd.Id,
+                TourId = dd.TourId,
+                TourTitle = dd.Tour.Title,
+                DepartureDate = dd.DepartureDate1,
+                IsActive = dd.IsActive,
+                TotalBookings = dd.Bookings.Count,
+                AvailableSlots = dd.Tour.MaxSlots - (dd.Tour.SlotsBooked ?? 0)
+            })
+            .ToListAsync();
+
+        // Thêm thông tin TourGuide cho mỗi departureDate
+        foreach (var departureDate in departureDates)
+        {
+            departureDate.TourGuides = await GetTourGuidesForDepartureDateAsync(departureDate.Id);
+        }
+
+        return departureDates;
+    }
 } 
