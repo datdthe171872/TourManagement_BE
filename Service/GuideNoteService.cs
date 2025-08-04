@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -28,26 +29,40 @@ namespace TourManagement_BE.Service
                 .Include(g => g.User)
                 .FirstOrDefaultAsync(g => g.UserId == userId && g.IsActive);
             if (guide == null) return new List<GuideNoteResponse>();
-            // Lấy tất cả assignment của guide
-            var assignmentIds = await _context.TourGuideAssignments
+            
+            // Lấy tất cả assignment của guide với thông tin tour và departure date
+            var assignments = await _context.TourGuideAssignments
+                .Include(a => a.DepartureDate)
+                .Include(a => a.DepartureDate.Tour)
                 .Where(a => a.TourGuideId == guide.TourGuideId && a.IsActive)
-                .Select(a => a.Id).ToListAsync();
-            // Lấy note theo assignment
+                .ToListAsync();
+            
+            var assignmentIds = assignments.Select(a => a.Id).ToList();
+            
+            // Lấy note theo assignment với thông tin đầy đủ
             var notes = await _context.GuideNotes
                 .Where(n => assignmentIds.Contains(n.AssignmentId) && n.IsActive)
                 .Include(n => n.GuideNoteMedia)
                 .OrderByDescending(n => n.CreatedAt)
                 .ToListAsync();
-            return notes.Select(n => new GuideNoteResponse
+            
+            return notes.Select(n => 
             {
-                NoteId = n.NoteId,
-                AssignmentId = n.AssignmentId,
-                ReportId = n.ReportId,
-                Title = n.Title,
-                Content = n.Content,
-                ExtraCost = n.ExtraCost,
-                CreatedAt = n.CreatedAt,
-                MediaUrls = n.GuideNoteMedia.Where(m => m.IsActive).Select(m => m.MediaUrl).ToList()
+                var assignment = assignments.FirstOrDefault(a => a.Id == n.AssignmentId);
+                return new GuideNoteResponse
+                {
+                    NoteId = n.NoteId,
+                    AssignmentId = n.AssignmentId,
+                    ReportId = n.ReportId,
+                    Title = n.Title,
+                    Content = n.Content,
+                    ExtraCost = n.ExtraCost,
+                    CreatedAt = n.CreatedAt,
+                    MediaUrls = n.GuideNoteMedia.Where(m => m.IsActive).Select(m => m.MediaUrl).ToList(),
+                    TourGuideName = guide.User?.UserName,
+                    TourTitle = assignment?.DepartureDate?.Tour?.Title,
+                    DepartureDate = assignment?.DepartureDate?.DepartureDate1
+                };
             }).ToList();
         }
 
@@ -284,6 +299,150 @@ namespace TourManagement_BE.Service
             }
         }
 
+        public async Task CreateNoteWithAttachmentAsync(int userId, CreateGuideNoteWithAttachmentRequest request)
+        {
+            try
+            {
+                var guide = await _context.TourGuides
+                    .Include(g => g.User)
+                    .FirstOrDefaultAsync(g => g.UserId == userId && g.IsActive);
+                if (guide == null) throw new Exception("Guide not found");
+                
+                // Kiểm tra booking có tồn tại không
+                var booking = await _context.Bookings
+                    .Include(b => b.User)
+                    .Include(b => b.DepartureDate)
+                    .FirstOrDefaultAsync(b => b.BookingId == request.BookingId && b.IsActive);
+                if (booking == null) throw new Exception("Booking not found");
+                
+                // Kiểm tra guide có được assign cho departure date này không
+                var assignment = await _context.TourGuideAssignments
+                    .FirstOrDefaultAsync(a => a.TourGuideId == guide.TourGuideId && 
+                                            a.DepartureDateId == booking.DepartureDateId && 
+                                            a.IsActive);
+                if (assignment == null) throw new Exception("You are not assigned to this departure date");
+                
+                // Tìm hoặc tạo TourAcceptanceReport cho booking này
+                var report = await _context.TourAcceptanceReports
+                    .FirstOrDefaultAsync(r => r.BookingId == request.BookingId && 
+                                            r.TourGuideId == guide.TourGuideId && 
+                                            r.IsActive);
+                
+                if (report == null)
+                {
+                    // Tạo report mới nếu chưa có
+                    report = new TourAcceptanceReport
+                    {
+                        BookingId = request.BookingId,
+                        TourGuideId = guide.TourGuideId,
+                        ReportDate = DateTime.UtcNow,
+                        TotalExtraCost = 0,
+                        Notes = "Auto-generated report",
+                        IsActive = true
+                    };
+                    _context.TourAcceptanceReports.Add(report);
+                    await _context.SaveChangesAsync();
+                }
+                
+                // Tạo note mới
+                var note = new GuideNote
+                {
+                    AssignmentId = assignment.Id,
+                    ReportId = report.ReportId,
+                    BookingId = request.BookingId,
+                    DepartureDateId = booking.DepartureDateId,
+                    Title = request.Title,
+                    Content = request.Content,
+                    ExtraCost = 0, // TourGuide không thể set extraCost, chỉ TourOperator mới có quyền
+                    CreatedAt = DateTime.UtcNow,
+                    IsActive = true
+                };
+                
+                _context.GuideNotes.Add(note);
+                await _context.SaveChangesAsync();
+
+                // Upload và thêm media nếu có
+                if (request.Attachments != null && request.Attachments.Count > 0)
+                {
+                    foreach (var file in request.Attachments)
+                    {
+                        if (file != null && file.Length > 0)
+                        {
+                            // Kiểm tra file type
+                            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".pdf" };
+                            var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                            
+                            if (!allowedExtensions.Contains(fileExtension))
+                            {
+                                throw new Exception($"Invalid file type: {fileExtension}. Allowed: jpg, jpeg, png, gif, pdf");
+                            }
+
+                            // Kiểm tra file size (max 10MB)
+                            if (file.Length > 10 * 1024 * 1024)
+                            {
+                                throw new Exception($"File {file.FileName} is too large. Maximum 10MB allowed");
+                            }
+
+                            // Tạo unique filename
+                            var fileName = $"{Guid.NewGuid()}{fileExtension}";
+                            var uploadPath = Path.Combine("wwwroot", "uploads", "guidenotes");
+                            
+                            // Tạo thư mục nếu chưa tồn tại
+                            if (!Directory.Exists(uploadPath))
+                            {
+                                Directory.CreateDirectory(uploadPath);
+                            }
+
+                            var filePath = Path.Combine(uploadPath, fileName);
+                            
+                            // Lưu file
+                            using (var stream = new FileStream(filePath, FileMode.Create))
+                            {
+                                await file.CopyToAsync(stream);
+                            }
+
+                            // Tạo URL
+                            var fileUrl = $"/uploads/guidenotes/{fileName}";
+                            
+                            // Thêm vào database
+                            var media = new GuideNoteMedia
+                            {
+                                NoteId = note.NoteId,
+                                MediaUrl = fileUrl,
+                                UploadedAt = DateTime.UtcNow,
+                                IsActive = true
+                            };
+                            _context.GuideNoteMedia.Add(media);
+                        }
+                    }
+                    await _context.SaveChangesAsync();
+                }
+
+                // Cập nhật tổng extra cost trong report
+                var totalExtraCost = await _context.GuideNotes
+                    .Where(gn => gn.ReportId == report.ReportId && gn.IsActive)
+                    .SumAsync(gn => gn.ExtraCost ?? 0);
+                report.TotalExtraCost = totalExtraCost;
+                await _context.SaveChangesAsync();
+
+                // Tạo notification cho customer
+                await _notificationService.CreateNotificationAsync(
+                    booking.UserId,
+                    "New Guide Note",
+                    $"Tour guide {guide.User.UserName} has added a note to your booking #{request.BookingId}",
+                    "GuideNote",
+                    note.NoteId.ToString()
+                );
+            }
+            catch (Exception ex)
+            {
+                // Log the detailed error for debugging
+                Console.WriteLine($"Error in CreateNoteWithAttachmentAsync: {ex.Message}");
+                Console.WriteLine($"Inner Exception: {ex.InnerException?.Message}");
+                throw new Exception($"Failed to create note with attachment: {ex.Message}");
+            }
+        }
+
         public async Task<List<TourGuideBookingResponse>> GetMyBookingsAsync(int userId)
         {
             var guide = await _context.TourGuides
@@ -339,7 +498,7 @@ namespace TourManagement_BE.Service
             return bookings.OrderByDescending(b => b.DepartureDate).ToList();
         }
 
-        public async Task UpdateNoteExtraCostAsync(int tourOperatorId, int noteId, UpdateGuideNoteExtraCostRequest request)
+        public async Task UpdateNoteExtraCostAsync(int userId, int noteId, UpdateGuideNoteExtraCostRequest request)
         {
             // Kiểm tra note có tồn tại không
             var note = await _context.GuideNotes
@@ -352,10 +511,27 @@ namespace TourManagement_BE.Service
                 throw new Exception("Note not found");
             }
 
-            // Kiểm tra TourOperator có quyền update note này không (thông qua Tour)
-            if (note.Booking.Tour.TourOperatorId != tourOperatorId)
+            // Lấy TourOperator từ UserId
+            var tourOperator = await _context.TourOperators
+                .FirstOrDefaultAsync(to => to.UserId == userId && to.IsActive);
+            
+            if (tourOperator == null)
             {
-                throw new Exception("You don't have permission to update this note");
+                throw new Exception("TourOperator not found for this user");
+            }
+
+            // Debug: Log thông tin để kiểm tra
+            Console.WriteLine($"Debug - NoteId: {noteId}");
+            Console.WriteLine($"Debug - UserId from token: {userId}");
+            Console.WriteLine($"Debug - TourOperatorId: {tourOperator.TourOperatorId}");
+            Console.WriteLine($"Debug - TourOperatorId from database: {note.Booking.Tour.TourOperatorId}");
+            Console.WriteLine($"Debug - TourId: {note.Booking.Tour.TourId}");
+            Console.WriteLine($"Debug - BookingId: {note.Booking.BookingId}");
+
+            // Kiểm tra TourOperator có quyền update note này không (thông qua Tour)
+            if (note.Booking.Tour.TourOperatorId != tourOperator.TourOperatorId)
+            {
+                throw new Exception($"You don't have permission to update this note. Your TourOperatorId: {tourOperator.TourOperatorId}, Required TourOperatorId: {note.Booking.Tour.TourOperatorId}");
             }
 
             // Cập nhật extra cost
@@ -389,8 +565,21 @@ namespace TourManagement_BE.Service
             }
         }
 
-        public async Task<List<GuideNoteResponse>> GetNotesByTourOperatorAsync(int tourOperatorId)
+        public async Task<List<GuideNoteResponse>> GetNotesByTourOperatorAsync(int userId)
         {
+            // Lấy TourOperator từ UserId
+            var tourOperator = await _context.TourOperators
+                .Include(to => to.User)
+                .FirstOrDefaultAsync(to => to.UserId == userId && to.IsActive);
+            
+            if (tourOperator == null)
+            {
+                Console.WriteLine($"Debug - TourOperator with UserId {userId} not found or not active");
+                throw new Exception($"TourOperator with UserId {userId} not found");
+            }
+            
+            Console.WriteLine($"Debug - Found TourOperator: {tourOperator.CompanyName}, TourOperatorId: {tourOperator.TourOperatorId}");
+
             // Lấy tất cả note của các TourGuide thuộc tour của TourOperator này
             var notes = await _context.GuideNotes
                 .Include(n => n.Booking)
@@ -402,9 +591,11 @@ namespace TourManagement_BE.Service
                 .Include(n => n.Booking)
                 .ThenInclude(b => b.DepartureDate)
                 .Where(n => n.IsActive && 
-                           n.Booking.Tour.TourOperatorId == tourOperatorId)
+                           n.Booking.Tour.TourOperatorId == tourOperator.TourOperatorId)
                 .OrderByDescending(n => n.CreatedAt)
                 .ToListAsync();
+
+            Console.WriteLine($"Debug - Found {notes.Count} notes for TourOperator {tourOperator.TourOperatorId}");
 
             return notes.Select(n => new GuideNoteResponse
             {
