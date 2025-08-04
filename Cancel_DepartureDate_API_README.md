@@ -245,4 +245,102 @@ Content-Type: application/json
 2. **Chỉ có thể bật lại ngày khởi hành cách hiện tại ít nhất 5 ngày**
 3. Chỉ có thể bật lại những ngày khởi hành đã bị hủy trước đó
 4. Khi bật lại, DepartureDate sẽ trở thành active và có thể nhận booking mới
-5. **Các booking đã bị cancelled sẽ được khôi phục thành "Pending"** 
+5. **Các booking đã bị cancelled sẽ được khôi phục thành "Pending"**
+
+---
+
+# Get DepartureDates by TourGuide API
+
+## Tổng quan
+API này cho phép TourGuide lấy danh sách tất cả các ngày khởi hành mà họ được assign.
+
+## Endpoint
+```
+GET /api/DepartureDates/guide
+```
+
+## Quyền truy cập
+- **Role**: TourGuide
+- **Authentication**: Bearer Token
+
+## Tham số
+Không có tham số
+
+## Logic xử lý
+1. Xác thực JWT token và kiểm tra role TourGuide
+2. Lấy UserId từ token
+3. Tìm TourGuide tương ứng với UserId
+4. Lấy tất cả DepartureDateIds mà TourGuide này được assign thông qua TourGuideAssignments
+5. Lấy tất cả DepartureDates có `IsActive = true` và được assign cho TourGuide này
+
+## Response
+
+### Success Response (200 OK)
+```json
+{
+  "message": "Lấy danh sách ngày khởi hành của TourGuide thành công",
+  "data": [
+    {
+      "id": 1,
+      "tourId": 1,
+      "tourTitle": "Tour Name",
+      "departureDate": "2024-01-15T00:00:00",
+      "isActive": true,
+      "totalBookings": 5,
+      "availableSlots": 15,
+      "tourGuides": [
+        {
+          "tourGuideId": 1,
+          "userId": 2,
+          "userName": "Guide Name",
+          "email": "guide@example.com",
+          "phoneNumber": "0123456789",
+          "isActive": true,
+          "assignmentId": 1,
+          "assignedDate": "2024-01-01T00:00:00",
+          "isLeadGuide": true
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Error Responses
+
+#### 400 Bad Request - User not found
+```json
+{
+  "message": "Không thể xác định thông tin user"
+}
+```
+
+#### 401 Unauthorized
+```json
+{
+  "message": "Unauthorized"
+}
+```
+
+## Ví dụ sử dụng
+
+### Request
+```http
+GET /api/DepartureDates/guide
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: application/json
+```
+
+### Response
+```json
+{
+  "message": "Lấy danh sách ngày khởi hành của TourGuide thành công",
+  "data": [...]
+}
+```
+
+## Lưu ý
+1. Chỉ TourGuide mới có quyền truy cập API này
+2. Chỉ hiển thị những DepartureDate mà TourGuide được assign
+3. Chỉ hiển thị những DepartureDate đang active
+4. Bao gồm thông tin đầy đủ về TourGuide được assign cho mỗi DepartureDate 

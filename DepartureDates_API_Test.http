@@ -34,6 +34,15 @@ Authorization: Bearer {{token}}
 GET {{baseUrl}}/api/DepartureDates/operator/with-bookings
 Authorization: Bearer {{token}}
 
+### 6. Lấy tất cả booking trong một DepartureDateId cụ thể (GET) - Cho cả TourOperator và TourGuide
+GET {{baseUrl}}/api/DepartureDates/departure-date/1/bookings
+Authorization: Bearer {{token}}
+
+### 6.1. Test với TourGuide token
+GET {{baseUrl}}/api/DepartureDates/departure-date/1/bookings
+Authorization: Bearer {{tourGuideToken}}
+
 ### Variables
 @baseUrl = https://localhost:7001
-@token = your_jwt_token_here 
+@token = your_jwt_token_here
+@tourGuideToken = your_tour_guide_jwt_token_here 

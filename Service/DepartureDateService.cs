@@ -229,17 +229,40 @@ public class DepartureDateService : IDepartureDateService
 
     public async Task<DepartureDateBookingsWrapperResponse?> GetBookingsByDepartureDateIdAsync(int departureDateId, int userId)
     {
+        // Kiểm tra xem user có phải là TourOperator không
         var tourOperator = await _context.TourOperators
             .FirstOrDefaultAsync(to => to.UserId == userId && to.IsActive);
-        if (tourOperator == null)
+        
+        // Kiểm tra xem user có phải là TourGuide không
+        var tourGuide = await _context.TourGuides
+            .FirstOrDefaultAsync(tg => tg.UserId == userId && tg.IsActive);
+        
+        if (tourOperator == null && tourGuide == null)
             return null;
-        var departureDate = await _context.DepartureDates
+        
+        // Query cơ bản cho DepartureDate
+        var departureDateQuery = _context.DepartureDates
             .Include(dd => dd.Tour)
             .Include(dd => dd.Bookings.Where(b => b.IsActive))
                 .ThenInclude(b => b.User)
-            .FirstOrDefaultAsync(dd => dd.Id == departureDateId && 
-                                     dd.Tour.TourOperatorId == tourOperator.TourOperatorId && 
-                                     dd.IsActive);
+            .Where(dd => dd.Id == departureDateId && dd.IsActive);
+        
+        // Nếu là TourOperator, kiểm tra quyền sở hữu tour
+        if (tourOperator != null)
+        {
+            departureDateQuery = departureDateQuery.Where(dd => dd.Tour.TourOperatorId == tourOperator.TourOperatorId);
+        }
+        // Nếu là TourGuide, kiểm tra xem có được assign cho departureDate này không
+        else if (tourGuide != null)
+        {
+            departureDateQuery = departureDateQuery.Where(dd => 
+                _context.TourGuideAssignments.Any(tga => 
+                    tga.DepartureDateId == dd.Id && 
+                    tga.TourGuideId == tourGuide.TourGuideId && 
+                    tga.IsActive));
+        }
+        
+        var departureDate = await departureDateQuery.FirstOrDefaultAsync();
         if (departureDate == null)
             return null;
         var bookingDetails = new List<DepartureDateBookingDetailResponse>();
@@ -446,5 +469,50 @@ public class DepartureDateService : IDepartureDateService
         await _context.SaveChangesAsync();
 
         return true;
+    }
+
+    public async Task<List<DepartureDateResponse>> GetDepartureDatesByTourGuideAsync(int userId)
+    {
+        // Bước 1: Lấy TourGuideId từ UserId
+        var tourGuide = await _context.TourGuides
+            .FirstOrDefaultAsync(tg => tg.UserId == userId && tg.IsActive);
+
+        if (tourGuide == null)
+            return new List<DepartureDateResponse>();
+
+        // Bước 2: Lấy tất cả DepartureDateIds mà TourGuide này được assign
+        var departureDateIds = await _context.TourGuideAssignments
+            .Where(tga => tga.TourGuideId == tourGuide.TourGuideId && tga.IsActive)
+            .Select(tga => tga.DepartureDateId)
+            .ToListAsync();
+
+        if (!departureDateIds.Any())
+            return new List<DepartureDateResponse>();
+
+        // Bước 3: Lấy tất cả DepartureDates mà TourGuide được assign
+        var departureDates = await _context.DepartureDates
+            .Include(dd => dd.Tour)
+            .Include(dd => dd.Bookings.Where(b => b.IsActive))
+            .Where(dd => departureDateIds.Contains(dd.Id) && dd.IsActive)
+            .OrderBy(dd => dd.DepartureDate1)
+            .Select(dd => new DepartureDateResponse
+            {
+                Id = dd.Id,
+                TourId = dd.TourId,
+                TourTitle = dd.Tour.Title,
+                DepartureDate = dd.DepartureDate1,
+                IsActive = dd.IsActive,
+                TotalBookings = dd.Bookings.Count,
+                AvailableSlots = dd.Tour.MaxSlots - (dd.Tour.SlotsBooked ?? 0)
+            })
+            .ToListAsync();
+
+        // Thêm thông tin TourGuide cho mỗi departureDate
+        foreach (var departureDate in departureDates)
+        {
+            departureDate.TourGuides = await GetTourGuidesForDepartureDateAsync(departureDate.Id);
+        }
+
+        return departureDates;
     }
 } 
