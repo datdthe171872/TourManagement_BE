@@ -97,7 +97,7 @@ namespace TourManagement_BE.Controllers
             }
 
             return Ok(new { 
-                message = "Assignments created successfully", 
+                message = "Assignments created successfully",
                 createdCount = assignments.Count,
                 totalRequested = request.TourGuides.Count
             });

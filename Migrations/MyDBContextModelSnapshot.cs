@@ -1271,8 +1271,7 @@ namespace TourManagement_BE.Migrations
 
                     b.HasIndex(new[] { "RoleId" }, "IX_Users_RoleId");
 
-                    b.HasIndex(new[] { "Email" }, "UQ__Users__A9D10534A733E8F8")
-                        .IsUnique();
+                    b.HasIndex(new[] { "Email" }, "UQ__Users__A9D10534A733E8F8");
 
                     b.ToTable("Users");
                 });

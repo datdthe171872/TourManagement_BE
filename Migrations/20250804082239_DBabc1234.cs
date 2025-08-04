@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TourManagement_BE.Migrations
 {
     /// <inheritdoc />
-    public partial class newDB : Migration
+    public partial class DBabc1234 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -153,7 +153,7 @@ namespace TourManagement_BE.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     Token = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ExpiryDate = table.Column<DateTime>(type: "datetime2(7)", nullable: false),
                     IsUsed = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -573,11 +573,6 @@ namespace TourManagement_BE.Migrations
                         principalTable: "DepartureDates",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_TourGuideAssignments_Tours",
-                        column: x => x.TourId,
-                        principalTable: "Tours",
-                        principalColumn: "TourId");
-                    table.ForeignKey(
                         name: "FK__TourGuide__TourG__5AB9788F",
                         column: x => x.TourGuideId,
                         principalTable: "TourGuides",
@@ -697,6 +692,11 @@ namespace TourManagement_BE.Migrations
                         principalTable: "TourGuideAssignments",
                         principalColumn: "Id");
                     table.ForeignKey(
+                        name: "FK__GuideRati__TourG__4A8310C6",
+                        column: x => x.TourGuideId,
+                        principalTable: "TourGuides",
+                        principalColumn: "TourGuideId");
+                    table.ForeignKey(
                         name: "FK__GuideRati__UserI__498EEC8D",
                         column: x => x.UserId,
                         principalTable: "Users",
@@ -727,11 +727,6 @@ namespace TourManagement_BE.Migrations
                         column: x => x.BookingId,
                         principalTable: "Bookings",
                         principalColumn: "BookingId");
-                    table.ForeignKey(
-                        name: "FK_GuideNotes_DepartureDates",
-                        column: x => x.DepartureDateId,
-                        principalTable: "DepartureDates",
-                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_GuideNotes_TourAcceptanceReports",
                         column: x => x.ReportId,
@@ -811,11 +806,6 @@ namespace TourManagement_BE.Migrations
                 column: "BookingId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GuideNotes_DepartureDateId",
-                table: "GuideNotes",
-                column: "DepartureDateId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_GuideNotes_ReportId",
                 table: "GuideNotes",
                 column: "ReportId");
@@ -824,6 +814,11 @@ namespace TourManagement_BE.Migrations
                 name: "IX_GuideRatings_AssignmentId",
                 table: "GuideRatings",
                 column: "AssignmentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_GuideRatings_TourGuideId",
+                table: "GuideRatings",
+                column: "TourGuideId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_GuideRatings_UserId",
@@ -932,11 +927,6 @@ namespace TourManagement_BE.Migrations
                 column: "TourGuideId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TourGuideAssignments_TourId",
-                table: "TourGuideAssignments",
-                column: "TourId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_TourGuides_TourOperatorId",
                 table: "TourGuides",
                 column: "TourOperatorId");
@@ -993,8 +983,7 @@ namespace TourManagement_BE.Migrations
             migrationBuilder.CreateIndex(
                 name: "UQ__Users__A9D10534A733E8F8",
                 table: "Users",
-                column: "Email",
-                unique: true);
+                column: "Email");
         }
 
         /// <inheritdoc />

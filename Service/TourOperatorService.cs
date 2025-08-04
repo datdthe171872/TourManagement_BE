@@ -380,11 +380,19 @@ public class TourOperatorService : ITourOperatorService
             .Where(tg => tg.TourOperatorId == tourOperatorId)
             .AsQueryable();
 
-        // Apply IsActive filter if specified
+        // Apply IsActive filter
         if (request.IsActive.HasValue)
         {
+            // If IsActive is explicitly specified, use that value
             query = query.Where(tg => tg.IsActive == request.IsActive.Value);
         }
+        else if (!request.ShowInactive)
+        {
+            // By default, only show active tour guides (hide inactive ones)
+            // unless ShowInactive is explicitly set to true
+            query = query.Where(tg => tg.IsActive == true);
+        }
+        // If ShowInactive is true and IsActive is not specified, show all tour guides
 
         // Apply Username search filter
         if (!string.IsNullOrWhiteSpace(request.Username))
@@ -428,5 +436,29 @@ public class TourOperatorService : ITourOperatorService
             HasNextPage = request.PageNumber < totalPages,
             HasPreviousPage = request.PageNumber > 1
         };
+    }
+
+    public async Task<bool> UpdateTourGuideStatusAsync(int tourGuideId, bool isActive, int tourOperatorId)
+    {
+        var tourGuide = await _context.TourGuides
+            .Include(tg => tg.User)
+            .FirstOrDefaultAsync(tg => tg.TourGuideId == tourGuideId && tg.TourOperatorId == tourOperatorId);
+
+        if (tourGuide == null)
+        {
+            return false;
+        }
+
+        // Update TourGuide IsActive status
+        tourGuide.IsActive = isActive;
+        
+        // Also update the associated User's IsActive status
+        if (tourGuide.User != null)
+        {
+            tourGuide.User.IsActive = isActive;
+        }
+        
+        await _context.SaveChangesAsync();
+        return true;
     }
 }

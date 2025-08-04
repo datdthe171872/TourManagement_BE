@@ -58,6 +58,8 @@ public class DepartureDatesController : ControllerBase
             });
         }
 
+
+
         return Ok(new
         {
             Message = "Tạo ngày khởi hành thành công"
@@ -242,6 +244,8 @@ public class DepartureDatesController : ControllerBase
             });
         }
 
+
+
         return Ok(new
         {
             Message = "Hủy ngày khởi hành thành công. Tất cả booking trong ngày khởi hành này đã được cập nhật thành Cancelled."
@@ -311,6 +315,8 @@ public class DepartureDatesController : ControllerBase
                 Message = "Không thể bật lại ngày khởi hành. Vui lòng kiểm tra lại thông tin hoặc ngày khởi hành phải cách hiện tại ít nhất 5 ngày."
             });
         }
+
+
 
         return Ok(new
         {

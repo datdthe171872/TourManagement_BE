@@ -22,8 +22,9 @@ namespace TourManagement_BE.Service
         private readonly IConfiguration _configuration;
         private readonly MyDBContext _context;
         private readonly INotificationService _notificationService;
+        private readonly EmailHelper _emailHelper;
 
-        public AuthService(IUserRepository userRepository, IMapper mapper, IConfiguration configuration, MyDBContext context, INotificationService notificationService, JwtHelper jwtHelper)
+        public AuthService(IUserRepository userRepository, IMapper mapper, IConfiguration configuration, MyDBContext context, INotificationService notificationService, JwtHelper jwtHelper, EmailHelper emailHelper)
         {
             _userRepository = userRepository;
             _mapper = mapper;
@@ -31,6 +32,7 @@ namespace TourManagement_BE.Service
             _context = context;
             _notificationService = notificationService;
             _jwtHelper = jwtHelper;
+            _emailHelper = emailHelper;
         }
 
         public async Task<LoginResponse> LoginAsync(LoginRequest request)
@@ -53,10 +55,31 @@ namespace TourManagement_BE.Service
 
         public async Task RegisterAsync(RegisterRequest request, int? tourOperatorId = null)
         {
-            var existingUser = await _userRepository.GetUserByEmailAsync(request.Email);
-            if (existingUser != null)
+            // Check for any existing users with the same email (both active and inactive)
+            var existingUsers = await _context.Users
+                .Include(u => u.Role)
+                .Where(u => u.Email == request.Email)
+                .ToListAsync();
+            
+            // Special handling for Tour Guide registration
+            if (request.RoleName == Roles.TourGuide)
             {
-                throw new Exception("Email already exists");
+                // Check if there's any active user with the same email
+                var activeUser = existingUsers.FirstOrDefault(u => u.IsActive);
+                if (activeUser != null)
+                {
+                    throw new Exception("Email already exists and is active");
+                }
+                
+               
+            }
+            else
+            {
+                // For other roles, check if email exists regardless of status
+                if (existingUsers.Any())
+                {
+                    throw new Exception("Email already exists");
+                }
             }
 
             var role = await _userRepository.GetRoleByNameAsync(request.RoleName);
@@ -88,6 +111,53 @@ namespace TourManagement_BE.Service
                 };
                 _context.TourGuides.Add(tourGuide);
                 await _context.SaveChangesAsync();
+
+                // Send email to tour guide with password
+                try
+                {
+                    var subject = "Tour Guide Account Created - Tour Management System";
+                    var body = $@"
+                        <html>
+                        <body>
+                            <h2>Tour Guide Account Created Successfully</h2>
+                            <p>Hello {request.UserName},</p>
+                            <p>Your tour guide account has been created successfully by the tour operator.</p>
+                            <p><strong>Login Credentials:</strong></p>
+                            <ul>
+                                <li><strong>Email:</strong> {request.Email}</li>
+                                <li><strong>Password:</strong> {request.Password}</li>
+                            </ul>
+                            <p>Please use these credentials to log in to your account.</p>
+                            <p>For security reasons, we recommend changing your password after your first login.</p>
+                            <p>Best regards,<br>Tour Management System Team</p>
+                        </body>
+                        </html>";
+
+                    await _emailHelper.SendEmailAsync(request.Email, subject, body);
+                }
+                catch (Exception ex)
+                {
+                    // Log the email sending error but don't fail the registration
+                    // You might want to add proper logging here
+                }
+
+                // Send notification to tour operator
+                if (tourOperatorId.HasValue)
+                {
+                    var tourOperator = await _context.TourOperators
+                        .Include(to => to.User)
+                        .FirstOrDefaultAsync(to => to.TourOperatorId == tourOperatorId.Value);
+                    
+                    if (tourOperator?.User != null)
+                    {
+                        await _notificationService.CreateNotificationAsync(
+                            tourOperator.User.UserId,
+                            "Tour Guide Registration Success",
+                            $"Tour guide {request.UserName} has been registered successfully.",
+                            "TourGuideRegistration"
+                        );
+                    }
+                }
             }
         }
 
