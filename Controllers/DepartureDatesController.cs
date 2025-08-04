@@ -205,5 +205,116 @@ public class DepartureDatesController : ControllerBase
         });
     }
 
-   
+    /// <summary>
+    /// Hủy ngày khởi hành và cập nhật trạng thái booking thành Cancelled
+    /// </summary>
+    /// <param name="departureDateId">ID của ngày khởi hành cần hủy</param>
+    /// <returns>Kết quả hủy ngày khởi hành</returns>
+    [HttpPut("{departureDateId}/cancel")]
+    [Authorize(Roles = Roles.TourOperator)]
+    public async Task<IActionResult> CancelDepartureDate(int departureDateId)
+    {
+        if (departureDateId <= 0)
+        {
+            return BadRequest(new
+            {
+                Message = "DepartureDateId không hợp lệ"
+            });
+        }
+
+        // Lấy UserId từ JWT token
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+        {
+            return BadRequest(new
+            {
+                Message = "Không thể xác định thông tin user"
+            });
+        }
+
+        var result = await _departureDateService.CancelDepartureDateAsync(departureDateId, userId);
+        
+        if (!result)
+        {
+            return BadRequest(new
+            {
+                Message = "Không thể hủy ngày khởi hành. Vui lòng kiểm tra lại thông tin hoặc ngày khởi hành đã diễn ra."
+            });
+        }
+
+        return Ok(new
+        {
+            Message = "Hủy ngày khởi hành thành công. Tất cả booking trong ngày khởi hành này đã được cập nhật thành Cancelled."
+        });
+    }
+
+    /// <summary>
+    /// Lấy danh sách các ngày khởi hành đã bị hủy của TourOperator hiện tại
+    /// </summary>
+    /// <returns>Danh sách ngày khởi hành đã bị hủy</returns>
+    [HttpGet("operator/cancelled")]
+    [Authorize(Roles = Roles.TourOperator)]
+    public async Task<IActionResult> GetCancelledDepartureDatesByTourOperator()
+    {
+        // Lấy UserId từ JWT token
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+        {
+            return BadRequest(new
+            {
+                Message = "Không thể xác định thông tin user"
+            });
+        }
+
+        var cancelledDepartureDates = await _departureDateService.GetCancelledDepartureDatesByTourOperatorAsync(userId);
+        
+        return Ok(new
+        {
+            Message = "Lấy danh sách ngày khởi hành đã bị hủy thành công",
+            Data = cancelledDepartureDates
+        });
+    }
+
+    /// <summary>
+    /// Bật lại ngày khởi hành đã bị hủy (chỉ áp dụng cho ngày khởi hành cách hiện tại ít nhất 5 ngày)
+    /// </summary>
+    /// <param name="departureDateId">ID của ngày khởi hành cần bật lại</param>
+    /// <returns>Kết quả bật lại ngày khởi hành</returns>
+    [HttpPut("{departureDateId}/reactivate")]
+    [Authorize(Roles = Roles.TourOperator)]
+    public async Task<IActionResult> ReactivateDepartureDate(int departureDateId)
+    {
+        if (departureDateId <= 0)
+        {
+            return BadRequest(new
+            {
+                Message = "DepartureDateId không hợp lệ"
+            });
+        }
+
+        // Lấy UserId từ JWT token
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+        {
+            return BadRequest(new
+            {
+                Message = "Không thể xác định thông tin user"
+            });
+        }
+
+        var result = await _departureDateService.ReactivateDepartureDateAsync(departureDateId, userId);
+        
+        if (!result)
+        {
+            return BadRequest(new
+            {
+                Message = "Không thể bật lại ngày khởi hành. Vui lòng kiểm tra lại thông tin hoặc ngày khởi hành phải cách hiện tại ít nhất 5 ngày."
+            });
+        }
+
+        return Ok(new
+        {
+            Message = "Bật lại ngày khởi hành thành công. Tất cả booking trong ngày khởi hành này đã được khôi phục thành Pending."
+        });
+    }
 } 

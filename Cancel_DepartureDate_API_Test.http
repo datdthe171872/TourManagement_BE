@@ -1,0 +1,81 @@
+### Cancel DepartureDate API Test
+
+# Lưu ý: Cần đăng nhập với tài khoản TourOperator trước khi test
+# Sử dụng token từ response của API login
+
+### 1. Cancel DepartureDate
+PUT {{baseUrl}}/api/DepartureDates/1/cancel
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+# Response expected:
+# {
+#   "message": "Hủy ngày khởi hành thành công. Tất cả booking trong ngày khởi hành này đã được cập nhật thành Cancelled."
+# }
+
+### 2. Cancel DepartureDate with invalid ID
+PUT {{baseUrl}}/api/DepartureDates/0/cancel
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+# Response expected:
+# {
+#   "message": "DepartureDateId không hợp lệ"
+# }
+
+### 3. Cancel DepartureDate without authorization
+PUT {{baseUrl}}/api/DepartureDates/1/cancel
+Content-Type: application/json
+
+# Response expected: 401 Unauthorized
+
+### 4. Cancel DepartureDate with non-existent ID
+PUT {{baseUrl}}/api/DepartureDates/999999/cancel
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+# Response expected:
+# {
+#   "message": "Không thể hủy ngày khởi hành. Vui lòng kiểm tra lại thông tin hoặc ngày khởi hành đã diễn ra."
+# }
+
+### 5. Get Cancelled DepartureDates
+GET {{baseUrl}}/api/DepartureDates/operator/cancelled
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+# Response expected:
+# {
+#   "message": "Lấy danh sách ngày khởi hành đã bị hủy thành công",
+#   "data": [...]
+# }
+
+### 6. Reactivate DepartureDate
+PUT {{baseUrl}}/api/DepartureDates/1/reactivate
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+# Response expected:
+# {
+#   "message": "Bật lại ngày khởi hành thành công. Tất cả booking trong ngày khởi hành này đã được khôi phục thành Pending."
+# }
+
+### 7. Reactivate DepartureDate with invalid ID
+PUT {{baseUrl}}/api/DepartureDates/0/reactivate
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+# Response expected:
+# {
+#   "message": "DepartureDateId không hợp lệ"
+# }
+
+### 8. Reactivate DepartureDate with non-existent ID
+PUT {{baseUrl}}/api/DepartureDates/999999/reactivate
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+# Response expected:
+# {
+#   "message": "Không thể bật lại ngày khởi hành. Vui lòng kiểm tra lại thông tin hoặc ngày khởi hành phải cách hiện tại ít nhất 5 ngày."
+# } 

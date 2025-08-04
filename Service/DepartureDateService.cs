@@ -4,6 +4,7 @@ using TourManagement_BE.Data.DTO.Request.DepartureDatesRequest;
 using TourManagement_BE.Data.DTO.Response.DepartureDateResponse;
 using BookingResponse = TourManagement_BE.Data.DTO.Response;
 using TourManagement_BE.Data.Models;
+using TourManagement_BE.Helper.Constant;
 
 namespace TourManagement_BE.Service;
 
@@ -316,5 +317,134 @@ public class DepartureDateService : IDepartureDateService
             .ToListAsync();
 
         return tourGuides;
+    }
+
+    public async Task<bool> CancelDepartureDateAsync(int departureDateId, int userId)
+    {
+        // Bước 1: Kiểm tra TourOperator có tồn tại không
+        var tourOperator = await _context.TourOperators
+            .FirstOrDefaultAsync(to => to.UserId == userId && to.IsActive);
+
+        if (tourOperator == null)
+            return false;
+
+        // Bước 2: Kiểm tra DepartureDate có tồn tại và thuộc về TourOperator này không
+        var departureDate = await _context.DepartureDates
+            .Include(dd => dd.Tour)
+            .Include(dd => dd.Bookings.Where(b => b.IsActive))
+            .FirstOrDefaultAsync(dd => dd.Id == departureDateId && 
+                                     dd.Tour.TourOperatorId == tourOperator.TourOperatorId && 
+                                     dd.IsActive);
+
+        if (departureDate == null)
+            return false;
+
+        // Bước 3: Kiểm tra ngày khởi hành chưa diễn ra
+        if (departureDate.DepartureDate1.Date <= DateTime.Now.Date)
+            return false;
+
+        // Bước 4: Cập nhật trạng thái DepartureDate thành cancelled
+        departureDate.IsCancelDate = true;
+        departureDate.IsActive = false;
+
+        // Bước 5: Cập nhật trạng thái tất cả Booking trong DepartureDate này thành Cancelled
+        foreach (var booking in departureDate.Bookings)
+        {
+            booking.BookingStatus = BookingStatus.Cancelled;
+        }
+
+        // Bước 6: Lưu thay đổi vào database
+        await _context.SaveChangesAsync();
+
+        return true;
+    }
+
+    public async Task<List<DepartureDateResponse>> GetCancelledDepartureDatesByTourOperatorAsync(int userId)
+    {
+        // Bước 1: Lấy TourOperatorId từ UserId
+        var tourOperator = await _context.TourOperators
+            .FirstOrDefaultAsync(to => to.UserId == userId && to.IsActive);
+
+        if (tourOperator == null)
+            return new List<DepartureDateResponse>();
+
+        // Bước 2: Lấy tất cả TourIds của TourOperator này
+        var tourIds = await _context.Tours
+            .Where(t => t.TourOperatorId == tourOperator.TourOperatorId && t.IsActive)
+            .Select(t => t.TourId)
+            .ToListAsync();
+
+        if (!tourIds.Any())
+            return new List<DepartureDateResponse>();
+
+        // Bước 3: Lấy tất cả DepartureDates đã bị hủy của các Tour này
+        var cancelledDepartureDates = await _context.DepartureDates
+            .Include(dd => dd.Tour)
+            .Include(dd => dd.Bookings.Where(b => b.IsActive))
+            .Where(dd => tourIds.Contains(dd.TourId) && 
+                        dd.IsCancelDate && 
+                        !dd.IsActive)
+            .OrderBy(dd => dd.DepartureDate1)
+            .Select(dd => new DepartureDateResponse
+            {
+                Id = dd.Id,
+                TourId = dd.TourId,
+                TourTitle = dd.Tour.Title,
+                DepartureDate = dd.DepartureDate1,
+                IsActive = dd.IsActive,
+                TotalBookings = dd.Bookings.Count,
+                AvailableSlots = dd.Tour.MaxSlots - (dd.Tour.SlotsBooked ?? 0)
+            })
+            .ToListAsync();
+
+        // Thêm thông tin TourGuide cho mỗi departureDate
+        foreach (var departureDate in cancelledDepartureDates)
+        {
+            departureDate.TourGuides = await GetTourGuidesForDepartureDateAsync(departureDate.Id);
+        }
+
+        return cancelledDepartureDates;
+    }
+
+    public async Task<bool> ReactivateDepartureDateAsync(int departureDateId, int userId)
+    {
+        // Bước 1: Kiểm tra TourOperator có tồn tại không
+        var tourOperator = await _context.TourOperators
+            .FirstOrDefaultAsync(to => to.UserId == userId && to.IsActive);
+
+        if (tourOperator == null)
+            return false;
+
+        // Bước 2: Kiểm tra DepartureDate có tồn tại và thuộc về TourOperator này không
+        var departureDate = await _context.DepartureDates
+            .Include(dd => dd.Tour)
+            .Include(dd => dd.Bookings.Where(b => b.IsActive))
+            .FirstOrDefaultAsync(dd => dd.Id == departureDateId && 
+                                     dd.Tour.TourOperatorId == tourOperator.TourOperatorId && 
+                                     dd.IsCancelDate && 
+                                     !dd.IsActive);
+
+        if (departureDate == null)
+            return false;
+
+        // Bước 3: Kiểm tra ngày khởi hành phải cách hiện tại ít nhất 5 ngày
+        var daysUntilDeparture = (departureDate.DepartureDate1.Date - DateTime.Now.Date).Days;
+        if (daysUntilDeparture < 5)
+            return false;
+
+        // Bước 4: Cập nhật trạng thái DepartureDate thành active
+        departureDate.IsCancelDate = false;
+        departureDate.IsActive = true;
+
+        // Bước 5: Khôi phục trạng thái tất cả Booking trong DepartureDate này thành Pending
+        foreach (var booking in departureDate.Bookings)
+        {
+            booking.BookingStatus = BookingStatus.Pending;
+        }
+
+        // Bước 6: Lưu thay đổi vào database
+        await _context.SaveChangesAsync();
+
+        return true;
     }
 } 
