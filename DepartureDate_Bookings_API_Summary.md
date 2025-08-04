@@ -1,15 +1,15 @@
-# API Lấy Booking theo DepartureDateId của Operator
+# API Lấy Booking theo DepartureDateId (Cập nhật)
 
 ## 🎯 **Mục đích**
-Tạo API mới để lấy tất cả booking trong một DepartureDateId cụ thể của TourOperator hiện tại.
+API để lấy tất cả booking trong một DepartureDateId cụ thể. **Đã cập nhật để hỗ trợ cả TourOperator và TourGuide.**
 
-## 📋 **API Endpoint Mới**
+## 📋 **API Endpoint**
 
-### **GET** `/api/DepartureDates/operator/departure-date/{departureDateId}/bookings`
+### **GET** `/api/DepartureDates/departure-date/{departureDateId}/bookings`
 
-**Mô tả:** Lấy tất cả booking trong một DepartureDateId cụ thể của TourOperator hiện tại
+**Mô tả:** Lấy tất cả booking trong một DepartureDateId cụ thể của TourOperator hoặc TourGuide hiện tại
 
-**Quyền truy cập:** TourOperator
+**Quyền truy cập:** TourOperator, TourGuide
 
 **Parameters:**
 - `departureDateId` (int, required): ID của ngày khởi hành
@@ -25,8 +25,8 @@ Authorization: Bearer {token}
 **File:** `Controllers/DepartureDatesController.cs`
 
 ```csharp
-[HttpGet("operator/departure-date/{departureDateId}/bookings")]
-[Authorize(Roles = Roles.TourOperator)]
+[HttpGet("departure-date/{departureDateId}/bookings")]
+[Authorize(Roles = Roles.TourOperator + "," + Roles.TourGuide)]
 public async Task<IActionResult> GetBookingsByDepartureDateId(int departureDateId)
 {
     if (departureDateId <= 0)
@@ -76,24 +76,42 @@ Task<DepartureDateWithBookingResponse?> GetBookingsByDepartureDateIdAsync(int de
 **File:** `Service/DepartureDateService.cs`
 
 ```csharp
-public async Task<DepartureDateWithBookingResponse?> GetBookingsByDepartureDateIdAsync(int departureDateId, int userId)
+public async Task<DepartureDateBookingsWrapperResponse?> GetBookingsByDepartureDateIdAsync(int departureDateId, int userId)
 {
-    // Bước 1: Lấy TourOperatorId từ UserId
+    // Kiểm tra xem user có phải là TourOperator không
     var tourOperator = await _context.TourOperators
         .FirstOrDefaultAsync(to => to.UserId == userId && to.IsActive);
-
-    if (tourOperator == null)
+    
+    // Kiểm tra xem user có phải là TourGuide không
+    var tourGuide = await _context.TourGuides
+        .FirstOrDefaultAsync(tg => tg.UserId == userId && tg.IsActive);
+    
+    if (tourOperator == null && tourGuide == null)
         return null;
-
-    // Bước 2: Lấy DepartureDate với kiểm tra quyền sở hữu
-    var departureDate = await _context.DepartureDates
+    
+    // Query cơ bản cho DepartureDate
+    var departureDateQuery = _context.DepartureDates
         .Include(dd => dd.Tour)
         .Include(dd => dd.Bookings.Where(b => b.IsActive))
             .ThenInclude(b => b.User)
-        .FirstOrDefaultAsync(dd => dd.Id == departureDateId && 
-                                 dd.Tour.TourOperatorId == tourOperator.TourOperatorId && 
-                                 dd.IsActive);
-
+        .Where(dd => dd.Id == departureDateId && dd.IsActive);
+    
+    // Nếu là TourOperator, kiểm tra quyền sở hữu tour
+    if (tourOperator != null)
+    {
+        departureDateQuery = departureDateQuery.Where(dd => dd.Tour.TourOperatorId == tourOperator.TourOperatorId);
+    }
+    // Nếu là TourGuide, kiểm tra xem có được assign cho departureDate này không
+    else if (tourGuide != null)
+    {
+        departureDateQuery = departureDateQuery.Where(dd => 
+            _context.TourGuideAssignments.Any(tga => 
+                tga.DepartureDateId == dd.Id && 
+                tga.TourGuideId == tourGuide.TourGuideId && 
+                tga.IsActive));
+    }
+    
+    var departureDate = await departureDateQuery.FirstOrDefaultAsync();
     if (departureDate == null)
         return null;
 
@@ -214,9 +232,11 @@ public async Task<DepartureDateWithBookingResponse?> GetBookingsByDepartureDateI
 - ❌ **Customer**: Không thể truy cập
 - ❌ **Admin**: Không thể truy cập
 
-### **Kiểm tra quyền sở hữu:**
-- Chỉ TourOperator sở hữu tour mới có thể xem booking của DepartureDate đó
-- Kiểm tra `dd.Tour.TourOperatorId == tourOperator.TourOperatorId`
+### **Kiểm tra quyền truy cập:**
+- **TourOperator:** Chỉ TourOperator sở hữu tour mới có thể xem booking của DepartureDate đó
+  - Kiểm tra `dd.Tour.TourOperatorId == tourOperator.TourOperatorId`
+- **TourGuide:** Chỉ TourGuide được assign cho DepartureDate mới có thể xem booking
+  - Kiểm tra `TourGuideAssignments` với `DepartureDateId` và `TourGuideId`
 
 ## 🎯 **So sánh với API hiện tại**
 
@@ -226,7 +246,7 @@ public async Task<DepartureDateWithBookingResponse?> GetBookingsByDepartureDateI
 - **Response:** Array của DepartureDateWithBookingResponse
 
 ### **API mới:**
-- **Endpoint:** `GET /api/DepartureDates/operator/departure-date/{departureDateId}/bookings`
+- **Endpoint:** `GET /api/DepartureDates/departure-date/{departureDateId}/bookings`
 - **Chức năng:** Lấy booking của một DepartureDateId cụ thể
 - **Response:** Single DepartureDateWithBookingResponse
 
@@ -234,35 +254,35 @@ public async Task<DepartureDateWithBookingResponse?> GetBookingsByDepartureDateI
 
 ### **Test Case 1: Valid Request**
 ```http
-GET /api/DepartureDates/operator/departure-date/1/bookings
+GET /api/DepartureDates/departure-date/1/bookings
 Authorization: Bearer {tour_operator_token}
 ```
 **Expected:** 200 OK với data
 
 ### **Test Case 2: Invalid DepartureDateId**
 ```http
-GET /api/DepartureDates/operator/departure-date/0/bookings
+GET /api/DepartureDates/departure-date/0/bookings
 Authorization: Bearer {tour_operator_token}
 ```
 **Expected:** 400 Bad Request
 
 ### **Test Case 3: Non-existent DepartureDateId**
 ```http
-GET /api/DepartureDates/operator/departure-date/999/bookings
+GET /api/DepartureDates/departure-date/999/bookings
 Authorization: Bearer {tour_operator_token}
 ```
 **Expected:** 404 Not Found
 
 ### **Test Case 4: Unauthorized Access**
 ```http
-GET /api/DepartureDates/operator/departure-date/1/bookings
+GET /api/DepartureDates/departure-date/1/bookings
 Authorization: Bearer {customer_token}
 ```
 **Expected:** 403 Forbidden
 
 ### **Test Case 5: DepartureDate của Operator khác**
 ```http
-GET /api/DepartureDates/operator/departure-date/1/bookings
+GET /api/DepartureDates/departure-date/1/bookings
 Authorization: Bearer {other_operator_token}
 ```
 **Expected:** 404 Not Found
@@ -277,7 +297,7 @@ Authorization: Bearer {other_operator_token}
 ### **Frontend Integration:**
 ```javascript
 // Lấy booking của DepartureDateId = 1
-const response = await fetch('/api/DepartureDates/operator/departure-date/1/bookings', {
+const response = await fetch('/api/DepartureDates/departure-date/1/bookings', {
   method: 'GET',
   headers: {
     'Authorization': `Bearer ${token}`,
@@ -295,7 +315,7 @@ console.log('Bookings:', result.data.bookings);
   "name": "Get Bookings by DepartureDateId",
   "request": {
     "method": "GET",
-    "url": "{{baseUrl}}/api/DepartureDates/operator/departure-date/1/bookings",
+    "url": "{{baseUrl}}/api/DepartureDates/departure-date/1/bookings",
     "headers": {
       "Authorization": "Bearer {{token}}"
     }
@@ -305,11 +325,16 @@ console.log('Bookings:', result.data.bookings);
 
 ## 🎉 **Kết luận**
 
-API mới đã được tạo thành công để lấy tất cả booking trong một DepartureDateId cụ thể của TourOperator. API này cung cấp:
+API đã được cập nhật thành công để lấy tất cả booking trong một DepartureDateId cụ thể. **API này hiện hỗ trợ cả TourOperator và TourGuide.** API này cung cấp:
 
 1. **Tính năng chính:** Lấy booking theo DepartureDateId
-2. **Bảo mật:** Kiểm tra quyền sở hữu và authorization
+2. **Bảo mật:** Kiểm tra quyền truy cập cho cả TourOperator và TourGuide
 3. **Response đầy đủ:** Bao gồm thông tin tour, booking và tour guide
 4. **Error handling:** Xử lý các trường hợp lỗi một cách rõ ràng
 
-API này bổ sung hoàn hảo cho API hiện tại và cho phép TourOperator quản lý booking một cách chi tiết hơn! 🚀 
+**Thay đổi chính:**
+- Route đã được đơn giản hóa từ `/operator/departure-date/{id}/bookings` thành `/departure-date/{id}/bookings`
+- Hỗ trợ cả TourOperator và TourGuide roles
+- TourGuide chỉ có thể xem booking của các DepartureDate mà họ được assign
+
+API này bổ sung hoàn hảo cho hệ thống và cho phép cả TourOperator và TourGuide quản lý booking một cách chi tiết hơn! 🚀 

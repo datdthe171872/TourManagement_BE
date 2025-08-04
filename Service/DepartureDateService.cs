@@ -229,17 +229,40 @@ public class DepartureDateService : IDepartureDateService
 
     public async Task<DepartureDateBookingsWrapperResponse?> GetBookingsByDepartureDateIdAsync(int departureDateId, int userId)
     {
+        // Kiểm tra xem user có phải là TourOperator không
         var tourOperator = await _context.TourOperators
             .FirstOrDefaultAsync(to => to.UserId == userId && to.IsActive);
-        if (tourOperator == null)
+        
+        // Kiểm tra xem user có phải là TourGuide không
+        var tourGuide = await _context.TourGuides
+            .FirstOrDefaultAsync(tg => tg.UserId == userId && tg.IsActive);
+        
+        if (tourOperator == null && tourGuide == null)
             return null;
-        var departureDate = await _context.DepartureDates
+        
+        // Query cơ bản cho DepartureDate
+        var departureDateQuery = _context.DepartureDates
             .Include(dd => dd.Tour)
             .Include(dd => dd.Bookings.Where(b => b.IsActive))
                 .ThenInclude(b => b.User)
-            .FirstOrDefaultAsync(dd => dd.Id == departureDateId && 
-                                     dd.Tour.TourOperatorId == tourOperator.TourOperatorId && 
-                                     dd.IsActive);
+            .Where(dd => dd.Id == departureDateId && dd.IsActive);
+        
+        // Nếu là TourOperator, kiểm tra quyền sở hữu tour
+        if (tourOperator != null)
+        {
+            departureDateQuery = departureDateQuery.Where(dd => dd.Tour.TourOperatorId == tourOperator.TourOperatorId);
+        }
+        // Nếu là TourGuide, kiểm tra xem có được assign cho departureDate này không
+        else if (tourGuide != null)
+        {
+            departureDateQuery = departureDateQuery.Where(dd => 
+                _context.TourGuideAssignments.Any(tga => 
+                    tga.DepartureDateId == dd.Id && 
+                    tga.TourGuideId == tourGuide.TourGuideId && 
+                    tga.IsActive));
+        }
+        
+        var departureDate = await departureDateQuery.FirstOrDefaultAsync();
         if (departureDate == null)
             return null;
         var bookingDetails = new List<DepartureDateBookingDetailResponse>();

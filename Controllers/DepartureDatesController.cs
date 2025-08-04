@@ -138,36 +138,36 @@ public class DepartureDatesController : ControllerBase
     /// Lấy ngày khởi hành và thông tin booking cho TourOperator hiện tại
     /// </summary>
     /// <returns>Danh sách ngày khởi hành với thông tin booking</returns>
-    [HttpGet("operator/with-bookings")]
-    [Authorize(Roles = Roles.TourOperator)]
-    public async Task<IActionResult> GetDepartureDatesWithBookingsByTourOperator()
-    {
-        // Lấy UserId từ JWT token
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
-        {
-            return BadRequest(new
-            {
-                Message = "Không thể xác định thông tin user"
-            });
-        }
+    //[HttpGet("operator/with-bookings")]
+    //[Authorize(Roles = Roles.TourOperator)]
+    //public async Task<IActionResult> GetDepartureDatesWithBookingsByTourOperator()
+    //{
+    //    // Lấy UserId từ JWT token
+    //    var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    //    if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+    //    {
+    //        return BadRequest(new
+    //        {
+    //            Message = "Không thể xác định thông tin user"
+    //        });
+    //    }
 
-        var departureDatesWithBookings = await _departureDateService.GetDepartureDatesWithBookingsByTourOperatorAsync(userId);
+    //    var departureDatesWithBookings = await _departureDateService.GetDepartureDatesWithBookingsByTourOperatorAsync(userId);
         
-        return Ok(new
-        {
-            Message = "Lấy danh sách ngày khởi hành với booking thành công",
-            Data = departureDatesWithBookings
-        });
-    }
+    //    return Ok(new
+    //    {
+    //        Message = "Lấy danh sách ngày khởi hành với booking thành công",
+    //        Data = departureDatesWithBookings
+    //    });
+    //}
 
     /// <summary>
-    /// Lấy tất cả booking trong một DepartureDateId cụ thể của TourOperator hiện tại
+    /// Lấy tất cả booking trong một DepartureDateId cụ thể của TourOperator hoặc TourGuide hiện tại
     /// </summary>
     /// <param name="departureDateId">ID của ngày khởi hành</param>
     /// <returns>Thông tin ngày khởi hành và danh sách booking</returns>
-    [HttpGet("operator/departure-date/{departureDateId}/bookings")]
-    [Authorize(Roles = Roles.TourOperator)]
+    [HttpGet("departure-date/{departureDateId}/bookings")]
+    [Authorize(Roles = Roles.TourOperator + "," + Roles.TourGuide)]
     public async Task<IActionResult> GetBookingsByDepartureDateId(int departureDateId)
     {
         if (departureDateId <= 0)
