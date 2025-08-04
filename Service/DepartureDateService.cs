@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using TourManagement_BE.Data.Context;
 using TourManagement_BE.Data.DTO.Request.DepartureDatesRequest;
 using TourManagement_BE.Data.DTO.Response.DepartureDateResponse;
+using BookingResponse = TourManagement_BE.Data.DTO.Response;
 using TourManagement_BE.Data.Models;
 
 namespace TourManagement_BE.Service;
@@ -160,7 +161,7 @@ public class DepartureDateService : IDepartureDateService
                     UserId = b.UserId,
                     UserName = b.User.UserName ?? "Unknown",
                     UserEmail = b.User.Email,
-                    BookingDate = b.BookingDate,
+                    BookingDate = b.BookingDate ?? DateTime.UtcNow,
                     NumberOfAdults = b.NumberOfAdults,
                     NumberOfChildren = b.NumberOfChildren,
                     NumberOfInfants = b.NumberOfInfants,
@@ -223,6 +224,74 @@ public class DepartureDateService : IDepartureDateService
         }
 
         return departureDates;
+    }
+
+    public async Task<DepartureDateBookingsWrapperResponse?> GetBookingsByDepartureDateIdAsync(int departureDateId, int userId)
+    {
+        var tourOperator = await _context.TourOperators
+            .FirstOrDefaultAsync(to => to.UserId == userId && to.IsActive);
+        if (tourOperator == null)
+            return null;
+        var departureDate = await _context.DepartureDates
+            .Include(dd => dd.Tour)
+            .Include(dd => dd.Bookings.Where(b => b.IsActive))
+                .ThenInclude(b => b.User)
+            .FirstOrDefaultAsync(dd => dd.Id == departureDateId && 
+                                     dd.Tour.TourOperatorId == tourOperator.TourOperatorId && 
+                                     dd.IsActive);
+        if (departureDate == null)
+            return null;
+        var bookingDetails = new List<DepartureDateBookingDetailResponse>();
+        foreach (var booking in departureDate.Bookings)
+        {
+            var bookingDetail = new DepartureDateBookingDetailResponse
+            {
+                BookingId = booking.BookingId,
+                Tour = new TourDetailInfo
+                {
+                    Title = departureDate.Tour.Title,
+                    MaxSlots = departureDate.Tour.MaxSlots,
+                    Transportation = departureDate.Tour.Transportation,
+                    StartPoint = departureDate.Tour.StartPoint,
+                    DepartureDate = departureDate.DepartureDate1,
+                    DurationInDays = departureDate.Tour.DurationInDays
+                },
+                Booking = new BookingDetailInfo
+                {
+                    BookingDate = booking.BookingDate ?? DateTime.UtcNow,
+                    Contract = booking.Contract,
+                    NoteForTour = booking.NoteForTour
+                },
+                Guest = new GuestDetailInfo
+                {
+                    NumberOfAdults = booking.NumberOfAdults ?? 0,
+                    NumberOfChildren = booking.NumberOfChildren ?? 0,
+                    NumberOfInfants = booking.NumberOfInfants ?? 0
+                },
+                BillingInfo = new BillingDetailInfo
+                {
+                    Username = booking.User.UserName,
+                    Email = booking.User.Email,
+                    Phone = booking.User.PhoneNumber,
+                    Address = booking.User.Address
+                },
+                PaymentInfo = new PaymentDetailInfo
+                {
+                    TotalPrice = booking.TotalPrice,
+                    PaymentStatus = booking.PaymentStatus,
+                    BookingStatus = booking.BookingStatus
+                },
+                GuideNotes = new List<GuideNoteDetailInfo>()
+            };
+            bookingDetails.Add(bookingDetail);
+        }
+        return new DepartureDateBookingsWrapperResponse
+        {
+            DepartureDateId = departureDate.Id,
+            TourTitle = departureDate.Tour.Title,
+            DepartureDate = departureDate.DepartureDate1,
+            Bookings = bookingDetails
+        };
     }
 
     // Helper method để lấy thông tin TourGuide cho một departureDate

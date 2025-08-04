@@ -161,5 +161,49 @@ public class DepartureDatesController : ControllerBase
         });
     }
 
+    /// <summary>
+    /// Lấy tất cả booking trong một DepartureDateId cụ thể của TourOperator hiện tại
+    /// </summary>
+    /// <param name="departureDateId">ID của ngày khởi hành</param>
+    /// <returns>Thông tin ngày khởi hành và danh sách booking</returns>
+    [HttpGet("operator/departure-date/{departureDateId}/bookings")]
+    [Authorize(Roles = Roles.TourOperator)]
+    public async Task<IActionResult> GetBookingsByDepartureDateId(int departureDateId)
+    {
+        if (departureDateId <= 0)
+        {
+            return BadRequest(new
+            {
+                Message = "DepartureDateId không hợp lệ"
+            });
+        }
+
+        // Lấy UserId từ JWT token
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+        {
+            return BadRequest(new
+            {
+                Message = "Không thể xác định thông tin user"
+            });
+        }
+
+        var departureDateWithBookings = await _departureDateService.GetBookingsByDepartureDateIdAsync(departureDateId, userId);
+        
+        if (departureDateWithBookings == null)
+        {
+            return NotFound(new
+            {
+                Message = "Không tìm thấy ngày khởi hành hoặc bạn không có quyền truy cập"
+            });
+        }
+
+        return Ok(new
+        {
+            Message = "Lấy danh sách booking theo ngày khởi hành thành công",
+            Data = departureDateWithBookings
+        });
+    }
+
    
 } 
