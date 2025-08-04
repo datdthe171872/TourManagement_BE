@@ -253,4 +253,42 @@ public class TourOperatorController : ControllerBase
             return StatusCode(500, new { message = "Có lỗi xảy ra khi lấy danh sách tour guide", error = ex.Message });
         }
     }
+
+
+    /// <summary>
+    /// Ẩn/hiện tour guide bằng cách cập nhật IsActive
+    /// </summary>
+    /// <param name="request">Thông tin cập nhật trạng thái tour guide</param>
+    /// <returns>Kết quả cập nhật</returns>
+    [HttpPut("tourguide-status")]
+    [Authorize(Roles = "Tour Operator")]
+    public async Task<IActionResult> UpdateTourGuideStatus([FromBody] UpdateTourGuideStatusRequest request)
+    {
+        try
+        {
+            // Lấy TourOperatorId của operator hiện tại
+            var operatorUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var tourOperator = await _context.TourOperators
+                .FirstOrDefaultAsync(o => o.UserId == operatorUserId && o.IsActive);
+            
+            if (tourOperator == null)
+            {
+                return NotFound(new { message = "Không tìm thấy thông tin TourOperator cho user này." });
+            }
+
+            var result = await _tourOperatorService.UpdateTourGuideStatusAsync(request.TourGuideId, request.IsActive, tourOperator.TourOperatorId);
+            
+            if (!result)
+            {
+                return NotFound(new { message = "Không tìm thấy tour guide với id này hoặc không có quyền cập nhật." });
+            }
+
+            var statusMessage = request.IsActive ? "hiện" : "ẩn";
+            return Ok(new { message = $"Đã {statusMessage} tour guide thành công" });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Có lỗi xảy ra khi cập nhật trạng thái tour guide", error = ex.Message });
+        }
+    }
 } 

@@ -87,6 +87,9 @@ namespace TourManagement_BE
                 );
             });
 
+            // Register EmailHelper
+            builder.Services.AddScoped<EmailHelper>();
+
             // Configure JWT Authentication
             var secretKey = builder.Configuration["Jwt:SecretKey"];
             if (string.IsNullOrEmpty(secretKey))

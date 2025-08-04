@@ -12,8 +12,8 @@ using TourManagement_BE.Data.Context;
 namespace TourManagement_BE.Migrations
 {
     [DbContext(typeof(MyDBContext))]
-    [Migration("20250803053926_UpdatedDatabaseSchema2")]
-    partial class UpdatedDatabaseSchema2
+    [Migration("20250804082239_DBabc1234")]
+    partial class DBabc1234
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -203,8 +203,6 @@ namespace TourManagement_BE.Migrations
 
                     b.HasKey("NoteId")
                         .HasName("PK__GuideNot__EACE355F7D9F9B80");
-
-                    b.HasIndex("DepartureDateId");
 
                     b.HasIndex(new[] { "AssignmentId" }, "IX_GuideNotes_AssignmentId");
 
@@ -1276,8 +1274,7 @@ namespace TourManagement_BE.Migrations
 
                     b.HasIndex(new[] { "RoleId" }, "IX_Users_RoleId");
 
-                    b.HasIndex(new[] { "Email" }, "UQ__Users__A9D10534A733E8F8")
-                        .IsUnique();
+                    b.HasIndex(new[] { "Email" }, "UQ__Users__A9D10534A733E8F8");
 
                     b.ToTable("Users");
                 });
@@ -1351,11 +1348,6 @@ namespace TourManagement_BE.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_GuideNotes_Bookings");
 
-                    b.HasOne("TourManagement_BE.Data.Models.DepartureDate", "DepartureDate")
-                        .WithMany("GuideNotes")
-                        .HasForeignKey("DepartureDateId")
-                        .HasConstraintName("FK_GuideNotes_DepartureDates");
-
                     b.HasOne("TourManagement_BE.Data.Models.TourAcceptanceReport", "Report")
                         .WithMany("GuideNotes")
                         .HasForeignKey("ReportId")
@@ -1365,8 +1357,6 @@ namespace TourManagement_BE.Migrations
                     b.Navigation("Assignment");
 
                     b.Navigation("Booking");
-
-                    b.Navigation("DepartureDate");
 
                     b.Navigation("Report");
                 });
@@ -1708,8 +1698,6 @@ namespace TourManagement_BE.Migrations
             modelBuilder.Entity("TourManagement_BE.Data.Models.DepartureDate", b =>
                 {
                     b.Navigation("Bookings");
-
-                    b.Navigation("GuideNotes");
 
                     b.Navigation("TourGuideAssignments");
                 });

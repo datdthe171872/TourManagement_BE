@@ -703,7 +703,7 @@ public partial class MyDBContext : DbContext
 
             entity.HasIndex(e => e.RoleId, "IX_Users_RoleId");
 
-            entity.HasIndex(e => e.Email, "UQ__Users__A9D10534A733E8F8").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__Users__A9D10534A733E8F8");
 
             entity.Property(e => e.Address).HasMaxLength(255);
             entity.Property(e => e.Avatar).HasMaxLength(255);
