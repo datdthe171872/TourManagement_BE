@@ -18,5 +18,8 @@ public interface IFeedbackService
     // New methods for Admin and Tour Operator
     Task<FeedbackListResponse> GetAdminFeedbacksAsync(AdminFeedbackSearchRequest request);
     Task<FeedbackListResponse> GetTourOperatorFeedbacksAsync(int tourOperatorId, TourOperatorFeedbackSearchRequest request);
-    Task<bool> ReportFeedbackAsync(int tourOperatorId, ReportFeedbackRequest request);
+    Task<bool> ReportFeedbackAsync(int? tourOperatorId, ReportFeedbackRequest request);
+    
+    // New method for getting all feedbacks with TourId search
+    Task<FeedbackListResponse> GetAllFeedbacksAsync(AllFeedbackSearchRequest request);
 } 

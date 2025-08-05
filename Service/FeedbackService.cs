@@ -410,15 +410,20 @@ public class FeedbackService : IFeedbackService
         };
     }
 
-    public async Task<bool> ReportFeedbackAsync(int tourOperatorId, ReportFeedbackRequest request)
+    public async Task<bool> ReportFeedbackAsync(int? tourOperatorId, ReportFeedbackRequest request)
     {
-        // Verify that the feedback exists and belongs to a tour of this tour operator
+        // Verify that the feedback exists
         var feedback = await _context.TourRatings
             .Include(tr => tr.Tour)
-            .FirstOrDefaultAsync(tr => tr.RatingId == request.RatingId && 
-                                     tr.Tour.TourOperatorId == tourOperatorId);
+            .FirstOrDefaultAsync(tr => tr.RatingId == request.RatingId);
 
         if (feedback == null)
+        {
+            return false;
+        }
+
+        // If tourOperatorId is provided, verify that the feedback belongs to a tour of this tour operator
+        if (tourOperatorId.HasValue && feedback.Tour.TourOperatorId != tourOperatorId.Value)
         {
             return false;
         }
@@ -436,10 +441,71 @@ public class FeedbackService : IFeedbackService
                 admin.UserId, 
                 request.RatingId, 
                 request.Reason,
-                tourOperatorId
+                tourOperatorId ?? 0
             );
         }
 
         return true;
+    }
+
+    public async Task<FeedbackListResponse> GetAllFeedbacksAsync(AllFeedbackSearchRequest request)
+    {
+        var query = _context.TourRatings
+            .Include(tr => tr.Tour)
+            .Include(tr => tr.User)
+            .AsQueryable();
+
+        // Apply filters
+        if (request.TourId.HasValue)
+        {
+            query = query.Where(tr => tr.TourId == request.TourId.Value);
+        }
+
+        if (request.UserId.HasValue)
+        {
+            query = query.Where(tr => tr.UserId == request.UserId.Value);
+        }
+
+        if (request.Rating.HasValue)
+        {
+            query = query.Where(tr => tr.Rating == request.Rating.Value);
+        }
+
+        if (request.IsActive.HasValue)
+        {
+            query = query.Where(tr => tr.IsActive == request.IsActive.Value);
+        }
+
+        var totalCount = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling((double)totalCount / request.PageSize);
+
+        var feedbacks = await query
+            .OrderByDescending(tr => tr.CreatedAt)
+            .Skip((request.PageNumber - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .Select(tr => new FeedbackResponse
+            {
+                RatingId = tr.RatingId,
+                TourId = tr.TourId,
+                UserId = tr.UserId,
+                Rating = tr.Rating,
+                Comment = tr.Comment,
+                MediaUrl = tr.MediaUrl,
+                CreatedAt = tr.CreatedAt,
+                IsActive = tr.IsActive,
+                TourName = tr.Tour.Title,
+                UserName = tr.User.UserName,
+                UserEmail = tr.User.Email
+            })
+            .ToListAsync();
+
+        return new FeedbackListResponse
+        {
+            Feedbacks = feedbacks,
+            TotalCount = totalCount,
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize,
+            TotalPages = totalPages
+        };
     }
 } 

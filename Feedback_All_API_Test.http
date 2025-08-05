@@ -1,0 +1,49 @@
+### Test API lấy tất cả feedback với search theo TourId
+
+### 1. Lấy tất cả feedback (không có filter)
+GET {{baseUrl}}/api/feedback/all
+Content-Type: application/json
+
+###
+
+### 2. Lấy feedback theo TourId cụ thể
+GET {{baseUrl}}/api/feedback/all?TourId=1
+Content-Type: application/json
+
+###
+
+### 3. Lấy feedback với phân trang
+GET {{baseUrl}}/api/feedback/all?PageNumber=1&PageSize=5
+Content-Type: application/json
+
+###
+
+### 4. Lấy feedback theo UserId
+GET {{baseUrl}}/api/feedback/all?UserId=1
+Content-Type: application/json
+
+###
+
+### 5. Lấy feedback theo Rating
+GET {{baseUrl}}/api/feedback/all?Rating=5
+Content-Type: application/json
+
+###
+
+### 6. Lấy feedback theo trạng thái IsActive
+GET {{baseUrl}}/api/feedback/all?IsActive=true
+Content-Type: application/json
+
+###
+
+### 7. Lấy feedback với nhiều filter kết hợp
+GET {{baseUrl}}/api/feedback/all?TourId=1&Rating=5&IsActive=true&PageNumber=1&PageSize=10
+Content-Type: application/json
+
+###
+
+### 8. Lấy feedback của tour cụ thể với rating cao
+GET {{baseUrl}}/api/feedback/all?TourId=1&Rating=4&PageSize=20
+Content-Type: application/json
+
+### 

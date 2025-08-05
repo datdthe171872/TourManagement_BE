@@ -243,36 +243,59 @@ public class FeedbackController : ControllerBase
     }
 
     /// <summary>
-    /// Tour Operator: Báo cáo feedback về tour của họ
+    /// Báo cáo feedback (cho phép tất cả người dùng đã đăng nhập)
     /// </summary>
     /// <param name="request">Thông tin báo cáo</param>
     /// <returns>Kết quả báo cáo</returns>
     [HttpPost("report")]
-    [Authorize(Roles = "Tour Operator")]
+    [Authorize]
     public async Task<IActionResult> ReportFeedback([FromBody] ReportFeedbackRequest request)
     {
         try
         {
-            var operatorUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            var tourOperator = await _context.TourOperators
-                .FirstOrDefaultAsync(o => o.UserId == operatorUserId && o.IsActive);
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.UserId == userId && u.IsActive);
             
-            if (tourOperator == null)
+            if (user == null)
             {
-                return NotFound(new { message = "Không tìm thấy thông tin TourOperator cho user này." });
+                return NotFound(new { message = "Không tìm thấy thông tin user." });
             }
 
-            var result = await _feedbackService.ReportFeedbackAsync(tourOperator.TourOperatorId, request);
+            // Nếu là Tour Operator, kiểm tra xem feedback có thuộc về tour của họ không
+            int? tourOperatorId = null;
+            if (user.Role.RoleName == "Tour Operator")
+            {
+                var tourOperator = await _context.TourOperators
+                    .FirstOrDefaultAsync(o => o.UserId == userId && o.IsActive);
+                
+                if (tourOperator != null)
+                {
+                    tourOperatorId = tourOperator.TourOperatorId;
+                }
+            }
+
+            var result = await _feedbackService.ReportFeedbackAsync(tourOperatorId, request);
             if (!result)
             {
-                return NotFound(new { message = "Không tìm thấy feedback với id này hoặc feedback không thuộc về tour của bạn." });
+                if (user.Role.RoleName == "Tour Operator")
+                {
+                    return NotFound(new { message = "Không tìm thấy feedback với id này hoặc feedback không thuộc về tour của bạn." });
+                }
+                else
+                {
+                    return NotFound(new { message = "Không tìm thấy feedback với id này." });
+                }
             }
 
             return Ok(new { 
                 message = "Báo cáo feedback thành công. Admin sẽ được thông báo về vấn đề này.",
                 data = new {
                     RatingId = request.RatingId,
-                    TourOperatorId = tourOperator.TourOperatorId
+                    ReportedBy = user.UserName,
+                    UserRole = user.Role.RoleName,
+                    TourOperatorId = tourOperatorId
                 }
             });
         }
@@ -305,6 +328,35 @@ public class FeedbackController : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(500, new { message = "Có lỗi xảy ra khi cập nhật trạng thái feedback", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Lấy tất cả feedback với search theo TourId, UserId, Rating và IsActive
+    /// </summary>
+    /// <param name="request">Thông tin tìm kiếm và phân trang</param>
+    /// <returns>Danh sách feedback</returns>
+    [HttpGet("all")]
+    public async Task<IActionResult> GetAllFeedbacks([FromQuery] AllFeedbackSearchRequest request)
+    {
+        try
+        {
+            var result = await _feedbackService.GetAllFeedbacksAsync(request);
+            if (result.Feedbacks == null || !result.Feedbacks.Any())
+            {
+                return Ok(new {
+                    message = "Không tìm thấy feedback nào phù hợp với điều kiện tìm kiếm.",
+                    data = result
+                });
+            }
+            return Ok(new {
+                message = "Lấy danh sách tất cả feedback thành công",
+                data = result
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Có lỗi xảy ra khi lấy danh sách feedback", error = ex.Message });
         }
     }
 } 
