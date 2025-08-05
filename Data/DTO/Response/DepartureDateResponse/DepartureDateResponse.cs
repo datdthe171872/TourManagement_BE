@@ -10,6 +10,7 @@ public class DepartureDateResponse
     public string TourTitle { get; set; } = null!;
     public DateTime DepartureDate { get; set; }
     public bool IsActive { get; set; }
+    public bool IsCancelDate { get; set; }
     public int TotalBookings { get; set; }
     public int AvailableSlots { get; set; }
     public List<TourGuideInfo> TourGuides { get; set; } = new List<TourGuideInfo>();
