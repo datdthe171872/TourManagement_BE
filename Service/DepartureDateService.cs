@@ -80,6 +80,7 @@ public class DepartureDateService : IDepartureDateService
                 TourTitle = dd.Tour.Title,
                 DepartureDate = dd.DepartureDate1,
                 IsActive = dd.IsActive,
+                IsCancelDate = dd.IsCancelDate,
                 TotalBookings = dd.Bookings.Count,
                 AvailableSlots = dd.Tour.MaxSlots - (dd.Tour.SlotsBooked ?? 0)
             })
@@ -108,6 +109,7 @@ public class DepartureDateService : IDepartureDateService
                 TourTitle = dd.Tour.Title,
                 DepartureDate = dd.DepartureDate1,
                 IsActive = dd.IsActive,
+                IsCancelDate = dd.IsCancelDate,
                 TotalBookings = dd.Bookings.Count,
                 AvailableSlots = dd.Tour.MaxSlots - (dd.Tour.SlotsBooked ?? 0)
             })
@@ -154,6 +156,7 @@ public class DepartureDateService : IDepartureDateService
                 TourTitle = dd.Tour.Title,
                 DepartureDate = dd.DepartureDate1,
                 IsActive = dd.IsActive,
+                IsCancelDate = dd.IsCancelDate,
                 TotalBookings = dd.Bookings.Count,
                 AvailableSlots = dd.Tour.MaxSlots - (dd.Tour.SlotsBooked ?? 0),
                 Bookings = dd.Bookings.Select(b => new BookingInfo
@@ -213,6 +216,7 @@ public class DepartureDateService : IDepartureDateService
                 TourTitle = dd.Tour.Title,
                 DepartureDate = dd.DepartureDate1,
                 IsActive = dd.IsActive,
+                IsCancelDate = dd.IsCancelDate,
                 TotalBookings = dd.Bookings.Count,
                 AvailableSlots = dd.Tour.MaxSlots - (dd.Tour.SlotsBooked ?? 0)
             })
@@ -368,7 +372,7 @@ public class DepartureDateService : IDepartureDateService
 
         // Bước 4: Cập nhật trạng thái DepartureDate thành cancelled
         departureDate.IsCancelDate = true;
-        departureDate.IsActive = false;
+        // Giữ nguyên IsActive như yêu cầu
 
         // Bước 5: Cập nhật trạng thái tất cả Booking trong DepartureDate này thành Cancelled
         foreach (var booking in departureDate.Bookings)
@@ -405,8 +409,7 @@ public class DepartureDateService : IDepartureDateService
             .Include(dd => dd.Tour)
             .Include(dd => dd.Bookings.Where(b => b.IsActive))
             .Where(dd => tourIds.Contains(dd.TourId) && 
-                        dd.IsCancelDate && 
-                        !dd.IsActive)
+                        dd.IsCancelDate)
             .OrderBy(dd => dd.DepartureDate1)
             .Select(dd => new DepartureDateResponse
             {
@@ -415,6 +418,7 @@ public class DepartureDateService : IDepartureDateService
                 TourTitle = dd.Tour.Title,
                 DepartureDate = dd.DepartureDate1,
                 IsActive = dd.IsActive,
+                IsCancelDate = dd.IsCancelDate,
                 TotalBookings = dd.Bookings.Count,
                 AvailableSlots = dd.Tour.MaxSlots - (dd.Tour.SlotsBooked ?? 0)
             })
@@ -444,8 +448,7 @@ public class DepartureDateService : IDepartureDateService
             .Include(dd => dd.Bookings.Where(b => b.IsActive))
             .FirstOrDefaultAsync(dd => dd.Id == departureDateId && 
                                      dd.Tour.TourOperatorId == tourOperator.TourOperatorId && 
-                                     dd.IsCancelDate && 
-                                     !dd.IsActive);
+                                     dd.IsCancelDate);
 
         if (departureDate == null)
             return false;
@@ -457,7 +460,7 @@ public class DepartureDateService : IDepartureDateService
 
         // Bước 4: Cập nhật trạng thái DepartureDate thành active
         departureDate.IsCancelDate = false;
-        departureDate.IsActive = true;
+        // Giữ nguyên IsActive như yêu cầu
 
         // Bước 5: Khôi phục trạng thái tất cả Booking trong DepartureDate này thành Pending
         foreach (var booking in departureDate.Bookings)
@@ -502,6 +505,7 @@ public class DepartureDateService : IDepartureDateService
                 TourTitle = dd.Tour.Title,
                 DepartureDate = dd.DepartureDate1,
                 IsActive = dd.IsActive,
+                IsCancelDate = dd.IsCancelDate,
                 TotalBookings = dd.Bookings.Count,
                 AvailableSlots = dd.Tour.MaxSlots - (dd.Tour.SlotsBooked ?? 0)
             })
