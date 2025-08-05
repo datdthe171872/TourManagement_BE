@@ -1,1 +1,67 @@
- 
+### Feedback Report API Tests (Updated - All Users Can Report)
+
+### 1. Report Feedback as Customer
+POST {{baseUrl}}/api/Feedback/report
+Authorization: Bearer {{customerToken}}
+Content-Type: application/json
+
+{
+    "ratingId": 1,
+    "reason": "Feedback này chứa nội dung không phù hợp"
+}
+
+### 2. Report Feedback as Tour Guide
+POST {{baseUrl}}/api/Feedback/report
+Authorization: Bearer {{tourGuideToken}}
+Content-Type: application/json
+
+{
+    "ratingId": 1,
+    "reason": "Feedback này có thông tin sai lệch"
+}
+
+### 3. Report Feedback as Tour Operator (existing functionality)
+POST {{baseUrl}}/api/Feedback/report
+Authorization: Bearer {{tourOperatorToken}}
+Content-Type: application/json
+
+{
+    "ratingId": 1,
+    "reason": "Feedback này không chính xác về dịch vụ của chúng tôi"
+}
+
+### 4. Report Feedback as Admin
+POST {{baseUrl}}/api/Feedback/report
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "ratingId": 1,
+    "reason": "Feedback này vi phạm quy tắc cộng đồng"
+}
+
+### 5. Try to report non-existent feedback
+POST {{baseUrl}}/api/Feedback/report
+Authorization: Bearer {{customerToken}}
+Content-Type: application/json
+
+{
+    "ratingId": 999,
+    "reason": "Test non-existent feedback"
+}
+
+### 6. Try to report without authentication
+POST {{baseUrl}}/api/Feedback/report
+Content-Type: application/json
+
+{
+    "ratingId": 1,
+    "reason": "Test without auth"
+}
+
+### Variables (set these in your environment)
+# @baseUrl = https://localhost:7001
+# @customerToken = your_customer_jwt_token_here
+# @tourGuideToken = your_tour_guide_jwt_token_here
+# @tourOperatorToken = your_tour_operator_jwt_token_here
+# @adminToken = your_admin_jwt_token_here 
