@@ -38,6 +38,16 @@ public class DepartureDatesController : ControllerBase
     [Authorize(Roles = Roles.TourOperator)]
     public async Task<IActionResult> CreateDepartureDates([FromBody] CreateDepartureDateRequest request)
     {
+        // Lấy UserId từ JWT token
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+        {
+            return BadRequest(new
+            {
+                Message = "Không thể xác định thông tin user"
+            });
+        }
+
         var validationResult = await _validator.ValidateAsync(request);
         if (!validationResult.IsValid)
         {
@@ -48,21 +58,54 @@ public class DepartureDatesController : ControllerBase
             });
         }
 
-        var result = await _departureDateService.CreateDepartureDatesAsync(request);
+        var result = await _departureDateService.CreateDepartureDatesAsync(request, userId);
         
-        if (!result)
+        if (result == null)
         {
+            // Kiểm tra xem có phải lỗi khoảng cách không
+            var tour = await _context.Tours
+                .Include(t => t.TourOperator)
+                .FirstOrDefaultAsync(t => t.TourId == request.TourId && t.IsActive);
+            
+            if (tour != null && tour.TourOperator.UserId == userId)
+            {
+                // Kiểm tra khoảng cách với departure date gần nhất
+                var latestDepartureDate = await _context.DepartureDates
+                    .Where(dd => dd.TourId == request.TourId && dd.IsActive)
+                    .OrderByDescending(dd => dd.DepartureDate1)
+                    .FirstOrDefaultAsync();
+
+                if (latestDepartureDate != null && int.TryParse(tour.DurationInDays, out int durationInDays))
+                {
+                    var daysDifference = (request.StartDate.Date - latestDepartureDate.DepartureDate1.Date).Days;
+                    
+                    if (daysDifference < durationInDays)
+                    {
+                        return BadRequest(new
+                        {
+                            Message = $"Ngày khởi hành mới phải cách ngày khởi hành trước đó ít nhất {durationInDays} ngày. Ngày khởi hành gần nhất là {latestDepartureDate.DepartureDate1:dd/MM/yyyy}, ngày mới phải từ {latestDepartureDate.DepartureDate1.AddDays(durationInDays):dd/MM/yyyy} trở đi."
+                        });
+                    }
+                }
+            }
+            
             return BadRequest(new
             {
-                Message = "Không thể tạo ngày khởi hành. Vui lòng kiểm tra lại thông tin tour và ngày bắt đầu."
+                Message = "Không thể tạo ngày khởi hành. Vui lòng kiểm tra lại thông tin tour và ngày bắt đầu hoặc bạn không có quyền tạo departure dates cho tour này."
             });
         }
 
-
-
         return Ok(new
         {
-            Message = "Tạo ngày khởi hành thành công"
+            Message = "Tạo ngày khởi hành thành công",
+            Data = new
+            {
+                Id = result.Id,
+                TourId = result.TourId,
+                DepartureDate = result.DepartureDate1,
+                IsCancelDate = result.IsCancelDate,
+                IsActive = result.IsActive
+            }
         });
     }
 

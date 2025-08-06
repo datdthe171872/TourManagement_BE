@@ -1,11 +1,12 @@
 using TourManagement_BE.Data.DTO.Request.DepartureDatesRequest;
 using TourManagement_BE.Data.DTO.Response.DepartureDateResponse;
+using TourManagement_BE.Data.Models;
 
 namespace TourManagement_BE.Service;
 
 public interface IDepartureDateService
 {
-    Task<bool> CreateDepartureDatesAsync(CreateDepartureDateRequest request);
+    Task<DepartureDate?> CreateDepartureDatesAsync(CreateDepartureDateRequest request, int userId);
     Task<List<DepartureDateResponse>> GetAllDepartureDatesAsync();
     Task<List<DepartureDateResponse>> GetDepartureDatesByTourIdAsync(int tourId);
     Task<List<DepartureDateWithBookingResponse>> GetDepartureDatesWithBookingsByTourOperatorAsync(int userId);

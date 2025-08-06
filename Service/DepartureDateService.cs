@@ -17,53 +17,64 @@ public class DepartureDateService : IDepartureDateService
         _context = context;
     }
 
-    public async Task<bool> CreateDepartureDatesAsync(CreateDepartureDateRequest request)
+    public async Task<DepartureDate?> CreateDepartureDatesAsync(CreateDepartureDateRequest request, int userId)
     {
-        // Kiểm tra tour có tồn tại không
+        // Kiểm tra tour có tồn tại không và thuộc về Tour Operator đang đăng nhập
         var tour = await _context.Tours
+            .Include(t => t.TourOperator)
             .FirstOrDefaultAsync(t => t.TourId == request.TourId && t.IsActive);
         
         if (tour == null)
-            return false;
+            return null;
+
+        // Kiểm tra quyền sở hữu tour
+        if (tour.TourOperator.UserId != userId)
+            return null;
 
         // Kiểm tra ngày bắt đầu không được trong quá khứ
         if (request.StartDate.Date <= DateTime.Now.Date)
-            return false;
+            return null;
 
         // Parse DurationInDays để lấy số ngày
         if (!int.TryParse(tour.DurationInDays, out int durationInDays))
-            return false;
+            return null;
 
-        // Tự động tính số lượng ngày khởi hành = DurationInDays
-        int numberOfDepartureDates = durationInDays;
-        
-        // Giới hạn tối đa 12 ngày khởi hành
-        if (numberOfDepartureDates > 12)
-            numberOfDepartureDates = 12;
+        // Kiểm tra khoảng cách với departure date gần nhất
+        var latestDepartureDate = await _context.DepartureDates
+            .Where(dd => dd.TourId == request.TourId && dd.IsActive)
+            .OrderByDescending(dd => dd.DepartureDate1)
+            .FirstOrDefaultAsync();
 
-        // Tính khoảng cách giữa các ngày khởi hành
-        int daysBetweenDepartures = durationInDays + 1;
+        if (latestDepartureDate != null)
+        {
+            // Tính số ngày giữa departure date mới và departure date gần nhất
+            var daysDifference = (request.StartDate.Date - latestDepartureDate.DepartureDate1.Date).Days;
+            
+            // Nếu khoảng cách ít hơn DurationInDays, trả về lỗi
+            if (daysDifference < durationInDays)
+            {
+                return null; // Sẽ được xử lý trong controller để trả về thông báo lỗi cụ thể
+            }
+        }
 
         var departureDates = new List<DepartureDate>();
         var currentDate = request.StartDate;
 
-        for (int i = 0; i < numberOfDepartureDates; i++)
+        // Tạo chỉ 1 departure date
+        var departureDate = new DepartureDate
         {
-            var departureDate = new DepartureDate
-            {
-                TourId = request.TourId,
-                DepartureDate1 = currentDate,
-                IsActive = true
-            };
+            TourId = request.TourId,
+            DepartureDate1 = currentDate,
+            IsActive = true
+        };
 
-            departureDates.Add(departureDate);
-            currentDate = currentDate.AddDays(daysBetweenDepartures);
-        }
+        departureDates.Add(departureDate);
 
         await _context.DepartureDates.AddRangeAsync(departureDates);
         await _context.SaveChangesAsync();
 
-        return true;
+        // Trả về departure date vừa tạo với thông tin đầy đủ
+        return departureDate;
     }
 
     public async Task<List<DepartureDateResponse>> GetAllDepartureDatesAsync()
