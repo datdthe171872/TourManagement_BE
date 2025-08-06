@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using CloudinaryDotNet;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using TourManagement_BE.Data.Context;
 using TourManagement_BE.Data.DTO.Request.DepartureDatesRequest;
 using TourManagement_BE.Data.Models;
@@ -11,6 +13,7 @@ namespace TourManagement_BE.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Tour Operator")]
     public class TourDepartureDateController : Controller
     {
         private readonly MyDBContext context;
@@ -29,12 +32,25 @@ namespace TourManagement_BE.Controllers
         [HttpPost("CreateDepartureDate")]
         public async Task<IActionResult> CreateDepartureDate([FromBody] CreateDepartureDate request)
         {
+            // Lấy UserId từ token
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return Unauthorized("Không xác định được người dùng");
+
+            int userId = int.Parse(userIdClaim.Value);
+
+            // Kiểm tra quyền sở hữu tour
             var tour = await context.Tours
                 .Include(t => t.DepartureDates)
+                .Include(t => t.TourOperator)
                 .FirstOrDefaultAsync(t => t.TourId == request.TourId);
 
             if (tour == null)
                 return NotFound("Tour not found.");
+
+            // Kiểm tra xem tour có thuộc về Tour Operator đang đăng nhập không
+            if (tour.TourOperator.UserId != userId)
+                return Forbid("Bạn không có quyền tạo departure date cho tour này.");
 
             // Lấy thông tin gói dịch vụ đang sử dụng
             var slotInfo = await _slotCheckService.CheckRemainingSlotsAsync(tour.TourOperatorId);
@@ -75,12 +91,25 @@ namespace TourManagement_BE.Controllers
         [HttpDelete("SoftDeleteDepartureDate/{id}")]
         public async Task<IActionResult> SoftDeleteDepartureDate(int id)
         {
+            // Lấy UserId từ token
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return Unauthorized("Không xác định được người dùng");
+
+            int userId = int.Parse(userIdClaim.Value);
+
             var dep = await context.DepartureDates
                 .Include(d => d.Bookings)
+                .Include(d => d.Tour)
+                .ThenInclude(t => t.TourOperator)
                 .FirstOrDefaultAsync(d => d.Id == id);
 
             if (dep == null)
                 return NotFound("DepartureDate not found.");
+
+            // Kiểm tra quyền sở hữu
+            if (dep.Tour.TourOperator.UserId != userId)
+                return Forbid("Bạn không có quyền xóa departure date này.");
 
             var today = DateTime.UtcNow.AddHours(7).Date;
 
@@ -102,12 +131,25 @@ namespace TourManagement_BE.Controllers
         [HttpPatch("ToggleDepartureDateStatus/{id}")]
         public async Task<IActionResult> ToggleDepartureDateStatus(int id)
         {
+            // Lấy UserId từ token
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return Unauthorized("Không xác định được người dùng");
+
+            int userId = int.Parse(userIdClaim.Value);
+
             var dep = await context.DepartureDates
                 .Include(d => d.Bookings)
+                .Include(d => d.Tour)
+                .ThenInclude(t => t.TourOperator)
                 .FirstOrDefaultAsync(d => d.Id == id);
 
             if (dep == null)
                 return NotFound("DepartureDate not found.");
+
+            // Kiểm tra quyền sở hữu
+            if (dep.Tour.TourOperator.UserId != userId)
+                return Forbid("Bạn không có quyền thay đổi trạng thái departure date này.");
 
             if (dep.IsActive)
             {
