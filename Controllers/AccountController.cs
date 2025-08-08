@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using TourManagement_BE.Data.Context;
 using TourManagement_BE.Data.DTO.Request.AccountRequest;
 using TourManagement_BE.Data.DTO.Response.AccountResponse;
 using TourManagement_BE.Repository.Interface;
+using TourManagement_BE.Service.AccountManagement;
 
 namespace TourManagement_BE.Controllers
 {
@@ -11,166 +13,71 @@ namespace TourManagement_BE.Controllers
     {
         private readonly MyDBContext context;
         private readonly IAccountRepository _account;
+        private readonly IAccountService _accountService;
 
-        public AccountController(MyDBContext context, IAccountRepository account)
+        public AccountController(MyDBContext context, IAccountRepository account, IAccountService accountService)
         {
             this.context = context;
             _account = account;
+            _accountService = accountService;
         }
 
         [HttpGet("View All Account")]
-        public IActionResult ListAllAccount()
+        public async Task<IActionResult> ListAllAccount()
         {
-            var user = context.Users.Select(u => new ListAccountResponse
-            {
-                UserId = u.UserId,
-                UserName = u.UserName,
-                Email = u.Email,
-                Address = u.Address,
-                PhoneNumber = u.PhoneNumber,
-                Avatar = u.Avatar,
-                RoleName = u.Role.RoleName,
-                IsActive = u.IsActive
-            });
-
-            if (user == null)
+            var accounts = await _accountService.GetAllAccountsAsync();
+            if (accounts == null || !accounts.Any())
             {
                 return NotFound("Not Found.");
             }
-
-            return Ok(user);
+            return Ok(accounts);
         }
 
         [HttpGet("Search Account By Name or ID or Email")]
-        public IActionResult SearchAccount(string? keyword)
+        public async Task<IActionResult> SearchAccount(string? keyword)
         {
-            var query = context.Users.AsQueryable();
-
-            if (!string.IsNullOrEmpty(keyword))
-            {
-                keyword = keyword.ToLower();
-                query = query.Where(u =>
-                    u.UserName.ToLower().Contains(keyword) ||
-                    u.Email.ToLower().Contains(keyword) ||
-                    u.UserId.ToString().Contains(keyword)
-                );
-            }
-
-            var users = query.Select(u => new ListAccountResponse
-            {
-                UserId = u.UserId,
-                UserName = u.UserName,
-                Email = u.Email,
-                Address = u.Address,
-                PhoneNumber = u.PhoneNumber,
-                Avatar = u.Avatar,
-                RoleName = u.Role.RoleName,
-                IsActive = u.IsActive
-            }).ToList();
-
-            if (!users.Any())
+            var accounts = await _accountService.SearchAccountsAsync(keyword);
+            if (accounts == null || !accounts.Any())
             {
                 return NotFound("No users found.");
             }
-
-            return Ok(users);
+            return Ok(accounts);
         }
 
         [HttpGet("PagingAllAccount")]
-        public IActionResult PagingAllAccount(int pageNumber = 1, int pageSize = 10)
+        public async Task<IActionResult> PagingAllAccount(int pageNumber = 1, int pageSize = 10)
         {
-            if (pageNumber <= 0) pageNumber = 1;
-            if (pageSize <= 0) pageSize = 10;
-
-            var totalRecords = context.Users.Count();
-
-            var users = context.Users
-                .OrderBy(u => u.UserId)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .Select(u => new ListAccountResponse
-                {
-                    UserId = u.UserId,
-                    UserName = u.UserName,
-                    Email = u.Email,
-                    Address = u.Address,
-                    PhoneNumber = u.PhoneNumber,
-                    Avatar = u.Avatar,
-                    RoleName = u.Role.RoleName,
-                    IsActive = u.IsActive
-                })
-                .ToList();
-
-            return Ok(new
-            {
-                TotalRecords = totalRecords,
-                PageNumber = pageNumber,
-                PageSize = pageSize,
-                TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
-                Data = users
-            });
+            var result = await _accountService.GetAllAccountsPagedAsync(pageNumber, pageSize);
+            return Ok(result);
         }
 
         [HttpGet("PagingSearchAccount")]
-        public IActionResult PagingSearchAccount(string? keyword, int pageNumber = 1, int pageSize = 10)
+        public async Task<IActionResult> PagingSearchAccount(string? keyword, int pageNumber = 1, int pageSize = 10)
         {
-            if (pageNumber <= 0) pageNumber = 1;
-            if (pageSize <= 0) pageSize = 10;
-
-            var query = context.Users.AsQueryable();
-
-            if (!string.IsNullOrEmpty(keyword))
-            {
-                keyword = keyword.ToLower();
-                query = query.Where(u =>
-                    u.UserName.ToLower().Contains(keyword) ||
-                    u.Email.ToLower().Contains(keyword) ||
-                    u.UserId.ToString().Contains(keyword)
-                );
-            }
-
-            var totalRecords = query.Count();
-
-            var users = query
-                .OrderBy(u => u.UserId)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .Select(u => new ListAccountResponse
-                {
-                    UserId = u.UserId,
-                    UserName = u.UserName,
-                    Email = u.Email,
-                    Address = u.Address,
-                    PhoneNumber = u.PhoneNumber,
-                    Avatar = u.Avatar,
-                    RoleName = u.Role.RoleName,
-                    IsActive = u.IsActive
-                })
-                .ToList();
-
-            return Ok(new
-            {
-                TotalRecords = totalRecords,
-                PageNumber = pageNumber,
-                PageSize = pageSize,
-                TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
-                Data = users
-            });
+            var result = await _accountService.SearchAccountsPagedAsync(keyword, pageNumber, pageSize);
+            return Ok(result);
         }
 
         [HttpPut("UpdateStatus")]
-        public IActionResult UpdateStatus([FromBody] UpdateStatusRequest request)
+        public async Task<IActionResult> UpdateStatus([FromBody] UpdateStatusRequest request)
         {
-            var user = context.Users.FirstOrDefault(u => u.UserId == request.UserId);
-            if (user == null)
+            var result = await _accountService.UpdateAccountStatusAsync(request);
+            if (!result.Success)
             {
-                return NotFound("User not found.");
+                return NotFound(result.Message);
             }
+            return Ok(new { message = result.Message, account = result.Account });
+        }
 
-            user.IsActive = request.IsActive;
-            context.SaveChanges();
-
-            return Ok(new { message = "User status updated successfully." });
+        [HttpPut("ToggleStatus/{userId}")]
+        public async Task<IActionResult> ToggleStatus(int userId)
+        {
+            var result = await _accountService.ToggleAccountStatusAsync(userId);
+            if (!result.Success)
+            {
+                return NotFound(result.Message);
+            }
+            return Ok(new { message = result.Message, account = result.Account });
         }
 
     }

@@ -1,19 +1,28 @@
 ﻿using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System;
+using Hangfire;
+using Hangfire.SqlServer;
 using System.Text;
+using TourManagement_BE.BackgroundServices;
 using TourManagement_BE.Data.Context;
+using TourManagement_BE.Helper;
 using TourManagement_BE.Helper.Common;
 using TourManagement_BE.Mapping;
 using TourManagement_BE.Repository.Imple;
 using TourManagement_BE.Repository.Interface;
 using TourManagement_BE.Service;
-using TourManagement_BE.Helper;
-using Microsoft.Extensions.Options;
-using TourManagement_BE.BackgroundServices;
+using TourManagement_BE.Service.AccountManagement;
+using TourManagement_BE.Service.ContractManage;
+using TourManagement_BE.Service.PaymentHistory;
+using TourManagement_BE.Service.Profile;
+using TourManagement_BE.Service.PurchasedServicePackageService;
+using TourManagement_BE.Service.ServicePackageService;
+using TourManagement_BE.Service.TourManagement;
 
 namespace TourManagement_BE
 {
@@ -49,7 +58,27 @@ namespace TourManagement_BE
               
                 fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.CreateDepartureDateRequestValidator>();
             });
-           
+
+
+            // Add Hangfire services
+            builder.Services.AddHangfire(configuration => configuration
+                .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+                .UseSimpleAssemblyNameTypeSerializer()
+                .UseRecommendedSerializerSettings()
+                .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection"), new SqlServerStorageOptions
+                {
+                    CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                    SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                    QueuePollInterval = TimeSpan.Zero,
+                    UseRecommendedIsolationLevel = true,
+                    UsePageLocksOnDequeue = true,
+                    DisableGlobalLocks = true
+                }));
+            builder.Services.AddHangfireServer();
+            // Add the Hangfire server
+            builder.Services.AddScoped<ServicePackageResetService>();
+
+
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
@@ -62,6 +91,8 @@ namespace TourManagement_BE
             builder.Services.AddScoped<ITourOperatorService, TourOperatorService>();
             builder.Services.AddScoped<IFeedbackService, FeedbackService>();
             builder.Services.AddScoped<IBookingService, BookingService>();
+
+
             //builder.Services.AddScoped<IExtraChargeService, ExtraChargeService>();
             builder.Services.AddScoped<IGuideNoteService, GuideNoteService>();
             builder.Services.AddScoped<ITourAcceptanceReportService, TourAcceptanceReportService>();
@@ -71,8 +102,27 @@ namespace TourManagement_BE
             builder.Services.AddScoped<IDepartureDateService, DepartureDateService>();
             builder.Services.AddScoped<IReportService, ReportService>();
 
-            //PaymentIMAP
+
+            //ServicePacakge
+            builder.Services.AddScoped<IServicePackageService, ServicePackageService>();
+            builder.Services.AddScoped<IPurchasedServicePackageService, PurchasedServicePackageService>();
+
+
+            //Tour
+            builder.Services.AddScoped<ITourService, TourService>();
+
+            //Payment
+            builder.Services.AddScoped<IPaymentService, PaymentService>();
             builder.Services.AddHostedService<EmailPaymentBackgroundService>();
+
+            //Profile
+            builder.Services.AddScoped<IProfileService, ProfileService>();
+
+            //AccountManage
+            builder.Services.AddScoped<IAccountService, AccountService>();
+
+            //ContractMange
+            builder.Services.AddScoped<IContractService, ContractService>();
 
             // Register JwtHelper with configuration
             builder.Services.AddScoped<JwtHelper>(provider =>
@@ -177,6 +227,19 @@ namespace TourManagement_BE
             app.UseStaticFiles();
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.UseHangfireDashboard("/hangfire");
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var jobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+                jobManager.AddOrUpdate<ServicePackageResetService>(
+                    "reset-monthly-tour-count",
+                    service => service.ResetMonthlyTourCountAsync(),
+                    Cron.Monthly(1)
+                );
+            }
+
             app.MapControllers();
 
             app.Run();

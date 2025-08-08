@@ -61,12 +61,12 @@ namespace TourManagement_BE.Service
             // Kiểm tra assignment có thuộc guide không
             var assignment = await _context.TourGuideAssignments.FirstOrDefaultAsync(a => a.Id == request.AssignmentId && a.TourGuideId == guide.TourGuideId && a.IsActive);
             if (assignment == null) throw new Exception("Assignment not found");
-            
+
             // Tìm hoặc tạo TourAcceptanceReport cho booking này
-            var report = await _context.TourAcceptanceReports
-                .FirstOrDefaultAsync(r => r.BookingId == assignment.BookingId && r.TourGuideId == guide.TourGuideId && r.IsActive);
-            
-            if (report == null)
+            /*var report = await _context.TourAcceptanceReports
+                .FirstOrDefaultAsync(r => r.BookingId == assignment.BookingId && r.TourGuideId == guide.TourGuideId && r.IsActive);*/
+
+            /*if (report == null)
             {
                 // Tạo report mới nếu chưa có
                 report = new TourAcceptanceReport
@@ -80,12 +80,12 @@ namespace TourManagement_BE.Service
                 };
                 _context.TourAcceptanceReports.Add(report);
                 await _context.SaveChangesAsync();
-            }
-            
+            }*/
+
             var note = new GuideNote
             {
                 AssignmentId = request.AssignmentId,
-                ReportId = report.ReportId,
+                //ReportId = report.ReportId,
                 Title = request.Title,
                 Content = request.Content,
                 ExtraCost = request.ExtraCost ?? 0,
@@ -97,20 +97,20 @@ namespace TourManagement_BE.Service
 
             // Cập nhật tổng extra cost trong report
             var totalExtraCost = await _context.GuideNotes
-                .Where(gn => gn.ReportId == report.ReportId && gn.IsActive)
+                //.Where(gn => gn.ReportId == report.ReportId && gn.IsActive)
                 .SumAsync(gn => gn.ExtraCost ?? 0);
-            report.TotalExtraCost = totalExtraCost;
+            //report.TotalExtraCost = totalExtraCost;
             await _context.SaveChangesAsync();
 
             // Tạo notification cho user liên quan đến booking
             var booking = await _context.TourGuideAssignments
                 .Where(a => a.Id == request.AssignmentId)
-                .Select(a => a.Booking)
+                //.Select(a => a.Booking)
                 .FirstOrDefaultAsync();
             
             if (booking != null)
             {
-                await _notificationService.CreateGuideNoteNotificationAsync(booking.UserId, note.NoteId);
+                //await _notificationService.CreateGuideNoteNotificationAsync(booking.UserId, note.NoteId);
             }
 
             // Thêm media nếu có

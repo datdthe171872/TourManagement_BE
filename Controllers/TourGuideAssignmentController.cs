@@ -28,7 +28,7 @@ namespace TourManagement_BE.Controllers
             var assignment = new TourGuideAssignment
             {
                 TourId = request.TourId,
-                BookingId = request.BookingId,
+                //BookingId = request.BookingId,
                 TourGuideId = request.TourGuideId,
                 AssignedDate = request.AssignedDate != null ? DateOnly.FromDateTime(request.AssignedDate.Value) : null,
                 IsLeadGuide = request.IsLeadGuide,
@@ -53,7 +53,7 @@ namespace TourManagement_BE.Controllers
                 .Select(a => new {
                     a.Id,
                     a.TourId,
-                    a.BookingId,
+                    //a.BookingId,
                     a.AssignedDate,
                     a.IsLeadGuide
                 })
@@ -86,10 +86,10 @@ namespace TourManagement_BE.Controllers
             var query = _context.TourGuideAssignments
                 .Include(a => a.TourGuide)
                 .ThenInclude(tg => tg.User)
-                .Include(a => a.Booking)
-                .ThenInclude(b => b.User)
-                .Include(a => a.Booking)
-                .ThenInclude(b => b.Tour)
+                //.Include(a => a.Booking)
+                //.TInclude(b => b.User)
+                //.Include(a => a.Booking)
+                //.ThenInclude(b => b.Tour)
                 .AsQueryable();
 
             // Apply filters
@@ -99,8 +99,8 @@ namespace TourManagement_BE.Controllers
             if (request.TourGuideId.HasValue)
                 query = query.Where(a => a.TourGuideId == request.TourGuideId.Value);
 
-            if (request.BookingId.HasValue)
-                query = query.Where(a => a.BookingId == request.BookingId.Value);
+            //if (request.BookingId.HasValue)
+                //query = query.Where(a => a.BookingId == request.BookingId.Value);
 
             if (request.IsLeadGuide.HasValue)
                 query = query.Where(a => a.IsLeadGuide == request.IsLeadGuide.Value);
@@ -125,7 +125,7 @@ namespace TourManagement_BE.Controllers
                 {
                     Id = a.Id,
                     TourId = a.TourId,
-                    BookingId = a.BookingId,
+                    //BookingId = a.BookingId,
                     TourGuideId = a.TourGuideId,
                     AssignedDate = a.AssignedDate,
                     NoteId = a.NoteId,
@@ -133,7 +133,7 @@ namespace TourManagement_BE.Controllers
                     IsActive = a.IsActive,
                     //TourName = a.Booking.Tour.TourType,
                     GuideName = a.TourGuide.User.UserName,
-                    CustomerName = a.Booking.User.UserName
+                    //CustomerName = a.Booking.User.UserName
                 })
                 .ToListAsync();
 
