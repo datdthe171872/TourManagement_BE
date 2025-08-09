@@ -251,13 +251,13 @@ namespace TourManagement_BE.Controllers
     //            })
     //            .ToListAsync();
 
-            var response = new TourGuideAssignmentListResponse
-            {
-                Assignments = assignments,
-                TotalCount = totalCount,
-                PageNumber = request.PageNumber,
-                PageSize = request.PageSize
-            };
+            //var response = new TourGuideAssignmentListResponse
+            //{
+            //    Assignments = assignments,
+            //    TotalCount = totalCount,
+            //    PageNumber = request.PageNumber,
+            //    PageSize = request.PageSize
+            //};
 
     //        return Ok(response);
     //    }
