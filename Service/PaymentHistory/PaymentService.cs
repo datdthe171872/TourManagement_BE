@@ -100,6 +100,9 @@ namespace TourManagement_BE.Service.PaymentHistory
                     PaymentMethod = p.PaymentMethod,
                     PaymentStatus = p.PaymentStatus,
                     CreatedAt = p.CreatedAt,
+                    EndDate = p.PurchasedServicePackages
+                        .Select(psp => (DateTime?)psp.EndDate) 
+                        .FirstOrDefault(),
                     IsActive = p.IsActive,
                 }).ToListAsync();
 
@@ -122,7 +125,7 @@ namespace TourManagement_BE.Service.PaymentHistory
 
             if (!string.IsNullOrWhiteSpace(keyword))
             {
-                query = query.Where(p => p.TourOperator.CompanyName.Contains(keyword));
+                query = query.Where(p => p.TourOperator.User.UserName.Contains(keyword));
             }
 
             var totalRecords = await query.CountAsync();
@@ -142,6 +145,9 @@ namespace TourManagement_BE.Service.PaymentHistory
                     PaymentMethod = p.PaymentMethod,
                     PaymentStatus = p.PaymentStatus,
                     CreatedAt = p.CreatedAt,
+                    EndDate = p.PurchasedServicePackages
+                        .Select(psp => (DateTime?)psp.EndDate)
+                        .FirstOrDefault(),
                     IsActive = p.IsActive
                 })
                 .ToListAsync();
@@ -183,6 +189,9 @@ namespace TourManagement_BE.Service.PaymentHistory
                     PaymentMethod = p.PaymentMethod,
                     PaymentStatus = p.PaymentStatus,
                     CreatedAt = p.CreatedAt,
+                    EndDate = p.PurchasedServicePackages
+                        .Select(psp => (DateTime?)psp.EndDate)
+                        .FirstOrDefault(),
                     IsActive = p.IsActive,
                 }).ToListAsync();
 
