@@ -3,125 +3,51 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TourManagement_BE.Data.Context;
 using TourManagement_BE.Data.DTO.Request.PurchaseServicePackage;
-using TourManagement_BE.Data.DTO.Response.PaymentResponse;
-using TourManagement_BE.Data.Models;
+using TourManagement_BE.Service.PurchasedServicePackageService;
 
 namespace TourManagement_BE.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class PurchasedServicePackagesController : Controller
+    public class PurchasedServicePackagesController : ControllerBase
     {
-        private readonly MyDBContext context;
-        private readonly IMapper _mapper;
+        private readonly IPurchasedServicePackageService _service;
 
-        public PurchasedServicePackagesController(MyDBContext context, IMapper mapper)
+        public PurchasedServicePackagesController(IPurchasedServicePackageService service)
         {
-            this.context = context;
-            _mapper = mapper;
+            _service = service;
         }
 
         [HttpPost("PurchaseServicePackages")]
         public async Task<IActionResult> PurchaseServicePackages([FromBody] PurchaseServicePackagesRequest request)
         {
-            var tourOperator = await context.TourOperators
-                .FirstOrDefaultAsync(to => to.UserId == request.UserId);
-
-            if (tourOperator == null)
-                return BadRequest("TourOperator không tồn tại");
-
-            var servicePackage = await context.ServicePackages
-                .FindAsync(request.PackageId);
-
-            if (servicePackage == null)
-                return NotFound("Service package not found");
-
-            var timeNow = DateTime.UtcNow.AddHours(7);
-            var endDate = timeNow.AddYears(request.NumberYearActive);
-            var contentCode = GenerateContentCode();
-
-            var purchaseTransaction = new PurchaseTransaction
+            try
             {
-                TourOperatorId = tourOperator.TourOperatorId, 
-                PackageId = request.PackageId,
-                Amount = request.Amount * request.NumberYearActive,
-                PaymentMethod = request.PaymentMethod,
-                PaymentStatus = "Pending",
-                ContentCode = contentCode,
-                CreatedAt = timeNow,
-                IsActive = false,
-                PurchasedServicePackages = new List<PurchasedServicePackage>
-                {
-                    new PurchasedServicePackage
-                    {
-                        TourOperatorId = tourOperator.TourOperatorId,
-                        PackageId = request.PackageId,
-                        ActivationDate = timeNow,
-                        EndDate = endDate,
-                        NumOfToursUsed = 0,
-                        IsActive = false,
-                        CreatedAt = timeNow
-                    }
-                }
-            };
-            context.PurchaseTransactions.Add(purchaseTransaction);
-
-            await context.SaveChangesAsync();
-
-            return Ok(new
+                var result = await _service.PurchaseServicePackageAsync(request);
+                return Ok(result);
+            }
+            catch (InvalidOperationException ex)
             {
-                message = "Purchase successful",
-                transactionId = purchaseTransaction.TransactionId,
-                contentCode = contentCode
-            });
+                return BadRequest(ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
-
 
         [HttpPost("payment-webhook")]
         public async Task<IActionResult> PaymentWebhook([FromBody] PaymentNotification payload)
         {
-            var contentCode = payload.ContentCode;
-            var amount = payload.Amount;
-
-            var transaction = await context.PurchaseTransactions
-                .Include(x => x.PurchasedServicePackages)
-                .FirstOrDefaultAsync(x => x.PaymentStatus == "Pending" && x.ContentCode == contentCode && x.Amount == amount);
-
-            if (transaction == null)
-                return NotFound("Không tìm thấy giao dịch");
-
-            transaction.PaymentStatus = "Completed";
-            transaction.CreatedAt = DateTime.UtcNow.AddHours(7);
-            transaction.IsActive = true;    
-
-            transaction.PurchasedServicePackages.First().IsActive = true;
-
-            await context.SaveChangesAsync();
-
-            return Ok(new { message = "Thanh toán thành công và đã kích hoạt gói" });
-        }
-
-        private static readonly Random random = new Random();
-        private const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        private const string numbers = "0123456789";
-
-        public static string GenerateContentCode()
-        {
-            const string prefix = "PKG"; 
-            const int suffixLength = 5;
-
-            var suffix = new char[suffixLength];
-            suffix[0] = numbers[random.Next(numbers.Length)];
-
-            var allChars = chars + numbers;
-            for (int i = 1; i < suffixLength; i++)
+            try
             {
-                suffix[i] = allChars[random.Next(allChars.Length)];
+                var result = await _service.ProcessPaymentWebhookAsync(payload);
+                return Ok(result);
             }
-
-            var shuffledSuffix = suffix.Skip(1).OrderBy(_ => random.Next()).ToArray();
-
-            return prefix + suffix[0] + new string(shuffledSuffix);
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
     }
 }

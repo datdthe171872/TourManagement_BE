@@ -8,7 +8,7 @@ namespace TourManagement_BE.BackgroundServices
 {
     public class EmailPaymentBackgroundService : BackgroundService
     {
-        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(120); 
+        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(1); 
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {

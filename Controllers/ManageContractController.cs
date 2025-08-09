@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
-using CloudinaryDotNet.Actions;
 using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Mvc;
 using TourManagement_BE.Data.Context;
 using TourManagement_BE.Data.DTO.Request.ServicePackageRequest;
-using TourManagement_BE.Data.DTO.Response.ContractTourBooking;
 using TourManagement_BE.Data.DTO.Request.TourContract;
+using TourManagement_BE.Data.DTO.Response.ContractTourBooking;
+using TourManagement_BE.Data.Models;
+using TourManagement_BE.Service.ContractManage;
 
 namespace TourManagement_BE.Controllers
 {
@@ -16,118 +18,58 @@ namespace TourManagement_BE.Controllers
         private readonly MyDBContext context;
         private readonly IMapper _mapper;
         private readonly Cloudinary _cloudinary;
-        public ManageContractController(MyDBContext context, IMapper mapper, Cloudinary cloudinary)
+        private readonly IContractService _contractService;
+        public ManageContractController(MyDBContext context, IMapper mapper, Cloudinary cloudinary, IContractService contractService)
         {
             this.context = context;
             _mapper = mapper;
             this._cloudinary = cloudinary;
+            _contractService = contractService;
         }
 
         [HttpGet("ViewContractDetail/{bookingid}")]
 
         public async Task<IActionResult> ViewContractDetail(int bookingid)
         {
-            var contract = context.Bookings.Where(c => c.BookingId == bookingid)
-                .Select(c => new ContractTourBookingResponse
-                {
-                    BookingId = c.BookingId,
-                    TourId = c.TourId,
-                    Contract = c.Contract
-                }).
-                FirstOrDefault();
+            var contract = await _contractService.GetContractByBookingIdAsync(bookingid);
             if (contract == null)
             {
                 return NotFound("Contract has not been added to this Tour Booking.");
             }
-
             return Ok(contract);
         }
 
         [HttpPost("CreateContractForTourBooking")]
         public async Task<IActionResult> CreateContract([FromForm] CreateContractRequest request)
         {
-            try
+            var result = await _contractService.CreateContractAsync(request);
+            if (!result.Success)
             {
-                var booking = await context.Bookings.FindAsync(request.BookingId);
-                if (booking == null)
-                    return NotFound("Booking not found.");
-
-                if (request.Contract == null || request.Contract.Length == 0)
-                    return BadRequest("Contract file is required.");
-
-                var uploadParams = new RawUploadParams
-                {
-                    File = new FileDescription(request.Contract.FileName, request.Contract.OpenReadStream()),
-                    Folder = "ProjectSEP490/TourBooking/Contract",
-                };
-                var uploadResult = await _cloudinary.UploadAsync(uploadParams);
-
-                var uploadedUrl = uploadResult.SecureUrl.ToString();
-
-                booking.Contract = uploadedUrl;
-
-                await context.SaveChangesAsync();
-                return Ok(new { message = "Create Contract successfully." });
+                return BadRequest(result.Message);
             }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = "Create Contract Fail.", error = ex.Message });
-            }
+            return Ok(new { message = result.Message, contract = result.Contract });
         }
 
         [HttpPut("UpdateContractForTourBooking")]
         public async Task<IActionResult> UpdateContract([FromForm] UpdateTourContractRequest request)
         {
-            try
+            var result = await _contractService.UpdateContractAsync(request);
+            if (!result.Success)
             {
-                var booking = await context.Bookings.FindAsync(request.BookingId);
-                if (booking == null)
-                    return NotFound("Booking not found.");
-
-                if (request.Contract == null || request.Contract.Length == 0)
-                    return BadRequest("Contract file is required.");
-
-                var uploadParams = new RawUploadParams
-                {
-                    File = new FileDescription(request.Contract.FileName, request.Contract.OpenReadStream()),
-                    Folder = "ProjectSEP490/TourBooking/Contract",
-                };
-                var uploadResult = await _cloudinary.UploadAsync(uploadParams);
-
-                var uploadedUrl = uploadResult.SecureUrl.ToString();
-
-                booking.Contract = uploadedUrl;
-
-                await context.SaveChangesAsync();
-                return Ok(new { message = "Contract updated successfully." });
+                return BadRequest(result.Message);
             }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = "Update Contract Fail.", error = ex.Message });
-            }
+            return Ok(new { message = result.Message, contract = result.Contract });
         }
 
         [HttpDelete("DeleteContractForTourBooking/{bookingId}")]
         public async Task<IActionResult> DeleteContract(int bookingId)
         {
-            try
+            var result = await _contractService.DeleteContractAsync(bookingId);
+            if (!result.Success)
             {
-                var booking = await context.Bookings.FindAsync(bookingId);
-                if (booking == null)
-                    return NotFound("Booking not found.");
-
-                if (string.IsNullOrEmpty(booking.Contract))
-                    return BadRequest("No contract to delete.");
-
-                booking.Contract = null;
-
-                await context.SaveChangesAsync();
-                return Ok(new { message = "Contract deleted successfully." });
+                return BadRequest(result.Message);
             }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = "Delete Contract Fail.", error = ex.Message });
-            }
+            return Ok(new { message = result.Message, contract = result.Contract });
         }
 
     }

@@ -1,433 +1,109 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using TourManagement_BE.Data.Context;
+﻿using Microsoft.AspNetCore.Mvc;
 using TourManagement_BE.Data.DTO.Request.ServicePackageRequest;
-using TourManagement_BE.Data.DTO.Response.PaymentResponse;
-using TourManagement_BE.Data.DTO.Response.ServicePackage;
-using TourManagement_BE.Data.Models;
-using TourManagement_BE.Mapping.ServiceMapping;
+using TourManagement_BE.Service.ServicePackageService;
 
 namespace TourManagement_BE.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ServicePackageController : Controller
+    public class ServicePackageController : ControllerBase
     {
-        private readonly MyDBContext context;
-        private readonly IMapper _mapper;
+        private readonly IServicePackageService _service;
 
-        public ServicePackageController(MyDBContext context, IMapper mapper)
+        public ServicePackageController(IServicePackageService service)
         {
-            this.context = context;
-            _mapper = mapper;
+            _service = service;
         }
 
         [HttpGet("ListAllServicePackageForAdmin")]
-        public IActionResult ListAllServicePackageForAdmin()
+        public async Task<IActionResult> ListAllServicePackageForAdmin()
         {
-            var services = context.ServicePackages.
-                Select(u => new ListServicePackageResponse
-                {
-                    PackageId = u.PackageId,
-                    Name = u.Name,
-                    Description = u.Description,
-                    Price = u.Price,
-                    DiscountPercentage = u.DiscountPercentage,
-                    TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
-                    MaxTour = u.MaxTour,
-                    MaxImage = u.MaxImage,
-                    MaxVideo = u.MaxVideo,
-                    TourGuideFunction = u.TourGuideFunction,
-                    IsActive = u.IsActive,
-                }).ToList();
-
-            if (!services.Any())
-            {
-                return NotFound("Not Found.");
-            }
-
-            return Ok(services);
+            var result = await _service.ListAllForAdminAsync();
+            return Ok(result);
         }
 
         [HttpGet("ListAllServicePackagePaggingForAdmin")]
-        public IActionResult ListAllServicePackagePaggingForAdmin(int pageNumber = 1, int pageSize = 10)
+        public async Task<IActionResult> ListAllServicePackagePaggingForAdmin(int pageNumber = 1, int pageSize = 10)
         {
-            if (pageNumber <= 0) pageNumber = 1;
-            if (pageSize <= 0) pageSize = 10;
-
-            var totalRecords = context.ServicePackages.Count();
-
-            var services = context.ServicePackages.
-                Select(u => new ListServicePackageResponse
-                {
-                    PackageId = u.PackageId,
-                    Name = u.Name,
-                    Description = u.Description,
-                    Price = u.Price,
-                    DiscountPercentage = u.DiscountPercentage,
-                    TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
-                    MaxTour = u.MaxTour,
-                    MaxImage = u.MaxImage,
-                    MaxVideo = u.MaxVideo,
-                    TourGuideFunction = u.TourGuideFunction,
-                    IsActive = u.IsActive,
-                }).ToList();
-
-            if (!services.Any())
-            {
-                return NotFound("Not Found.");
-            }
-
-            return Ok(new
-            {
-                TotalRecords = totalRecords,
-                PageNumber = pageNumber,
-                PageSize = pageSize,
-                TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
-                Data = services
-            });
+            var result = await _service.ListAllPaginatedForAdminAsync(pageNumber, pageSize);
+            return Ok(result);
         }
 
-
         [HttpGet("ListAllServicePackageForCustomer")]
-        public IActionResult ListAllServicePackageForCustomer()
+        public async Task<IActionResult> ListAllServicePackageForCustomer()
         {
-            var services = context.ServicePackages.Where(u => u.IsActive == true).
-                Select(u => new ListServicePackageResponse
-                {
-                    PackageId = u.PackageId,
-                    Name = u.Name,
-                    Description = u.Description,
-                    Price = u.Price,
-                    DiscountPercentage = u.DiscountPercentage,
-                    TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
-                    MaxTour = u.MaxTour,
-                    MaxImage = u.MaxImage,
-                    MaxVideo = u.MaxVideo,
-                    TourGuideFunction = u.TourGuideFunction,
-                    IsActive = u.IsActive,
-                }).ToList();
-
-
-            if (!services.Any())
-            {
-                return NotFound("Not Found.");
-            }
-
-            return Ok(services);
+            var result = await _service.ListAllForCustomerAsync();
+            return Ok(result);
         }
 
         [HttpGet("ListAllServicePackagePaggingForCustomer")]
-        public IActionResult ListAllServicePackagePagging(int pageNumber = 1, int pageSize = 10)
+        public async Task<IActionResult> ListAllServicePackagePagging(int pageNumber = 1, int pageSize = 10)
         {
-            if (pageNumber <= 0) pageNumber = 1;
-            if (pageSize <= 0) pageSize = 10;
-
-            var totalRecords = context.ServicePackages.Count();
-
-            var services = context.ServicePackages.Where(u =>  u.IsActive == true).
-                Select(u => new ListServicePackageResponse
-                {
-                    PackageId = u.PackageId,
-                    Name = u.Name,
-                    Description = u.Description,
-                    Price = u.Price,
-                    DiscountPercentage = u.DiscountPercentage,
-                    TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
-                    MaxTour = u.MaxTour,
-                    MaxImage = u.MaxImage,
-                    MaxVideo = u.MaxVideo,
-                    TourGuideFunction = u.TourGuideFunction,
-                    IsActive = u.IsActive,
-                }).ToList();
-
-            if (!services.Any())
-            {
-                return NotFound("Not Found.");
-            }
-
-            return Ok(new
-            {
-                TotalRecords = totalRecords,
-                PageNumber = pageNumber,
-                PageSize = pageSize,
-                TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
-                Data = services
-            });
+            var result = await _service.ListAllPaginatedForCustomerAsync(pageNumber, pageSize);
+            return Ok(result);
         }
 
-
         [HttpPost("CreateServicePackage")]
-        public IActionResult CreateServicePackage([FromBody] CreateServicePackageRequest request)
+        public async Task<IActionResult> CreateServicePackage([FromBody] CreateServicePackageRequest request)
         {
-            try
-            {
-                var service = request.ToDto();
-                context.ServicePackages.Add(service);
-                context.SaveChanges();
-                return Ok(new { message = "Create Service Package successfully." });
-            }
-            catch (Exception ex)
-            {
-                return Ok(new { message = "Create Service Package Fail." });
-            }
+            await _service.CreateAsync(request);
+            return Ok(new { message = "Create Service Package successfully." });
         }
 
         [HttpPost("AddServicePackageFeature")]
         public async Task<IActionResult> AddServicePackageFeature([FromBody] AddServicePackageFeatureRequest request)
         {
-            try
-            {
-                var packageExists = await context.ServicePackages
-                    .AnyAsync(p => p.PackageId == request.PackageId);
-
-                if (!packageExists)
-                {
-                    return NotFound(new { Message = $"ServicePackage with ID {request.PackageId} not found" });
-                }
-
-                var newFeature = new ServicePackageFeature
-                {
-                    PackageId = request.PackageId,
-                    FeatureName = request.FeatureName,
-                    FeatureValue = request.FeatureValue,
-                    IsActive = request.IsActive
-                };
-
-                context.ServicePackageFeatures.Add(newFeature);
-                await context.SaveChangesAsync();
-
-                return Ok(new
-                {
-                    Message = "ServicePackageFeature added successfully",
-                    FeatureId = newFeature.FeatureId,
-                    PackageId = newFeature.PackageId
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new
-                {
-                    Message = "Failed to add ServicePackageFeature",
-                    Error = ex.Message
-                });
-            }
+            await _service.AddFeatureAsync(request);
+            return Ok(new { message = "ServicePackageFeature added successfully" });
         }
 
         [HttpPut("UpdateServicePackage")]
         public async Task<IActionResult> UpdateServicePackage([FromBody] UpdateServicePackageRequest request)
         {
-            var service = context.ServicePackages.FirstOrDefault(u => u.PackageId == request.PackageId);
-            if (service == null)
-            {
-                return NotFound("Service Package not found.");
-            }
-
-                service.Name = request.Name;
-
-                service.Description = request.Description;
-
-                service.Price = request.Price;
-
-                service.DiscountPercentage = request.DiscountPercentage;
-
-                service.MaxTour = request.MaxTour;
-
-                service.MaxImage = request.MaxImage;
-
-                service.MaxVideo = request.MaxVideo;
-            
-                service.TourGuideFunction = request.TourGuideFunction;
-
-                service.IsActive = request.IsActive;
-
-            await context.SaveChangesAsync();
-
+            await _service.UpdateAsync(request);
             return Ok(new { message = "Service package updated successfully." });
         }
 
         [HttpPut("UpdateServicePackageFeature")]
         public async Task<IActionResult> UpdateServicePackageFeature([FromBody] UpdateServicePackageFeatureRequest request)
         {
-            try
-            { 
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-                var feature = await context.ServicePackageFeatures
-                    .FirstOrDefaultAsync(f => f.FeatureId == request.FeatureId);
-
-                if (feature == null)
-                {
-                    return NotFound(new { Message = $"Feature with ID {request.FeatureId} not found" });
-                }
-
-                feature.FeatureName = request.FeatureName;
-                feature.FeatureValue = request.FeatureValue;
-                feature.IsActive = request.IsActive;
-
-                context.ServicePackageFeatures.Update(feature);
-                await context.SaveChangesAsync();
-
-                return Ok(new
-                {
-                    Message = "Feature updated successfully",
-                    FeatureId = feature.FeatureId,
-                    PackageId = feature.PackageId
-                });
-            }
-            catch (Exception ex)
-            {
-                // Ghi log lỗi ở đây
-                return StatusCode(500, new
-                {
-                    Message = "Failed to update feature",
-                    Error = ex.Message
-                });
-            }
+            await _service.UpdateFeatureAsync(request);
+            return Ok(new { message = "Feature updated successfully" });
         }
 
         [HttpPatch("ToggleServicePackageStatus/{packageId}")]
         public async Task<IActionResult> ToggleServicePackageStatus(int packageId)
         {
-            var service = await context.ServicePackages.FindAsync(packageId);
-            if (service == null)
-            {
-                return NotFound("Service package not found.");
-            }
-
-            // Toggle trạng thái IsActive
-            service.IsActive = !service.IsActive;
-
-            await context.SaveChangesAsync();
-
-            return Ok(new
-            {
-                message = $"Service package has been {(service.IsActive ? "activated" : "deactivated")}",
-                packageId = packageId,
-                newStatus = service.IsActive
-            });
+            await _service.ToggleStatusAsync(packageId);
+            return Ok(new { message = "Service package status toggled successfully" });
         }
 
         [HttpPatch("ToggleServicePackageFeatureStatus/{featureid}")]
         public async Task<IActionResult> ToggleServicePackageFeatureStatus(int featureid)
         {
-            var service = await context.ServicePackageFeatures.FindAsync(featureid);
-            if (service == null)
-            {
-                return NotFound("Service package feature not found.");
-            }
-
-            service.IsActive = !service.IsActive;
-
-            await context.SaveChangesAsync();
-
-            return Ok(new
-            {
-                message = $"Service package has been {(service.IsActive ? "activated" : "deactivated")}",
-                featureid = featureid,
-                newStatus = service.IsActive
-            });
+            await _service.ToggleFeatureStatusAsync(featureid);
+            return Ok(new { message = "Service package feature status toggled successfully" });
         }
 
-
         [HttpGet("ViewDetailPackageServiceForCustomer/{packageid}")]
-        public IActionResult ViewDetailPackageServicForCustomere(int packageid)
+        public async Task<IActionResult> ViewDetailPackageServicForCustomere(int packageid)
         {
-            var services = context.ServicePackages
-                .Where(u => u.PackageId == packageid && u.IsActive == true)
-                .Select(u => new ListServicePackageResponse
-                {
-                    PackageId = u.PackageId,
-                    Name = u.Name,
-                    Description = u.Description,
-                    Price = u.Price,
-                    DiscountPercentage = u.DiscountPercentage,
-                    TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
-                    MaxTour = u.MaxTour,
-                    MaxImage = u.MaxImage,
-                    MaxVideo = u.MaxVideo,
-                    TourGuideFunction = u.TourGuideFunction,
-                    IsActive = u.IsActive,
-                })
-                .FirstOrDefault();
-
-            if (services == null)
-            {
-                return NotFound("Not found.");
-            }
-
-            return Ok(services);
+            var result = await _service.GetDetailForCustomerAsync(packageid);
+            return Ok(result);
         }
 
         [HttpGet("ViewDetailPackageServiceForAdmin/{packageid}")]
-        public IActionResult ViewDetailPackageServiceForAdmin(int packageid)
+        public async Task<IActionResult> ViewDetailPackageServiceForAdmin(int packageid)
         {
-            var services = context.ServicePackages
-                .Where(u => u.PackageId == packageid)
-                .Select(u => new ListServicePackageResponse
-                {
-                    PackageId = u.PackageId,
-                    Name = u.Name,
-                    Description = u.Description,
-                    Price = u.Price,
-                    DiscountPercentage = u.DiscountPercentage,
-                    TotalPrice = (decimal)(u.Price - (u.Price * (u.DiscountPercentage / 100))),
-                    MaxTour = u.MaxTour,
-                    MaxImage = u.MaxImage,
-                    MaxVideo = u.MaxVideo,
-                    TourGuideFunction = u.TourGuideFunction,
-                    IsActive = u.IsActive,
-                })
-                .FirstOrDefault();
-
-            if (services == null)
-            {
-                return NotFound("Not found.");
-            }
-
-            return Ok(services);
+            var result = await _service.GetDetailForAdminAsync(packageid);
+            return Ok(result);
         }
 
         [HttpGet("CheckSlotTourOperatorPackageService/{userid}")]
-        public IActionResult CheckSlotTourOperatorPackageService(int userid)
+        public async Task<IActionResult> CheckSlotTourOperatorPackageService(int userid)
         {
-            var activePackage = context.PurchasedServicePackages
-                .Include(p => p.TourOperator)
-                    .ThenInclude(t => t.User)
-                .Include(p => p.Package) 
-                .Where(p => p.TourOperator.User.UserId == userid
-                        && p.EndDate > DateTime.UtcNow
-                        && p.IsActive)
-                .OrderByDescending(p => p.ActivationDate)
-                .Select(p => new CheckSlotTourOperatorResponse
-                {
-                    PurchaseId = p.PurchaseId, 
-                    TourOperatorId = p.TourOperatorId,
-                    TourOperatorName = p.TourOperator.User.UserName,
-                    PackageId = p.PackageId,
-                    PackageName = p.Package.Name,
-                    TransactionId = p.TransactionId,
-                    ActivationDate = p.ActivationDate,
-                    EndDate = p.EndDate,
-                    NumOfToursUsed = p.NumOfToursUsed, 
-                    MaxTour = p.Package.MaxTour, 
-                    MaxImage = p.Package.MaxImage,
-                    MaxVideo = p.Package.MaxVideo, 
-                    TourGuideFunction = p.Package.TourGuideFunction,
-                    IsActive = p.IsActive,
-                    CreatedAt = p.CreatedAt
-                })
-                .FirstOrDefault();
-
-            if (activePackage == null)
-            {
-                return NotFound("No active service package found for this user.");
-            }
-
-            return Ok(activePackage);
+            var result = await _service.CheckSlotForTourOperatorAsync(userid);
+            return Ok(result);
         }
     }
 }
