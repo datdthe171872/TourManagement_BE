@@ -284,37 +284,6 @@ namespace TourManagement_BE.Controllers
             }
         }
 
-        // TourOperator update extra cost của GuideNote
-        [HttpPut("notes/{noteId}/extra-cost")]
-        [Authorize(Roles = "Tour Operator")]
-        public async Task<ActionResult> UpdateNoteExtraCost(int noteId, [FromBody] UpdateGuideNoteExtraCostRequest request)
-        {
-            try
-            {
-                var tourOperatorIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (string.IsNullOrEmpty(tourOperatorIdClaim))
-                {
-                    return Unauthorized(new { message = "User ID not found in token" });
-                }
-                
-                if (!int.TryParse(tourOperatorIdClaim, out int tourOperatorId))
-                {
-                    return BadRequest(new { message = "Invalid user ID format" });
-                }
-                
-                // Debug: Log thông tin từ token
-                Console.WriteLine($"Debug - User ID from token: {tourOperatorId}");
-                Console.WriteLine($"Debug - User roles: {string.Join(", ", User.FindAll(ClaimTypes.Role).Select(c => c.Value))}");
-                Console.WriteLine($"Debug - User email: {User.FindFirstValue(JwtRegisteredClaimNames.Email)}");
-                
-                await _guideNoteService.UpdateNoteExtraCostAsync(tourOperatorId, noteId, request);
-                return Ok(new { message = "Extra cost updated successfully" });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Debug - Error in UpdateNoteExtraCost: {ex.Message}");
-                return BadRequest(new { message = ex.Message });
-            }
-        }
+
     }
 } 

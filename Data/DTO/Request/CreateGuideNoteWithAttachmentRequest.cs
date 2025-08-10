@@ -14,6 +14,8 @@ namespace TourManagement_BE.Data.DTO.Request
         [Required]
         public string Content { get; set; }
         
+        public decimal? ExtraCost { get; set; }
+        
         public List<IFormFile>? Attachments { get; set; }
     }
 } 

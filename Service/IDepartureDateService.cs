@@ -16,4 +16,10 @@ public interface IDepartureDateService
     Task<List<DepartureDateResponse>> GetCancelledDepartureDatesByTourOperatorAsync(int userId);
     Task<bool> ReactivateDepartureDateAsync(int departureDateId, int userId);
     Task<List<DepartureDateResponse>> GetDepartureDatesByTourGuideAsync(int userId);
+    Task<DepartureDate?> UpdateDepartureDateAsync(UpdateDepartureDateRequest request, int userId);
+    
+    // New methods for notifications and emails
+    Task SendDepartureDateCreatedNotificationsAsync(DepartureDate departureDate, int tourOperatorId);
+    Task SendDepartureDateUpdatedNotificationsAsync(DepartureDate departureDate, int tourOperatorId);
+    Task SendDepartureDateCancelledNotificationsAsync(DepartureDate departureDate, int tourOperatorId);
 } 

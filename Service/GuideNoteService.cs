@@ -158,6 +158,7 @@ namespace TourManagement_BE.Service
             if (note.Assignment.TourGuideId != guide.TourGuideId) throw new Exception("Not your note");
             note.Title = request.Title;
             note.Content = request.Content;
+            note.ExtraCost = request.ExtraCost ?? note.ExtraCost; // Cập nhật ExtraCost nếu có
             // Xoá media cũ
             var oldMedia = await _context.GuideNoteMedia.Where(m => m.NoteId == noteId && m.IsActive).ToListAsync();
             foreach (var m in oldMedia) { m.IsActive = false; }
@@ -249,7 +250,7 @@ namespace TourManagement_BE.Service
                     DepartureDateId = booking.DepartureDateId,
                     Title = request.Title,
                     Content = request.Content,
-                    ExtraCost = 0, // TourGuide không thể set extraCost, chỉ TourOperator mới có quyền
+                    ExtraCost = request.ExtraCost ?? 0, // TourGuide có thể set extraCost
                     CreatedAt = DateTime.UtcNow,
                     IsActive = true
                 };
@@ -353,7 +354,7 @@ namespace TourManagement_BE.Service
                     DepartureDateId = booking.DepartureDateId,
                     Title = request.Title,
                     Content = request.Content,
-                    ExtraCost = 0, // TourGuide không thể set extraCost, chỉ TourOperator mới có quyền
+                    ExtraCost = request.ExtraCost ?? 0, // TourGuide có thể set extraCost
                     CreatedAt = DateTime.UtcNow,
                     IsActive = true
                 };
@@ -498,72 +499,7 @@ namespace TourManagement_BE.Service
             return bookings.OrderByDescending(b => b.DepartureDate).ToList();
         }
 
-        public async Task UpdateNoteExtraCostAsync(int userId, int noteId, UpdateGuideNoteExtraCostRequest request)
-        {
-            // Kiểm tra note có tồn tại không
-            var note = await _context.GuideNotes
-                .Include(n => n.Booking)
-                .ThenInclude(b => b.Tour)
-                .FirstOrDefaultAsync(n => n.NoteId == noteId && n.IsActive);
-            
-            if (note == null)
-            {
-                throw new Exception("Note not found");
-            }
 
-            // Lấy TourOperator từ UserId
-            var tourOperator = await _context.TourOperators
-                .FirstOrDefaultAsync(to => to.UserId == userId && to.IsActive);
-            
-            if (tourOperator == null)
-            {
-                throw new Exception("TourOperator not found for this user");
-            }
-
-            // Debug: Log thông tin để kiểm tra
-            Console.WriteLine($"Debug - NoteId: {noteId}");
-            Console.WriteLine($"Debug - UserId from token: {userId}");
-            Console.WriteLine($"Debug - TourOperatorId: {tourOperator.TourOperatorId}");
-            Console.WriteLine($"Debug - TourOperatorId from database: {note.Booking.Tour.TourOperatorId}");
-            Console.WriteLine($"Debug - TourId: {note.Booking.Tour.TourId}");
-            Console.WriteLine($"Debug - BookingId: {note.Booking.BookingId}");
-
-            // Kiểm tra TourOperator có quyền update note này không (thông qua Tour)
-            if (note.Booking.Tour.TourOperatorId != tourOperator.TourOperatorId)
-            {
-                throw new Exception($"You don't have permission to update this note. Your TourOperatorId: {tourOperator.TourOperatorId}, Required TourOperatorId: {note.Booking.Tour.TourOperatorId}");
-            }
-
-            // Cập nhật extra cost
-            note.ExtraCost = request.ExtraCost;
-            await _context.SaveChangesAsync();
-
-            // Cập nhật tổng extra cost trong report
-            var totalExtraCost = await _context.GuideNotes
-                .Where(gn => gn.ReportId == note.ReportId && gn.IsActive)
-                .SumAsync(gn => gn.ExtraCost ?? 0);
-            
-            var report = await _context.TourAcceptanceReports
-                .FirstOrDefaultAsync(r => r.ReportId == note.ReportId);
-            
-            if (report != null)
-            {
-                report.TotalExtraCost = totalExtraCost;
-                await _context.SaveChangesAsync();
-            }
-
-            // Tạo notification cho customer về thay đổi extra cost
-            if (note.Booking != null)
-            {
-                await _notificationService.CreateNotificationAsync(
-                    note.Booking.UserId,
-                    "Extra Cost Updated",
-                    $"Extra cost for your booking #{note.BookingId} has been updated to ${request.ExtraCost}",
-                    "GuideNote",
-                    note.NoteId.ToString()
-                );
-            }
-        }
 
         public async Task<List<GuideNoteResponse>> GetNotesByTourOperatorAsync(int userId)
         {

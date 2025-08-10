@@ -35,6 +35,23 @@ namespace TourManagement_BE.Helper.Constant
         }
 
         /// <summary>
+        /// Notification Type Constants
+        /// </summary>
+        public static class NotificationType
+        {
+            public const string DepartureDateCreated = "DepartureDateCreated";
+            public const string DepartureDateUpdated = "DepartureDateUpdated";
+            public const string DepartureDateCancelled = "DepartureDateCancelled";
+            public const string Booking = "Booking";
+            public const string GuideNote = "GuideNote";
+            public const string Feedback = "Feedback";
+            public const string TourAcceptanceReport = "TourAcceptanceReport";
+            public const string Registration = "Registration";
+            public const string FeedbackViolation = "FeedbackViolation";
+            public const string FeedbackReport = "FeedbackReport";
+        }
+
+        /// <summary>
         /// Role Constants
         /// </summary>
         public static class Roles
