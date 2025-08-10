@@ -13,7 +13,6 @@ namespace TourManagement_BE.Service
         Task CreateNoteByTourGuideAsync(int userId, CreateGuideNoteByTourGuideRequest request);
         Task CreateNoteWithAttachmentAsync(int userId, CreateGuideNoteWithAttachmentRequest request);
         Task<List<TourGuideBookingResponse>> GetMyBookingsAsync(int userId);
-        Task UpdateNoteExtraCostAsync(int userId, int noteId, UpdateGuideNoteExtraCostRequest request);
         Task<List<GuideNoteResponse>> GetNotesByTourOperatorAsync(int userId);
     }
 } 

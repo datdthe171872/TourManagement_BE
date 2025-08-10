@@ -13,6 +13,8 @@ namespace TourManagement_BE.Data.DTO.Request
         [Required]
         public string Content { get; set; }
         
+        public decimal? ExtraCost { get; set; }
+        
         public List<string>? AttachmentUrls { get; set; }
     }
 } 

@@ -1,7 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using TourManagement_BE.Data.Context;
 using TourManagement_BE.Data.DTO.Request.DepartureDatesRequest;
 using TourManagement_BE.Data.DTO.Response.DepartureDateResponse;
@@ -17,15 +21,18 @@ public class DepartureDatesController : ControllerBase
 {
     private readonly IDepartureDateService _departureDateService;
     private readonly CreateDepartureDateRequestValidator _validator;
+    private readonly UpdateDepartureDateRequestValidator _updateValidator;
     private readonly MyDBContext _context;
 
     public DepartureDatesController(
         IDepartureDateService departureDateService,
         CreateDepartureDateRequestValidator validator,
+        UpdateDepartureDateRequestValidator updateValidator,
         MyDBContext context)
     {
         _departureDateService = departureDateService;
         _validator = validator;
+        _updateValidator = updateValidator;
         _context = context;
     }
 
@@ -69,24 +76,33 @@ public class DepartureDatesController : ControllerBase
             
             if (tour != null && tour.TourOperator.UserId == userId)
             {
-                // Kiểm tra khoảng cách với departure date gần nhất
-                var latestDepartureDate = await _context.DepartureDates
-                    .Where(dd => dd.TourId == request.TourId && dd.IsActive)
-                    .OrderByDescending(dd => dd.DepartureDate1)
-                    .FirstOrDefaultAsync();
+                            // Kiểm tra khoảng cách với tất cả departure dates hiện có
+            var existingDepartureDates = await _context.DepartureDates
+                .Where(dd => dd.TourId == request.TourId && dd.IsActive)
+                .ToListAsync();
 
-                if (latestDepartureDate != null && int.TryParse(tour.DurationInDays, out int durationInDays))
+            if (existingDepartureDates.Any())
+            {
+                var conflictingDates = new List<string>();
+                
+                foreach (var existingDd in existingDepartureDates)
                 {
-                    var daysDifference = (request.StartDate.Date - latestDepartureDate.DepartureDate1.Date).Days;
+                    var daysDifference = Math.Abs((request.StartDate.Date - existingDd.DepartureDate1.Date).Days);
                     
-                    if (daysDifference < durationInDays)
+                    if (daysDifference < 1)
                     {
-                        return BadRequest(new
-                        {
-                            Message = $"Ngày khởi hành mới phải cách ngày khởi hành trước đó ít nhất {durationInDays} ngày. Ngày khởi hành gần nhất là {latestDepartureDate.DepartureDate1:dd/MM/yyyy}, ngày mới phải từ {latestDepartureDate.DepartureDate1.AddDays(durationInDays):dd/MM/yyyy} trở đi."
-                        });
+                        conflictingDates.Add(existingDd.DepartureDate1.ToString("dd/MM/yyyy"));
                     }
                 }
+                
+                if (conflictingDates.Any())
+                {
+                    return BadRequest(new
+                    {
+                        Message = $"Ngày khởi hành mới phải cách tất cả các ngày khởi hành hiện có ít nhất 1 ngày. Các ngày xung đột: {string.Join(", ", conflictingDates)}. Ngày mới phải cách mỗi ngày này ít nhất 1 ngày."
+                    });
+                }
+            }
             }
             
             return BadRequest(new
@@ -98,6 +114,122 @@ public class DepartureDatesController : ControllerBase
         return Ok(new
         {
             Message = "Tạo ngày khởi hành thành công",
+            Data = new
+            {
+                Id = result.Id,
+                TourId = result.TourId,
+                DepartureDate = result.DepartureDate1,
+                IsCancelDate = result.IsCancelDate,
+                IsActive = result.IsActive
+            }
+        });
+    }
+
+    /// <summary>
+    /// Cập nhật thông tin ngày khởi hành
+    /// </summary>
+    /// <param name="request">Thông tin cập nhật ngày khởi hành</param>
+    /// <returns>Kết quả cập nhật ngày khởi hành</returns>
+    [HttpPut]
+    [Authorize(Roles = Roles.TourOperator)]
+    public async Task<IActionResult> UpdateDepartureDate([FromBody] UpdateDepartureDateRequest request)
+    {
+        // Lấy UserId từ JWT token
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+        {
+            return BadRequest(new
+            {
+                Message = "Không thể xác định thông tin user"
+            });
+        }
+
+        var validationResult = await _updateValidator.ValidateAsync(request);
+        if (!validationResult.IsValid)
+        {
+            return BadRequest(new
+            {
+                Message = "Dữ liệu không hợp lệ",
+                Errors = validationResult.Errors.Select(e => e.ErrorMessage)
+            });
+        }
+
+        var result = await _departureDateService.UpdateDepartureDateAsync(request, userId);
+        
+        if (result == null)
+        {
+            // Kiểm tra các lý do có thể thất bại
+            var departureDate = await _context.DepartureDates
+                .Include(dd => dd.Tour)
+                    .ThenInclude(t => t.TourOperator)
+                .FirstOrDefaultAsync(dd => dd.Id == request.Id && dd.IsActive);
+            
+            if (departureDate == null)
+            {
+                return NotFound(new
+                {
+                    Message = "Không tìm thấy ngày khởi hành hoặc ngày khởi hành đã bị hủy"
+                });
+            }
+            
+            if (departureDate.Tour.TourOperator.UserId != userId)
+            {
+                return Forbid("Bạn không có quyền cập nhật ngày khởi hành này");
+            }
+
+            // Kiểm tra có booking confirmed không
+            var hasConfirmedBookings = await _context.Bookings
+                .AnyAsync(b => b.DepartureDateId == request.Id && 
+                              b.IsActive && 
+                              (b.BookingStatus == StatusConstants.Booking.Confirmed || 
+                               b.BookingStatus == StatusConstants.Booking.Completed));
+
+            if (hasConfirmedBookings)
+            {
+                return BadRequest(new
+                {
+                    Message = "Không thể cập nhật ngày khởi hành vì đã có booking được xác nhận"
+                });
+            }
+            
+            // Kiểm tra khoảng cách với các departure dates khác
+            var otherDepartureDates = await _context.DepartureDates
+                .Where(dd => dd.TourId == departureDate.TourId && 
+                            dd.IsActive && 
+                            dd.Id != request.Id)
+                .ToListAsync();
+
+            if (otherDepartureDates.Any())
+            {
+                var conflictingDates = new List<string>();
+                
+                foreach (var otherDd in otherDepartureDates)
+                {
+                    var daysDifference = Math.Abs((request.DepartureDate1.Date - otherDd.DepartureDate1.Date).Days);
+                    if (daysDifference < 1)
+                    {
+                        conflictingDates.Add(otherDd.DepartureDate1.ToString("dd/MM/yyyy"));
+                    }
+                }
+                
+                if (conflictingDates.Any())
+                {
+                    return BadRequest(new
+                    {
+                        Message = $"Không thể cập nhật ngày khởi hành. Ngày mới phải cách tất cả các ngày khởi hành khác ít nhất 1 ngày. Các ngày xung đột: {string.Join(", ", conflictingDates)}."
+                    });
+                }
+            }
+            
+            return BadRequest(new
+            {
+                Message = "Không thể cập nhật ngày khởi hành. Vui lòng kiểm tra lại thông tin."
+            });
+        }
+
+        return Ok(new
+        {
+            Message = "Cập nhật ngày khởi hành thành công",
             Data = new
             {
                 Id = result.Id,
