@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using TourManagement_BE.Data.DTO.Request;
+using TourManagement_BE.Data.DTO.Response.ContractTourBooking;
 using TourManagement_BE.Data.Models;
 
 namespace TourManagement_BE.Mapping
@@ -14,6 +15,8 @@ namespace TourManagement_BE.Mapping
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
                 .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
                 .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.Avatar));
+
+            CreateMap<Booking, ContractTourBookingResponse>();
         }
     }
 }
