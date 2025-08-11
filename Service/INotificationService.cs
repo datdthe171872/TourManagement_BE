@@ -18,6 +18,4 @@ public interface INotificationService
     Task CreateFeedbackViolationNotificationAsync(int userId, int feedbackId);
     Task CreateFeedbackReportNotificationAsync(int adminUserId, int ratingId, string reason, int tourOperatorId);
     Task CreateRegistrationSuccessNotificationAsync(int userId);
-    Task CreatePaymentOverdueNotificationAsync(int userId, int bookingId, DateTime paymentDueDate);
-    Task CreateTourOperatorNotificationAsync(int userId, int bookingId, string title, string message);
 } 

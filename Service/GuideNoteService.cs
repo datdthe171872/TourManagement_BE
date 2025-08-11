@@ -43,8 +43,6 @@ namespace TourManagement_BE.Service
             var notes = await _context.GuideNotes
                 .Where(n => assignmentIds.Contains(n.AssignmentId) && n.IsActive)
                 .Include(n => n.GuideNoteMedia)
-                .Include(n => n.Booking)
-                .ThenInclude(b => b.User)
                 .OrderByDescending(n => n.CreatedAt)
                 .ToListAsync();
             
@@ -63,13 +61,7 @@ namespace TourManagement_BE.Service
                     MediaUrls = n.GuideNoteMedia.Where(m => m.IsActive).Select(m => m.MediaUrl).ToList(),
                     TourGuideName = guide.User?.UserName,
                     TourTitle = assignment?.DepartureDate?.Tour?.Title,
-                    DepartureDate = assignment?.DepartureDate?.DepartureDate1,
-                    // Thêm các trường còn thiếu
-                    TourGuideEmail = guide.User?.Email ?? "",
-                    TourGuideId = guide.TourGuideId,
-                    DepartureDateId = assignment?.DepartureDateId,
-                    TourGuideAvatar = guide.User?.Avatar ?? "",
-                    BookingUsername = n.Booking?.User?.UserName ?? "Unknown"
+                    DepartureDate = assignment?.DepartureDate?.DepartureDate1
                 };
             }).ToList();
         }
@@ -528,14 +520,12 @@ namespace TourManagement_BE.Service
             var notes = await _context.GuideNotes
                 .Include(n => n.Booking)
                 .ThenInclude(b => b.Tour)
-                .Include(n => n.Booking)
-                .ThenInclude(b => b.User)
-                .Include(n => n.Booking)
-                .ThenInclude(b => b.DepartureDate)
                 .Include(n => n.GuideNoteMedia)
                 .Include(n => n.Assignment)
                 .ThenInclude(a => a.TourGuide)
                 .ThenInclude(tg => tg.User)
+                .Include(n => n.Booking)
+                .ThenInclude(b => b.DepartureDate)
                 .Where(n => n.IsActive && 
                            n.Booking.Tour.TourOperatorId == tourOperator.TourOperatorId)
                 .OrderByDescending(n => n.CreatedAt)
@@ -555,13 +545,7 @@ namespace TourManagement_BE.Service
                 MediaUrls = n.GuideNoteMedia.Where(m => m.IsActive).Select(m => m.MediaUrl).ToList(),
                 TourGuideName = n.Assignment.TourGuide.User?.UserName ?? "Unknown",
                 TourTitle = n.Booking.Tour?.Title ?? "Unknown",
-                DepartureDate = n.Booking.DepartureDate?.DepartureDate1 ?? DateTime.MinValue,
-                // Thêm các trường còn thiếu
-                TourGuideEmail = n.Assignment.TourGuide.User?.Email ?? "",
-                TourGuideId = n.Assignment.TourGuide.TourGuideId,
-                DepartureDateId = n.Booking.DepartureDateId,
-                TourGuideAvatar = n.Assignment.TourGuide.User?.Avatar ?? "",
-                BookingUsername = n.Booking.User?.UserName ?? "Unknown"
+                DepartureDate = n.Booking.DepartureDate?.DepartureDate1 ?? DateTime.MinValue
             }).ToList();
         }
     }
