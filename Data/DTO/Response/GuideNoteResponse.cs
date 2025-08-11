@@ -18,5 +18,12 @@ namespace TourManagement_BE.Data.DTO.Response
         public string? TourGuideName { get; set; }
         public string? TourTitle { get; set; }
         public DateTime? DepartureDate { get; set; }
+        
+        // Thêm các trường còn thiếu
+        public string? TourGuideEmail { get; set; }
+        public int? TourGuideId { get; set; }
+        public int? DepartureDateId { get; set; }
+        public string? TourGuideAvatar { get; set; }
+        public string? BookingUsername { get; set; }
     }
 } 
