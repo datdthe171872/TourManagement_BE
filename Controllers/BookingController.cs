@@ -57,6 +57,15 @@ namespace TourManagement_BE.Controllers
             if (userIdClaim == null)
                 return Unauthorized("Không xác định được người dùng");
             int userId = int.Parse(userIdClaim.Value);
+            // Chỉ cho phép đặt tour khi PaymentDeadline (DepartureDate - 21 ngày) từ hôm nay trở về sau
+            var departure = await _dbContext.DepartureDates
+                .FirstOrDefaultAsync(d => d.Id == request.DepartureDateId && d.TourId == request.TourId && d.IsActive);
+            if (departure == null)
+                return BadRequest("Ngày khởi hành không hợp lệ hoặc không hoạt động cho tour này");
+
+            var paymentDeadline = departure.DepartureDate1.AddDays(-21);
+            if (paymentDeadline.Date < DateTime.UtcNow.Date)
+                return BadRequest("Không thể đặt tour vì đã qua hạn thanh toán (PaymentDeadline)");
             var result = await _bookingService.CreateBookingAsync(request, userId);
             return Ok(result);
         }

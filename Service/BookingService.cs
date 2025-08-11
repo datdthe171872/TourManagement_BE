@@ -15,11 +15,13 @@ namespace TourManagement_BE.Service
     {
         private readonly MyDBContext _context;
         private readonly INotificationService _notificationService;
+        private readonly IEmailService _emailService;
 
-        public BookingService(MyDBContext context, INotificationService notificationService)
+        public BookingService(MyDBContext context, INotificationService notificationService, IEmailService emailService)
         {
             _context = context;
             _notificationService = notificationService;
+            _emailService = emailService;
         }
 
         public async Task<BookingListResponse> GetBookingsAsync(BookingSearchRequest request)
@@ -77,6 +79,11 @@ namespace TourManagement_BE.Service
             var departure = await _context.DepartureDates.FirstOrDefaultAsync(d => d.Id == request.DepartureDateId && d.TourId == request.TourId && d.IsActive);
             if (departure == null)
                 throw new Exception("Departure date not found or not active for this tour");
+
+            // Only allow booking if PaymentDeadline (DepartureDate - 21 days) is today or later
+            var paymentDeadline = departure.DepartureDate1.AddDays(-21);
+            if (paymentDeadline.Date < DateTime.UtcNow.Date)
+                throw new Exception("Không thể đặt tour vì đã qua hạn thanh toán (PaymentDeadline)");
 
             int totalPeople = request.NumberOfAdults + request.NumberOfChildren + request.NumberOfInfants;
             int slotsBooked = tour.SlotsBooked ?? 0;
@@ -581,6 +588,7 @@ namespace TourManagement_BE.Service
                     PaymentStatus = booking.PaymentStatus,
                     BookingStatus = booking.BookingStatus
                 },
+                PaymentDeadline = booking.DepartureDate?.DepartureDate1.AddDays(-21),
                 GuideNotes = allGuideNotes
             };
         }
@@ -768,6 +776,71 @@ namespace TourManagement_BE.Service
                         "Booking",
                         booking.BookingId.ToString()
                     );
+                }
+            }
+
+            // Refund flows based on PaymentDeadline
+            if (booking.PaymentStatus == PaymentStatus.Paid)
+            {
+                var departureDateEntity = await _context.DepartureDates.FirstOrDefaultAsync(d => d.Id == booking.DepartureDateId);
+                if (departureDateEntity != null)
+                {
+                    var paymentDeadlineDate = departureDateEntity.DepartureDate1.AddDays(-21);
+                    var refundWindowEnd = paymentDeadlineDate.AddDays(7);
+                    var now = DateTime.UtcNow;
+
+                    // Before departure only
+                    if (now >= departureDateEntity.DepartureDate1)
+                    {
+                        throw new Exception("Không thể huỷ sau ngày khởi hành");
+                    }
+
+                    // Case 1: cancel from booking date up to 7 days after PaymentDeadline -> 100% refund
+                    if ((booking.BookingDate == null || booking.BookingDate.Value <= now) && now <= refundWindowEnd)
+                    {
+                        await _notificationService.CreateNotificationAsync(
+                            booking.UserId,
+                            "Hoàn tiền 100% trong 48 giờ",
+                            $"Yêu cầu huỷ đặt tour #{booking.BookingId} được ghi nhận. Chúng tôi sẽ hoàn lại 100% trong vòng 48 giờ.",
+                            "Refund",
+                            booking.BookingId.ToString()
+                        );
+
+                        // Email both customer and tour operator
+                        var customerEmail = booking.User?.Email;
+                        var customerName = booking.User?.UserName ?? "Khách hàng";
+                        var tourOpEmail = booking.Tour?.TourOperator?.User?.Email;
+                        var tourOpName = booking.Tour?.TourOperator?.CompanyName ?? "Tour Operator";
+                        var refundAmount = booking.TotalPrice ?? 0;
+
+                        if (!string.IsNullOrWhiteSpace(customerEmail))
+                            await _emailService.SendRefundEmailAsync(customerEmail, customerName, booking.BookingId, refundAmount, "100%");
+                        if (!string.IsNullOrWhiteSpace(tourOpEmail))
+                            await _emailService.SendTourOperatorNotificationEmailAsync(tourOpEmail, tourOpName, booking.BookingId, "Yêu cầu hoàn 100%", "Khách hàng huỷ trong khung 100%, vui lòng xử lý hoàn tiền trong 48 giờ.");
+                    }
+                    // Case 2: cancel after 7 days after PaymentDeadline and before DepartureDate -> 70% refund
+                    else if (now > refundWindowEnd && now < departureDateEntity.DepartureDate1)
+                    {
+                        await _notificationService.CreateNotificationAsync(
+                            booking.UserId,
+                            "Hoàn tiền 70% trong 48 giờ",
+                            $"Yêu cầu huỷ đặt tour #{booking.BookingId} được ghi nhận. Chúng tôi sẽ hoàn lại 70% trong vòng 48 giờ.",
+                            "Refund",
+                            booking.BookingId.ToString()
+                        );
+
+                        // Email both customer and tour operator
+                        var customerEmail = booking.User?.Email;
+                        var customerName = booking.User?.UserName ?? "Khách hàng";
+                        var tourOpEmail = booking.Tour?.TourOperator?.User?.Email;
+                        var tourOpName = booking.Tour?.TourOperator?.CompanyName ?? "Tour Operator";
+                        var refundAmount = (booking.TotalPrice ?? 0) * 0.7m;
+
+                        if (!string.IsNullOrWhiteSpace(customerEmail))
+                            await _emailService.SendRefundEmailAsync(customerEmail, customerName, booking.BookingId, refundAmount, "70%");
+                        if (!string.IsNullOrWhiteSpace(tourOpEmail))
+                            await _emailService.SendTourOperatorNotificationEmailAsync(tourOpEmail, tourOpName, booking.BookingId, "Yêu cầu hoàn 70%", "Khách hàng huỷ trong khung 70%, vui lòng xử lý hoàn tiền trong 48 giờ.");
+                    }
                 }
             }
 

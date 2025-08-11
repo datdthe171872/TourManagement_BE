@@ -22,6 +22,9 @@ namespace TourManagement_BE.Data.DTO.Response
         // Payment Information
         public PaymentInfo PaymentInfo { get; set; } = new PaymentInfo();
         
+        // Payment Deadline (DepartureDate - 21 days)
+        public DateTime? PaymentDeadline { get; set; }
+
         // Guide Notes Information
         public List<GuideNotesInfo> GuideNotes { get; set; } = new List<GuideNotesInfo>();
     }

@@ -73,9 +73,12 @@ namespace TourManagement_BE
             builder.Services.AddScoped<INotificationService, NotificationService>();
             builder.Services.AddScoped<IDepartureDateService, DepartureDateService>();
             builder.Services.AddScoped<IReportService, ReportService>();
+            builder.Services.AddScoped<IEmailService, EmailService>();
 
             //PaymentIMAP
             builder.Services.AddHostedService<EmailPaymentBackgroundService>();
+            // Auto cancel overdue bookings & send reminders
+            builder.Services.AddHostedService<BookingBackgroundService>();
 
             // Register JwtHelper with configuration
             builder.Services.AddScoped<JwtHelper>(provider =>

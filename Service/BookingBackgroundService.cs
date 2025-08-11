@@ -51,7 +51,54 @@ namespace TourManagement_BE.BackgroundServices
 
             var currentDate = DateTime.Now;
 
-            // Lấy tất cả booking có PaymentStatus = Pending và đã quá hạn nộp tiền
+            // 1) Remind payments 2 days before PaymentDeadline for PENDING bookings
+            // PaymentDeadline = DepartureDate - 21 days; reminderDate = PaymentDeadline - 2 days
+            var pendingUpcomingBookings = await dbContext.Bookings
+                .Include(b => b.DepartureDate)
+                .Include(b => b.User)
+                .Where(b => b.IsActive &&
+                            b.PaymentStatus == PaymentStatus.Pending &&
+                            b.BookingStatus != BookingStatus.Cancelled &&
+                            b.DepartureDate.DepartureDate1 > currentDate)
+                .ToListAsync();
+
+            foreach (var booking in pendingUpcomingBookings)
+            {
+                var paymentDeadline = booking.DepartureDate.DepartureDate1.AddDays(-21);
+                var reminderDate = paymentDeadline.AddDays(-2);
+
+                if (currentDate.Date == reminderDate.Date)
+                {
+                    // Avoid duplicate reminders in the same day
+                    var alreadyReminded = await dbContext.Notifications
+                        .AnyAsync(n => n.UserId == booking.UserId &&
+                                       n.Type == "PaymentReminder" &&
+                                       n.RelatedEntityId == booking.BookingId.ToString() &&
+                                       n.CreatedAt.Date == currentDate.Date);
+
+                    if (!alreadyReminded)
+                    {
+                        await notificationService.CreateNotificationAsync(
+                            booking.UserId,
+                            "Nhắc nộp tiền",
+                            $"Booking #{booking.BookingId} sắp tới hạn thanh toán vào ngày {paymentDeadline:dd/MM/yyyy}. Vui lòng hoàn tất thanh toán.",
+                            "PaymentReminder",
+                            booking.BookingId.ToString());
+
+                        if (!string.IsNullOrEmpty(booking.User.Email))
+                        {
+                            await emailService.SendPaymentDueEmailAsync(
+                                booking.User.Email,
+                                booking.User.UserName ?? "Khách hàng",
+                                booking.BookingId,
+                                paymentDeadline,
+                                booking.TotalPrice ?? 0);
+                        }
+                    }
+                }
+            }
+
+            // 2) Lấy tất cả booking có PaymentStatus = Pending và đã quá hạn nộp tiền
             var overdueBookings = await dbContext.Bookings
                 .Include(b => b.DepartureDate)
                 .Include(b => b.User)
@@ -77,6 +124,13 @@ namespace TourManagement_BE.BackgroundServices
                         booking.PaymentStatus = PaymentStatus.Cancelled;
                         booking.IsActive = false;
 
+                        // Trả lại slot cho tour
+                        if (booking.Tour != null)
+                        {
+                            var totalPeople = (booking.NumberOfAdults ?? 0) + (booking.NumberOfChildren ?? 0) + (booking.NumberOfInfants ?? 0);
+                            booking.Tour.SlotsBooked = Math.Max(0, (booking.Tour.SlotsBooked ?? 0) - totalPeople);
+                        }
+
                         // Gửi thông báo cho khách hàng
                         await notificationService.CreatePaymentOverdueNotificationAsync(
                             booking.UserId, 
@@ -92,6 +146,13 @@ namespace TourManagement_BE.BackgroundServices
                                 booking.BookingId,
                                 paymentDueDate,
                                 booking.TotalPrice ?? 0);
+
+                            // Gửi thêm email thông báo đã bị hủy
+                            await emailService.SendBookingCancelledEmailAsync(
+                                booking.User.Email,
+                                booking.User.UserName ?? "Khách hàng",
+                                booking.BookingId,
+                                "Quá hạn thanh toán");
                         }
 
                         // Gửi thông báo cho Tour Operator
