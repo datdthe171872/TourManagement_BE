@@ -26,6 +26,7 @@ namespace TourManagement_BE.Data.DTO.Response
         public DateTime? PaymentDeadline { get; set; }
 
         // Guide Notes Information
+
         public List<GuideNotesInfo> GuideNotes { get; set; } = new List<GuideNotesInfo>();
     }
 
