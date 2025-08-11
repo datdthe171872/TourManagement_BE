@@ -209,4 +209,26 @@ public class NotificationService : INotificationService
             ratingId.ToString()
         );
     }
+
+    public async Task CreatePaymentOverdueNotificationAsync(int userId, int bookingId, DateTime paymentDueDate)
+    {
+        await CreateNotificationAsync(
+            userId,
+            "Quá hạn thanh toán",
+            $"Booking #{bookingId} đã quá hạn thanh toán. Hạn cuối thanh toán: {paymentDueDate:dd/MM/yyyy}. Booking đã bị hủy tự động.",
+            "PaymentOverdue",
+            bookingId.ToString()
+        );
+    }
+
+    public async Task CreateTourOperatorNotificationAsync(int userId, int bookingId, string title, string message)
+    {
+        await CreateNotificationAsync(
+            userId,
+            title,
+            message,
+            "TourOperatorNotification",
+            bookingId.ToString()
+        );
+    }
 } 
