@@ -107,6 +107,7 @@ namespace TourManagement_BE
             builder.Services.AddScoped<INotificationService, NotificationService>();
             builder.Services.AddScoped<IDepartureDateService, DepartureDateService>();
             builder.Services.AddScoped<IReportService, ReportService>();
+            builder.Services.AddScoped<IEmailService, EmailService>();
 
 
             //ServicePacakge
@@ -120,6 +121,8 @@ namespace TourManagement_BE
             //Payment
             builder.Services.AddScoped<IPaymentService, PaymentService>();
             builder.Services.AddHostedService<EmailPaymentBackgroundService>();
+            // Auto cancel overdue bookings & send reminders
+            builder.Services.AddHostedService<BookingBackgroundService>();
 
             //Profile
             builder.Services.AddScoped<IProfileService, ProfileService>();
