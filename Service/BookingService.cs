@@ -124,6 +124,36 @@ namespace TourManagement_BE.Service
                     .ThenInclude(t => t.TourOperator)
                 .FirstOrDefaultAsync(b => b.BookingId == booking.BookingId);
 
+            // Send emails to customer and tour operator
+            try
+            {
+                var customerEmail = bookingWithNav.User?.Email;
+                var customerName = bookingWithNav.User?.UserName ?? "Khách hàng";
+                if (!string.IsNullOrWhiteSpace(customerEmail))
+                {
+                    await _emailService.SendBookingUpdateEmailAsync(customerEmail, customerName, bookingWithNav.BookingId, "Tạo đặt tour thành công");
+                }
+
+                var tourOperatorId = bookingWithNav.Tour != null ? bookingWithNav.Tour.TourOperatorId : (int?)null;
+                var tourOperatorEntity = tourOperatorId.HasValue
+                    ? await _context.TourOperators
+                        .Include(to => to.User)
+                        .FirstOrDefaultAsync(to => to.TourOperatorId == tourOperatorId.Value)
+                    : null;
+                var tourOpEmail = tourOperatorEntity?.User?.Email;
+                var tourOpName = tourOperatorEntity?.CompanyName ?? "Tour Operator";
+                if (!string.IsNullOrWhiteSpace(tourOpEmail))
+                {
+                    await _emailService.SendTourOperatorNotificationEmailAsync(
+                        tourOpEmail,
+                        tourOpName,
+                        bookingWithNav.BookingId,
+                        "Đặt tour mới",
+                        $"Khách hàng {customerName} đã tạo đặt tour.");
+                }
+            }
+            catch { }
+
             return new BookingResponse
             {
                 BookingId = bookingWithNav.BookingId,
@@ -164,6 +194,36 @@ namespace TourManagement_BE.Service
             if (request.Contract != null)
                 booking.Contract = request.Contract;
             await _context.SaveChangesAsync();
+            
+            // Send emails to customer and tour operator about customer update
+            try
+            {
+                var customerEmail = booking.User?.Email;
+                var customerName = booking.User?.UserName ?? "Khách hàng";
+                if (!string.IsNullOrWhiteSpace(customerEmail))
+                {
+                    await _emailService.SendBookingUpdateEmailAsync(customerEmail, customerName, booking.BookingId, "Khách hàng cập nhật đặt tour");
+                }
+
+                var tourOperatorId2 = booking.Tour != null ? booking.Tour.TourOperatorId : (int?)null;
+                var tourOperatorEntity = tourOperatorId2.HasValue
+                    ? await _context.TourOperators
+                        .Include(to => to.User)
+                        .FirstOrDefaultAsync(to => to.TourOperatorId == tourOperatorId2.Value)
+                    : null;
+                var tourOpEmail = tourOperatorEntity?.User?.Email;
+                var tourOpName = tourOperatorEntity?.CompanyName ?? "Tour Operator";
+                if (!string.IsNullOrWhiteSpace(tourOpEmail))
+                {
+                    await _emailService.SendTourOperatorNotificationEmailAsync(
+                        tourOpEmail,
+                        tourOpName,
+                        booking.BookingId,
+                        "Khách hàng cập nhật đặt tour",
+                        $"Khách hàng {customerName} đã cập nhật thông tin đặt tour.");
+                }
+            }
+            catch { }
             return new BookingResponse
             {
                 BookingId = booking.BookingId,
@@ -233,7 +293,7 @@ namespace TourManagement_BE.Service
                 .Include(b => b.User)
                 .Include(b => b.Tour).ThenInclude(t => t.TourOperator)
                 .Include(b => b.DepartureDate)
-                .FirstOrDefaultAsync(b => b.BookingId == bookingId && b.IsActive);
+                .FirstOrDefaultAsync(b => b.BookingId == bookingId);
             if (booking == null) return null;
             return MapToBookingDetailResponse(booking);
         }
@@ -248,6 +308,36 @@ namespace TourManagement_BE.Service
             if (booking == null) return null;
             booking.Contract = request.Contract;
             await _context.SaveChangesAsync();
+            
+            // Send emails to customer and tour operator about operator update
+            try
+            {
+                var customerEmail = booking.User?.Email;
+                var customerName = booking.User?.UserName ?? "Khách hàng";
+                if (!string.IsNullOrWhiteSpace(customerEmail))
+                {
+                    await _emailService.SendBookingUpdateEmailAsync(customerEmail, customerName, booking.BookingId, "Nhà điều hành cập nhật hợp đồng");
+                }
+
+                var tourOperatorId3 = booking.Tour != null ? booking.Tour.TourOperatorId : (int?)null;
+                var tourOperatorEntity = tourOperatorId3.HasValue
+                    ? await _context.TourOperators
+                        .Include(to => to.User)
+                        .FirstOrDefaultAsync(to => to.TourOperatorId == tourOperatorId3.Value)
+                    : null;
+                var tourOpEmail = tourOperatorEntity?.User?.Email;
+                var tourOpName = tourOperatorEntity?.CompanyName ?? "Tour Operator";
+                if (!string.IsNullOrWhiteSpace(tourOpEmail))
+                {
+                    await _emailService.SendTourOperatorNotificationEmailAsync(
+                        tourOpEmail,
+                        tourOpName,
+                        booking.BookingId,
+                        "Cập nhật hợp đồng",
+                        $"Bạn vừa cập nhật hợp đồng cho đặt tour #{booking.BookingId}.");
+                }
+            }
+            catch { }
             return new BookingResponse
             {
                 BookingId = booking.BookingId,
@@ -326,7 +416,7 @@ namespace TourManagement_BE.Service
             var query = _context.Bookings
                 .Include(x => x.Tour).ThenInclude(t => t.TourOperator)
                 .Include(x => x.User)
-                .Where(x => x.Tour != null && x.Tour.TourOperatorId == tourOperator.TourOperatorId && x.IsActive);
+                .Where(x => x.Tour != null && x.Tour.TourOperatorId == tourOperator.TourOperatorId);
 
             // Search by Tour Name
             if (!string.IsNullOrEmpty(request.TourName))
@@ -421,7 +511,6 @@ namespace TourManagement_BE.Service
                 .Include(x => x.Tour).ThenInclude(t => t.TourOperator)
                 .Include(x => x.User)
                 .Include(x => x.DepartureDate)
-                .Where(x => x.IsActive)
                 .AsQueryable();
 
             // Search by Tour Name
@@ -449,7 +538,7 @@ namespace TourManagement_BE.Service
                 .Include(x => x.Tour).ThenInclude(t => t.TourOperator)
                 .Include(x => x.User)
                 .Include(x => x.DepartureDate)
-                .Where(x => x.UserId == userId && x.IsActive);
+                .Where(x => x.UserId == userId);
 
             // Search by Tour Name
             if (!string.IsNullOrEmpty(request.TourName))
@@ -507,7 +596,7 @@ namespace TourManagement_BE.Service
                 .Include(x => x.Tour).ThenInclude(t => t.TourOperator)
                 .Include(x => x.User)
                 .Include(x => x.DepartureDate)
-                .Where(x => x.IsActive);
+                .AsQueryable();
 
             // Search by Tour Name
             if (!string.IsNullOrEmpty(request.TourName))
@@ -640,6 +729,40 @@ namespace TourManagement_BE.Service
                 booking.BookingId.ToString()
             );
 
+            // Send emails to customer and tour operator
+            try
+            {
+                var customerEmail = booking.User?.Email;
+                var customerName = booking.User?.UserName ?? "Khách hàng";
+                if (!string.IsNullOrWhiteSpace(customerEmail))
+                {
+                    await _emailService.SendBookingUpdateEmailAsync(
+                        customerEmail,
+                        customerName,
+                        booking.BookingId,
+                        $"Cập nhật trạng thái thanh toán: {request.PaymentStatus}");
+                }
+
+                var tourOperatorId4 = booking.Tour != null ? booking.Tour.TourOperatorId : (int?)null;
+                var tourOperatorEntity = tourOperatorId4.HasValue
+                    ? await _context.TourOperators
+                        .Include(to => to.User)
+                        .FirstOrDefaultAsync(to => to.TourOperatorId == tourOperatorId4.Value)
+                    : null;
+                var tourOpEmail = tourOperatorEntity?.User?.Email;
+                var tourOpName = tourOperatorEntity?.CompanyName ?? "Tour Operator";
+                if (!string.IsNullOrWhiteSpace(tourOpEmail))
+                {
+                    await _emailService.SendTourOperatorNotificationEmailAsync(
+                        tourOpEmail,
+                        tourOpName,
+                        booking.BookingId,
+                        "Cập nhật trạng thái thanh toán",
+                        $"Trạng thái thanh toán của đặt tour #{booking.BookingId} đã được cập nhật: {request.PaymentStatus}.");
+                }
+            }
+            catch { }
+
             return new BookingResponse
             {
                 BookingId = booking.BookingId,
@@ -694,6 +817,40 @@ namespace TourManagement_BE.Service
                 "Booking",
                 booking.BookingId.ToString()
             );
+
+            // Send emails to customer and tour operator
+            try
+            {
+                var customerEmail = booking.User?.Email;
+                var customerName = booking.User?.UserName ?? "Khách hàng";
+                if (!string.IsNullOrWhiteSpace(customerEmail))
+                {
+                    await _emailService.SendBookingUpdateEmailAsync(
+                        customerEmail,
+                        customerName,
+                        booking.BookingId,
+                        $"Cập nhật trạng thái đặt tour: {request.BookingStatus}");
+                }
+
+                var tourOperatorId5 = booking.Tour != null ? booking.Tour.TourOperatorId : (int?)null;
+                var tourOperatorEntity = tourOperatorId5.HasValue
+                    ? await _context.TourOperators
+                        .Include(to => to.User)
+                        .FirstOrDefaultAsync(to => to.TourOperatorId == tourOperatorId5.Value)
+                    : null;
+                var tourOpEmail = tourOperatorEntity?.User?.Email;
+                var tourOpName = tourOperatorEntity?.CompanyName ?? "Tour Operator";
+                if (!string.IsNullOrWhiteSpace(tourOpEmail))
+                {
+                    await _emailService.SendTourOperatorNotificationEmailAsync(
+                        tourOpEmail,
+                        tourOpName,
+                        booking.BookingId,
+                        "Cập nhật trạng thái đặt tour",
+                        $"Trạng thái đặt tour #{booking.BookingId} đã được cập nhật: {request.BookingStatus}.");
+                }
+            }
+            catch { }
 
             return new BookingResponse
             {
@@ -776,8 +933,39 @@ namespace TourManagement_BE.Service
                         "Booking",
                         booking.BookingId.ToString()
                     );
+                    // Send email to tour operator
+                    try
+                    {
+                        var tourOperatorEntity = await _context.TourOperators
+                            .Include(to => to.User)
+                            .FirstOrDefaultAsync(to => to.TourOperatorId == tour.TourOperatorId);
+                        var tourOpEmail = tourOperatorEntity?.User?.Email;
+                        var tourOpName = tourOperatorEntity?.CompanyName ?? "Tour Operator";
+                        if (!string.IsNullOrWhiteSpace(tourOpEmail))
+                        {
+                            await _emailService.SendTourOperatorNotificationEmailAsync(
+                                tourOpEmail,
+                                tourOpName,
+                                booking.BookingId,
+                                "Huỷ đặt tour",
+                                $"Khách hàng {booking.User?.UserName} đã huỷ đặt tour #{booking.BookingId}.");
+                        }
+                    }
+                    catch { }
                 }
             }
+
+            // Send email to customer about cancellation
+            try
+            {
+                var customerEmail = booking.User?.Email;
+                var customerName = booking.User?.UserName ?? "Khách hàng";
+                if (!string.IsNullOrWhiteSpace(customerEmail))
+                {
+                    await _emailService.SendBookingCancelledEmailAsync(customerEmail, customerName, booking.BookingId, "Huỷ bởi khách hàng");
+                }
+            }
+            catch { }
 
             // Refund flows based on PaymentDeadline
             if (booking.PaymentStatus == PaymentStatus.Paid)
