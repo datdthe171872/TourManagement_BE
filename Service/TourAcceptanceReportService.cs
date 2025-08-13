@@ -51,6 +51,7 @@ namespace TourManagement_BE.Service
                 GuideNotes = r.GuideNotes.Select(gn => new GuideNoteResponse
                 {
                     NoteId = gn.NoteId,
+                    BookingId = gn.BookingId,
                     AssignmentId = gn.AssignmentId,
                     Title = gn.Title,
                     Content = gn.Content,
@@ -90,6 +91,7 @@ namespace TourManagement_BE.Service
                 GuideNotes = report.GuideNotes.Select(gn => new GuideNoteResponse
                 {
                     NoteId = gn.NoteId,
+                    BookingId = gn.BookingId,
                     AssignmentId = gn.AssignmentId,
                     Title = gn.Title,
                     Content = gn.Content,
@@ -203,6 +205,7 @@ namespace TourManagement_BE.Service
                 GuideNotes = r.GuideNotes.Select(gn => new GuideNoteResponse
                 {
                     NoteId = gn.NoteId,
+                    BookingId = gn.BookingId,
                     AssignmentId = gn.AssignmentId,
                     Title = gn.Title,
                     Content = gn.Content,
