@@ -6,6 +6,8 @@ namespace TourManagement_BE.Data.DTO.Response
     public class GuideNoteResponse
     {
         public int NoteId { get; set; }
+
+        public int BookingId { get; set; }
         public int AssignmentId { get; set; }
         public int ReportId { get; set; }
         public string Title { get; set; }

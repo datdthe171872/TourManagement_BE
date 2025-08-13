@@ -52,6 +52,7 @@ namespace TourManagement_BE.Service
                 return new GuideNoteResponse
                 {
                     NoteId = n.NoteId,
+                    BookingId = n.BookingId,
                     AssignmentId = n.AssignmentId,
                     ReportId = n.ReportId,
                     Title = n.Title,
@@ -536,6 +537,7 @@ namespace TourManagement_BE.Service
             return notes.Select(n => new GuideNoteResponse
             {
                 NoteId = n.NoteId,
+                BookingId = n.BookingId,
                 AssignmentId = n.AssignmentId,
                 ReportId = n.ReportId,
                 Title = n.Title,

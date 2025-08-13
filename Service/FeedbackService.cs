@@ -508,4 +508,65 @@ public class FeedbackService : IFeedbackService
             TotalPages = totalPages
         };
     }
+
+    public async Task<TourAverageRatingResponse> GetTourAverageRatingAsync(int tourId)
+    {
+        // Lấy thông tin tour
+        var tour = await _context.Tours
+            .FirstOrDefaultAsync(t => t.TourId == tourId && t.IsActive);
+        
+        if (tour == null)
+        {
+            throw new InvalidOperationException($"Tour với ID {tourId} không tồn tại hoặc không active");
+        }
+
+        // Lấy tất cả rating của tour này (chỉ active ratings)
+        var ratings = await _context.TourRatings
+            .Where(tr => tr.TourId == tourId && tr.IsActive && tr.Rating.HasValue)
+            .ToListAsync();
+
+        if (!ratings.Any())
+        {
+            // Trả về response với rating 0 nếu không có rating nào
+            return new TourAverageRatingResponse
+            {
+                TourId = tourId,
+                TourTitle = tour.Title,
+                AverageRating = 0,
+                TotalRatings = 0,
+                Rating1Count = 0,
+                Rating2Count = 0,
+                Rating3Count = 0,
+                Rating4Count = 0,
+                Rating5Count = 0,
+                LastRatingDate = null
+            };
+        }
+
+        // Tính toán các thống kê
+        var totalRatings = ratings.Count;
+        var averageRating = ratings.Average(r => r.Rating.Value);
+        var lastRatingDate = ratings.Max(r => r.CreatedAt);
+
+        // Đếm số lượng từng loại rating
+        var rating1Count = ratings.Count(r => r.Rating == 1);
+        var rating2Count = ratings.Count(r => r.Rating == 2);
+        var rating3Count = ratings.Count(r => r.Rating == 3);
+        var rating4Count = ratings.Count(r => r.Rating == 4);
+        var rating5Count = ratings.Count(r => r.Rating == 5);
+
+        return new TourAverageRatingResponse
+        {
+            TourId = tourId,
+            TourTitle = tour.Title,
+            AverageRating = Math.Round(averageRating, 2), // Làm tròn đến 2 chữ số thập phân
+            TotalRatings = totalRatings,
+            Rating1Count = rating1Count,
+            Rating2Count = rating2Count,
+            Rating3Count = rating3Count,
+            Rating4Count = rating4Count,
+            Rating5Count = rating5Count,
+            LastRatingDate = lastRatingDate
+        };
+    }
 } 

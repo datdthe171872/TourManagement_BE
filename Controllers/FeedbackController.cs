@@ -359,4 +359,30 @@ public class FeedbackController : ControllerBase
             return StatusCode(500, new { message = "Có lỗi xảy ra khi lấy danh sách feedback", error = ex.Message });
         }
     }
+
+    /// <summary>
+    /// Lấy thông tin trung bình rating của Tour
+    /// </summary>
+    /// <param name="tourId">ID của tour</param>
+    /// <returns>Thông tin trung bình rating và thống kê chi tiết</returns>
+    [HttpGet("tour/{tourId}/average-rating")]
+    public async Task<IActionResult> GetTourAverageRating(int tourId)
+    {
+        try
+        {
+            var result = await _feedbackService.GetTourAverageRatingAsync(tourId);
+            return Ok(new {
+                message = "Lấy thông tin trung bình rating của tour thành công",
+                data = result
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Có lỗi xảy ra khi lấy thông tin rating", error = ex.Message });
+        }
+    }
 } 

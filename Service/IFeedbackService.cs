@@ -22,4 +22,7 @@ public interface IFeedbackService
     
     // New method for getting all feedbacks with TourId search
     Task<FeedbackListResponse> GetAllFeedbacksAsync(AllFeedbackSearchRequest request);
+    
+    // New method for getting tour average rating
+    Task<TourAverageRatingResponse> GetTourAverageRatingAsync(int tourId);
 } 
