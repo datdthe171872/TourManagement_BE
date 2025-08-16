@@ -131,7 +131,16 @@ namespace TourManagement_BE.Service
                 var customerName = bookingWithNav.User?.UserName ?? "Khách hàng";
                 if (!string.IsNullOrWhiteSpace(customerEmail))
                 {
-                    await _emailService.SendBookingUpdateEmailAsync(customerEmail, customerName, bookingWithNav.BookingId, "Tạo đặt tour thành công");
+                    // Gửi email thông báo thanh toán cho khách hàng
+                    var tourOperatorPhone = bookingWithNav.Tour?.TourOperator?.Hotline ?? "Không có thông tin";
+                    await _emailService.SendBookingCreatedPaymentEmailAsync(
+                        customerEmail, 
+                        customerName, 
+                        bookingWithNav.BookingId, 
+                        bookingWithNav.TotalPrice ?? 0, 
+                        paymentDeadline, 
+                        tourOperatorPhone
+                    );
                 }
 
                 var tourOperatorId = bookingWithNav.Tour != null ? bookingWithNav.Tour.TourOperatorId : (int?)null;

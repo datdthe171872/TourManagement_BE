@@ -1,0 +1,42 @@
+### Test API tạo booking và gửi email thông báo thanh toán
+
+# 1. Đăng nhập để lấy token
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+    "email": "customer@example.com",
+    "password": "password123"
+}
+
+###
+
+# 2. Tạo booking mới (sử dụng token từ bước 1)
+POST {{baseUrl}}/api/booking/create
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+    "tourId": 1,
+    "departureDateId": 1,
+    "numberOfAdults": 2,
+    "numberOfChildren": 1,
+    "numberOfInfants": 0,
+    "noteForTour": "Test booking với email thông báo thanh toán"
+}
+
+###
+
+# 3. Kiểm tra email đã được gửi
+# Email sẽ được gửi đến địa chỉ email của user đã đăng nhập
+# Nội dung email sẽ bao gồm:
+# - Mã đặt tour
+# - Số tiền cần thanh toán (TotalPrice)
+# - Hạn thanh toán (PaymentDeadline = DepartureDate - 21 ngày)
+# - Số điện thoại liên hệ của Tour Operator
+
+# Lưu ý: Đảm bảo rằng:
+# - Tour có TourOperator với Hotline
+# - DepartureDate cách ngày hiện tại ít nhất 21 ngày
+# - User có email hợp lệ
+# - Email service đã được cấu hình đúng

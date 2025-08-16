@@ -103,6 +103,22 @@ namespace TourManagement_BE.Service
 
             await _emailHelper.SendEmailAsync(toEmail, subject, body);
         }
+
+        public async Task SendBookingCreatedPaymentEmailAsync(string toEmail, string customerName, int bookingId, decimal totalAmount, DateTime paymentDeadline, string tourOperatorPhone)
+        {
+            var subject = $"Thông báo: Đặt tour #{bookingId} thành công - Thông tin thanh toán";
+            var body = $@"
+                <h2>Xin chào {customerName},</h2>
+                <p>Chúc mừng! Đặt tour của bạn đã được tạo thành công.</p>
+                <p><strong>Mã đặt tour:</strong> #{bookingId}</p>
+                <p><strong>Số tiền cần thanh toán:</strong> {totalAmount:N0} VNĐ</p>
+                <p><strong>Hạn thanh toán:</strong> {paymentDeadline:dd/MM/yyyy}</p>
+                <p>Vui lòng hoàn tất thanh toán trước hạn để đảm bảo vị trí của bạn trong tour.</p>
+                <p>Nếu bạn có thắc mắc, vui lòng liên hệ qua số điện thoại: <strong>{tourOperatorPhone}</strong></p>
+                <p>Trân trọng,<br>Đội ngũ hỗ trợ</p>";
+
+            await _emailHelper.SendEmailAsync(toEmail, subject, body);
+        }
     }
 }
 //abc
