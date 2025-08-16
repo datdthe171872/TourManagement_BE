@@ -108,6 +108,7 @@ namespace TourManagement_BE
             builder.Services.AddScoped<IDepartureDateService, DepartureDateService>();
             builder.Services.AddScoped<IReportService, ReportService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
+            builder.Services.AddScoped<ITourComparisonService, TourComparisonService>();
 
 
             //ServicePacakge

@@ -1,0 +1,61 @@
+### Test API So sánh 2 Tour
+
+# 1. So sánh tour bằng POST request
+POST {{baseUrl}}/api/compare/tours
+Content-Type: application/json
+
+{
+    "tour1Id": 1,
+    "tour2Id": 2
+}
+
+###
+
+# 2. So sánh tour bằng GET request (nhanh hơn)
+GET {{baseUrl}}/api/compare/tours/1/2
+
+###
+
+# 3. Test validation - So sánh tour với chính nó
+POST {{baseUrl}}/api/compare/tours
+Content-Type: application/json
+
+{
+    "tour1Id": 1,
+    "tour2Id": 1
+}
+
+###
+
+# 4. Test validation - TourId không hợp lệ
+POST {{baseUrl}}/api/compare/tours
+Content-Type: application/json
+
+{
+    "tour1Id": 0,
+    "tour2Id": 2
+}
+
+###
+
+# 5. Test với tour không tồn tại
+POST {{baseUrl}}/api/compare/tours
+Content-Type: application/json
+
+{
+    "tour1Id": 999,
+    "tour2Id": 2
+}
+
+###
+
+# Kết quả so sánh sẽ bao gồm:
+# - Thông tin chi tiết của 2 tour
+# - So sánh 5 tiêu chí:
+#   1. Giá người lớn (giá thấp hơn tốt hơn)
+#   2. Thời gian tour (thời gian dài hơn tốt hơn)  
+#   3. Tỷ lệ đặt chỗ (tỷ lệ cao hơn tốt hơn)
+#   4. Điểm đánh giá (điểm cao hơn tốt hơn)
+#   5. Số lượng đánh giá (nhiều feedback hơn tốt hơn)
+# - Kết quả tổng thể: Tour nào thắng bao nhiêu tiêu chí
+# - Mô tả chi tiết cho từng tiêu chí

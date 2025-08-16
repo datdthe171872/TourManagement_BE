@@ -12,6 +12,7 @@ namespace TourManagement_BE.Service
         Task SendRefundEmailAsync(string toEmail, string customerName, int bookingId, decimal refundAmount, string refundPercentage);
         Task SendBookingUpdateEmailAsync(string toEmail, string customerName, int bookingId, string updateType);
         Task SendTourOperatorNotificationEmailAsync(string toEmail, string tourOperatorName, int bookingId, string title, string message);
+        Task SendBookingCreatedPaymentEmailAsync(string toEmail, string customerName, int bookingId, decimal totalAmount, DateTime paymentDeadline, string tourOperatorPhone);
     }
 }
 //abc
