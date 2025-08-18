@@ -4,3 +4,13 @@ GET {{TourManagement_BE_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+
+# @name chatbot
+POST {{TourManagement_BE_HostAddress}}/api/chatbot
+Content-Type: application/json
+
+{
+  "message": "Mình muốn tour Đà Nẵng 3 ngày tầm 4tr"
+}
+
+###
