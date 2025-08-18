@@ -158,7 +158,7 @@ public class TourOperatorController : ControllerBase
     /// Lấy thông tin UserId, UserName, TourOperatorId, Email của Tour Operator đang đăng nhập
     /// </summary>
     [HttpGet("user-operator")]
-    [Authorize(Roles = "Tour Operator")]
+    [Authorize]
     public async Task<IActionResult> GetUserOperatorList()
     {
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -179,7 +179,7 @@ public class TourOperatorController : ControllerBase
             .FirstOrDefaultAsync();
         if (data == null)
         {
-            return NotFound(new { message = "Không tìm thấy thông tin Tour Operator cho user này." });
+            return Ok(new object[] { }); // Trả về mảng rỗng JSON []
         }
         return Ok(data);
     }
