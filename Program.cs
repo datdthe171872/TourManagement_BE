@@ -109,6 +109,8 @@ namespace TourManagement_BE
             builder.Services.AddScoped<IReportService, ReportService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddScoped<ITourComparisonService, TourComparisonService>();
+            builder.Services.AddScoped<IChatbotService, ChatbotService>();
+            builder.Services.AddSingleton<IGeminiClient, GeminiClient>();
 
 
             //ServicePacakge
