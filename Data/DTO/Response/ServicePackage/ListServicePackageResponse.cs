@@ -24,7 +24,7 @@
 
         public bool IsActive { get; set; }
 
-        //public List<ServicePackageFeaturesResponse> ServicePackageFeaturesResponses { get; set; } = new();
+        public List<ServicePackageFeaturesResponse> ServicePackageFeaturesResponses { get; set; } = new();
 
     }
 }

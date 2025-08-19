@@ -6,11 +6,9 @@
 
         public int PackageId { get; set; }
 
-        public int NumberOfTours { get; set; }
+        public string FeatureName { get; set; }
 
-        public int NumberOfTourAttribute { get; set; }
-
-        public bool PostVideo { get; set; }
+        public string FeatureValue { get; set; }
 
         public bool IsActive { get; set; }
     }
