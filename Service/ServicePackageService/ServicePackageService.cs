@@ -76,88 +76,204 @@ namespace TourManagement_BE.Service.ServicePackageService
             };
         }
 
-        public async Task CreateAsync(CreateServicePackageRequest request)
+        public async Task<ServiceResult> CreateAsync(CreateServicePackageRequest request)
         {
-            var service = request.ToDto();
-            await _context.ServicePackages.AddAsync(service);
-            await _context.SaveChangesAsync();
-        }
+            var result = new ServiceResult();
 
-        public async Task AddFeatureAsync(AddServicePackageFeatureRequest request)
-        {
-            var packageExists = await _context.ServicePackages
-                .AnyAsync(p => p.PackageId == request.PackageId);
-
-            if (!packageExists)
+            try
             {
-                throw new KeyNotFoundException($"ServicePackage with ID {request.PackageId} not found");
+                var service = request.ToDto();
+                await _context.ServicePackages.AddAsync(service);
+                await _context.SaveChangesAsync();
+
+                result.Data = service;
+                result.Message = "Service package created successfully";
+            }
+            catch (Exception ex)
+            {
+                result.Success = false;
+                result.Message = $"Failed to create service package: {ex.Message}";
             }
 
-            var newFeature = new ServicePackageFeature
+            return result;
+        }
+
+        public async Task<ServiceResult> AddFeatureAsync(AddServicePackageFeatureRequest request)
+        {
+            var result = new ServiceResult();
+
+            try
             {
-                PackageId = request.PackageId,
-                FeatureName = request.FeatureName,
-                FeatureValue = request.FeatureValue,
-                IsActive = request.IsActive
-            };
+                var packageExists = await _context.ServicePackages
+                    .AnyAsync(p => p.PackageId == request.PackageId);
 
-            await _context.ServicePackageFeatures.AddAsync(newFeature);
-            await _context.SaveChangesAsync();
+                if (!packageExists)
+                {
+                    result.Success = false;
+                    result.Message = $"ServicePackage with ID {request.PackageId} not found";
+                    return result;
+                }
+
+                var newFeature = new ServicePackageFeature
+                {
+                    PackageId = request.PackageId,
+                    FeatureName = request.FeatureName,
+                    FeatureValue = request.FeatureValue,
+                    IsActive = request.IsActive
+                };
+
+                await _context.ServicePackageFeatures.AddAsync(newFeature);
+                await _context.SaveChangesAsync();
+
+                result.Data = newFeature;
+                result.Message = "Feature added successfully";
+            }
+            catch (Exception ex)
+            {
+                result.Success = false;
+                result.Message = $"Failed to add feature: {ex.Message}";
+            }
+
+            return result;
         }
 
-        public async Task UpdateAsync(UpdateServicePackageRequest request)
+        public async Task<ServiceResult> UpdateAsync(UpdateServicePackageRequest request)
         {
-            var service = await _context.ServicePackages
-                .FirstOrDefaultAsync(u => u.PackageId == request.PackageId)
-                ?? throw new KeyNotFoundException("Service Package not found.");
+            var result = new ServiceResult();
 
-            service.Name = request.Name;
-            service.Description = request.Description;
-            service.Price = request.Price;
-            service.DiscountPercentage = request.DiscountPercentage;
-            service.MaxTour = request.MaxTour;
-            service.MaxImage = request.MaxImage;
-            service.MaxVideo = request.MaxVideo;
-            service.TourGuideFunction = request.TourGuideFunction;
-            service.IsActive = request.IsActive;
+            try
+            {
+                var service = await _context.ServicePackages
+                    .FirstOrDefaultAsync(u => u.PackageId == request.PackageId);
 
-            await _context.SaveChangesAsync();
+                if (service == null)
+                {
+                    result.Success = false;
+                    result.Message = "Service Package not found";
+                    return result;
+                }
+
+                service.Name = request.Name;
+                service.Description = request.Description;
+                service.Price = request.Price;
+                service.DiscountPercentage = request.DiscountPercentage;
+                service.MaxTour = request.MaxTour;
+                service.MaxImage = request.MaxImage;
+                service.MaxVideo = request.MaxVideo;
+                service.TourGuideFunction = request.TourGuideFunction;
+                service.IsActive = request.IsActive;
+
+                await _context.SaveChangesAsync();
+
+                result.Data = service;
+                result.Message = "Service package updated successfully";
+            }
+            catch (Exception ex)
+            {
+                result.Success = false;
+                result.Message = $"Failed to update service package: {ex.Message}";
+            }
+
+            return result;
         }
 
-        public async Task UpdateFeatureAsync(UpdateServicePackageFeatureRequest request)
+        public async Task<ServiceResult> UpdateFeatureAsync(UpdateServicePackageFeatureRequest request)
         {
-            var feature = await _context.ServicePackageFeatures
-                .FirstOrDefaultAsync(f => f.FeatureId == request.FeatureId)
-                ?? throw new KeyNotFoundException($"Feature with ID {request.FeatureId} not found");
+            var result = new ServiceResult();
 
-            feature.FeatureName = request.FeatureName;
-            feature.FeatureValue = request.FeatureValue;
-            feature.IsActive = request.IsActive;
+            try
+            {
+                var feature = await _context.ServicePackageFeatures
+                    .FirstOrDefaultAsync(f => f.FeatureId == request.FeatureId);
 
-            await _context.SaveChangesAsync();
+                if (feature == null)
+                {
+                    result.Success = false;
+                    result.Message = $"Feature with ID {request.FeatureId} not found";
+                    return result;
+                }
+
+                feature.FeatureName = request.FeatureName;
+                feature.FeatureValue = request.FeatureValue;
+                feature.IsActive = request.IsActive;
+
+                await _context.SaveChangesAsync();
+
+                result.Data = feature;
+                result.Message = "Feature updated successfully";
+            }
+            catch (Exception ex)
+            {
+                result.Success = false;
+                result.Message = $"Failed to update feature: {ex.Message}";
+            }
+
+            return result;
         }
 
-        public async Task ToggleStatusAsync(int packageId)
+        public async Task<ServiceResult> ToggleStatusAsync(int packageId)
         {
-            var service = await _context.ServicePackages.FindAsync(packageId)
-                ?? throw new KeyNotFoundException("Service package not found.");
+            var result = new ServiceResult();
 
-            service.IsActive = !service.IsActive;
-            await _context.SaveChangesAsync();
+            try
+            {
+                var service = await _context.ServicePackages.FirstOrDefaultAsync(f => f.PackageId == packageId);
+                if (service == null)
+                {
+                    result.Success = false;
+                    result.Message = "Service package not found";
+                    return result;
+                }
+
+                service.IsActive = !service.IsActive;
+                await _context.SaveChangesAsync();
+
+                result.Success = true;
+                result.Data = service;
+                result.Message = $"Service package {(service.IsActive ? "activated" : "deactivated")} successfully";
+            }
+            catch (Exception ex)
+            {
+                result.Success = false;
+                result.Message = $"Failed to toggle status: {ex.Message}";
+            }
+
+            return result;
         }
 
-        public async Task ToggleFeatureStatusAsync(int featureId)
+        public async Task<ServiceResult> ToggleFeatureStatusAsync(int featureId)
         {
-            var feature = await _context.ServicePackageFeatures.FindAsync(featureId)
-                ?? throw new KeyNotFoundException("Service package feature not found.");
+            var result = new ServiceResult();
 
-            feature.IsActive = !feature.IsActive;
-            await _context.SaveChangesAsync();
+            try
+            {
+                var feature = await _context.ServicePackageFeatures.FirstOrDefaultAsync(f => f.FeatureId == featureId);
+                if (feature == null)
+                {
+                    result.Success = false;
+                    result.Message = "Service package feature not found";
+                    return result;
+                }
+
+                feature.IsActive = !feature.IsActive;
+                await _context.SaveChangesAsync();
+
+                result.Success = true;
+                result.Data = feature;
+                result.Message = $"Feature {(feature.IsActive ? "activated" : "deactivated")} successfully";
+            }
+            catch (Exception ex)
+            {
+                result.Success = false;
+                result.Message = $"Failed to toggle feature status: {ex.Message}";
+            }
+
+            return result;
         }
 
         public async Task<ListServicePackageResponse> GetDetailForCustomerAsync(int packageId)
         {
-            return await _context.ServicePackages
+            return await _context.ServicePackages.Include(p => p.ServicePackageFeatures)
                 .Where(u => u.PackageId == packageId && u.IsActive)
                 .Select(u => MapToResponse(u))
                 .FirstOrDefaultAsync()
@@ -166,7 +282,7 @@ namespace TourManagement_BE.Service.ServicePackageService
 
         public async Task<ListServicePackageResponse> GetDetailForAdminAsync(int packageId)
         {
-            return await _context.ServicePackages
+            return await _context.ServicePackages.Include(p => p.ServicePackageFeatures)
                 .Where(u => u.PackageId == packageId)
                 .Select(u => MapToResponse(u))
                 .FirstOrDefaultAsync()
@@ -220,7 +336,19 @@ namespace TourManagement_BE.Service.ServicePackageService
                 MaxVideo = package.MaxVideo,
                 TourGuideFunction = package.TourGuideFunction,
                 IsActive = package.IsActive,
+                ServicePackageFeaturesResponses = package.ServicePackageFeatures?
+                    .Where(f => f.IsActive)
+                    .Select(f => new ServicePackageFeaturesResponse
+                    {
+                        FeatureId = f.FeatureId,
+                        PackageId = f.PackageId,
+                        FeatureName = f.FeatureName,
+                        FeatureValue = f.FeatureValue, 
+                        IsActive = f.IsActive
+                    })
+                    .ToList() ?? new List<ServicePackageFeaturesResponse>()
             };
         }
+
     }
 }

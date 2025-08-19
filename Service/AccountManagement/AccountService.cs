@@ -147,7 +147,7 @@ namespace TourManagement_BE.Service.AccountManagement
         {
             var result = new UpdateResult();
 
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == request.UserId);
+            var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.UserId == request.UserId);
             if (user == null)
             {
                 result.Success = false;
@@ -179,7 +179,7 @@ namespace TourManagement_BE.Service.AccountManagement
         {
             var result = new UpdateResult();
 
-            var user = await _context.Users.FindAsync(userId);
+            var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.UserId == userId);
             if (user == null)
             {
                 result.Success = false;
