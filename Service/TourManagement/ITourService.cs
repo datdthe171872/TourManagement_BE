@@ -5,6 +5,7 @@ namespace TourManagement_BE.Service.TourManagement
 {
     public interface ITourService
     {
+        //TourOperator
         Task<List<ListTourResponse>> ListAllForTourOperatorAsync(int userId);
         Task<PagedResult<ListTourResponse>> ListAllForTourOperatorPagingAsync(int userId, int pageNumber, int pageSize);
         Task<List<ListTourResponse>> SearchForOperatorAsync(int userId, string keyword);
@@ -13,6 +14,11 @@ namespace TourManagement_BE.Service.TourManagement
         Task<List<ListTourResponse>> FilterForOperatorAsync(int userId, TourFilterRequest filter);
         Task<TourDetailResponse> GetDetailForOperatorAsync(int tourId, bool forUpdate = false);
 
+        //Customer
+
+        Task<PagedResult<ListTourResponse>> TourOperatorFullTourListPagingAsync(int touroperatorid, int pageNumber, int pageSize);
+        Task<PagedResult<ListTourResponse>> SearchPagingTourOperatorFullTourListAsync(int touroperatorid, string keyword, int pageNumber, int pageSize);
+        Task<PagedResult<ListTourResponse>> FilterPagingTourOperatorFullTourListAsync(int touroperatorid, TourFilterRequest filter, int pageNumber, int pageSize);
         Task<List<ListTourResponse>> ListAllForCustomerAsync();
         Task<PagedResult<ListTourResponse>> ListAllForCustomerPagingAsync(int pageNumber, int pageSize);
         Task<List<ListTourResponse>> SearchForCustomerAsync(string keyword);

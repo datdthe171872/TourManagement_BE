@@ -41,6 +41,103 @@ namespace TourManagement_BE.Controllers
             _tourService = tourService;
         }
 
+
+        [HttpGet("touroperator/{touroperatorid}/tours")]
+        public async Task<IActionResult> TourOperatorFullTourListPaging(int touroperatorid, int pageNumber = 1, int pageSize = 10)
+        {
+            try
+            {
+                if (touroperatorid <= 0)
+                    return BadRequest("Invalid tour operator ID.");
+
+                if (pageNumber <= 0 || pageSize <= 0)
+                    return BadRequest("Page number and page size must be greater than 0.");
+
+                var result = await _tourService.TourOperatorFullTourListPagingAsync(touroperatorid, pageNumber, pageSize);
+
+                if (result == null || !result.Data.Any())
+                {
+                    return NotFound("No tours found for this tour operator.");
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("touroperator/{touroperatorid}/tours/search")]
+        public async Task<IActionResult> SearchPagingTourOperatorFullTourList(int touroperatorid, string keyword, int pageNumber = 1, int pageSize = 10)
+        {
+            try
+            {
+                if (touroperatorid <= 0)
+                    return BadRequest("Invalid tour operator ID.");
+
+                if (string.IsNullOrWhiteSpace(keyword))
+                    return BadRequest("Search keyword cannot be empty.");
+
+                if (pageNumber <= 0 || pageSize <= 0)
+                    return BadRequest("Page number and page size must be greater than 0.");
+
+                var result = await _tourService.SearchPagingTourOperatorFullTourListAsync(touroperatorid, keyword, pageNumber, pageSize);
+
+                if (result == null || !result.Data.Any())
+                {
+                    return NotFound("No tours found matching the search criteria.");
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("touroperator/{touroperatorid}/tours/filter")]
+        public async Task<IActionResult> FilterPagingTourOperatorFullTourList(int touroperatorid,
+            string? title,
+            string? transportation,
+            string? startPoint,
+            decimal? minPrice,
+            decimal? maxPrice,
+            [FromQuery] int[]? ratings,
+            int pageNumber = 1,
+            int pageSize = 10)
+        {
+            try
+            {
+                if (touroperatorid <= 0)
+                    return BadRequest("Invalid tour operator ID.");
+
+                var filter = new TourFilterRequest
+                {
+                    Title = title,
+                    Transportation = transportation,
+                    StartPoint = startPoint,
+                    MinPrice = minPrice,
+                    MaxPrice = maxPrice,
+                    Ratings = ratings ?? Array.Empty<int>()
+                };
+
+                var result = await _tourService.FilterPagingTourOperatorFullTourListAsync(touroperatorid, filter, pageNumber, pageSize);
+
+                if (result == null || !result.Data.Any())
+                {
+                    return NotFound("No tours found matching the filter criteria.");
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
         [HttpGet("List All Tours For Tour Operator/{userid}")]
         public async Task<IActionResult> listAllToursForTourOperator(int userid)
         {

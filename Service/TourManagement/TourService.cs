@@ -22,7 +22,7 @@ namespace TourManagement_BE.Service.TourManagement
             _mapper = mapper;
         }
 
-        public async Task<List<ListTourResponse>>ListAllForTourOperatorAsync(int userId)
+        public async Task<List<ListTourResponse>> ListAllForTourOperatorAsync(int userId)
         {
             var tours = await _context.Tours
             .Include(t => t.TourOperator)
@@ -43,6 +43,35 @@ namespace TourManagement_BE.Service.TourManagement
                 .Include(t => t.TourOperator)
                 .ThenInclude(to => to.User)
                 .Where(t => t.TourOperator.User.UserId == userId);
+
+            var totalRecords = await query.CountAsync();
+
+            var tours = await query
+                .OrderBy(t => t.TourId)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ProjectTo<ListTourResponse>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            return new PagedResult<ListTourResponse>
+            {
+                TotalRecords = totalRecords,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
+                Data = tours
+            };
+        }
+
+        public async Task<PagedResult<ListTourResponse>> TourOperatorFullTourListPagingAsync(int touroperatorid, int pageNumber, int pageSize)
+        {
+            if (pageNumber <= 0) pageNumber = 1;
+            if (pageSize <= 0) pageSize = 10;
+
+            var query = _context.Tours
+                .Include(t => t.TourOperator)
+                .ThenInclude(to => to.User)
+                .Where(t => t.TourOperatorId == touroperatorid);
 
             var totalRecords = await query.CountAsync();
 
@@ -116,6 +145,41 @@ namespace TourManagement_BE.Service.TourManagement
             };
         }
 
+        public async Task<PagedResult<ListTourResponse>> SearchPagingTourOperatorFullTourListAsync(int touroperatorid, string keyword, int pageNumber, int pageSize)
+        {
+            if (pageNumber <= 0) pageNumber = 1;
+            if (pageSize <= 0) pageSize = 10;
+
+            var query = _context.Tours
+                .Include(t => t.TourOperator)
+                .ThenInclude(to => to.User)
+                .Where(t => t.TourOperatorId == touroperatorid);
+
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                keyword = keyword.ToLower();
+                query = query.Where(u => u.Title.ToLower().Contains(keyword));
+            }
+
+            var totalRecords = await query.CountAsync();
+
+            var tours = await query
+                .OrderBy(t => t.TourId)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ProjectTo<ListTourResponse>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            return new PagedResult<ListTourResponse>
+            {
+                TotalRecords = totalRecords,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
+                Data = tours
+            };
+        }
+
         public async Task<PagedResult<ListTourResponse>> FilterForOperatorPagingAsync(int userId, TourFilterRequest filter, int pageNumber, int pageSize)
         {
             if (pageNumber <= 0) pageNumber = 1;
@@ -125,6 +189,63 @@ namespace TourManagement_BE.Service.TourManagement
                 .Include(t => t.TourOperator)
                 .ThenInclude(to => to.User)
                 .Where(t => t.TourOperator.User.UserId == userId);
+
+            if (!string.IsNullOrEmpty(filter.Title))
+                query = query.Where(t => t.Title.Contains(filter.Title));
+
+            if (!string.IsNullOrEmpty(filter.Transportation))
+                query = query.Where(t => t.Transportation!.Contains(filter.Transportation));
+
+            if (!string.IsNullOrEmpty(filter.StartPoint))
+                query = query.Where(t => t.StartPoint!.Contains(filter.StartPoint));
+
+            if (filter.MinPrice.HasValue)
+                query = query.Where(t => t.PriceOfAdults + t.PriceOfChildren >= filter.MinPrice.Value);
+
+            if (filter.MaxPrice.HasValue)
+                query = query.Where(t => t.PriceOfAdults + t.PriceOfChildren <= filter.MaxPrice.Value);
+
+            if (filter.Ratings != null && filter.Ratings.Length > 0)
+            {
+                query = query.Where(t =>
+                    filter.Ratings.Contains(
+                        (int)Math.Round(
+                            t.TourRatings.Any()
+                            ? t.TourRatings.Average(r => (double?)r.Rating) ?? 0
+                            : 0
+                        )
+                    )
+                );
+            }
+
+            var totalRecords = await query.CountAsync();
+
+            var result = await query
+                .OrderBy(t => t.TourId)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ProjectTo<ListTourResponse>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            return new PagedResult<ListTourResponse>
+            {
+                TotalRecords = totalRecords,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
+                Data = result
+            };
+        }
+
+        public async Task<PagedResult<ListTourResponse>> FilterPagingTourOperatorFullTourListAsync(int touroperatorid, TourFilterRequest filter, int pageNumber, int pageSize)
+        {
+            if (pageNumber <= 0) pageNumber = 1;
+            if (pageSize <= 0) pageSize = 10;
+
+            var query = _context.Tours
+                .Include(t => t.TourOperator)
+                .ThenInclude(to => to.User)
+                .Where(t => t.TourOperatorId == touroperatorid);
 
             if (!string.IsNullOrEmpty(filter.Title))
                 query = query.Where(t => t.Title.Contains(filter.Title));
@@ -465,7 +586,7 @@ namespace TourManagement_BE.Service.TourManagement
             if (tour.IsActive)
             {
                 bool hasBooking = await _context.Bookings
-                    .AnyAsync(b => b.TourId == tourId && b.IsActive); 
+                    .AnyAsync(b => b.TourId == tourId && b.IsActive);
 
                 if (hasBooking)
                 {
