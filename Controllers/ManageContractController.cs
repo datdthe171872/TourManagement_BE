@@ -1,18 +1,21 @@
 ﻿using AutoMapper;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TourManagement_BE.Data.Context;
 using TourManagement_BE.Data.DTO.Request.ServicePackageRequest;
 using TourManagement_BE.Data.DTO.Request.TourContract;
 using TourManagement_BE.Data.DTO.Response.ContractTourBooking;
 using TourManagement_BE.Data.Models;
+using TourManagement_BE.Helper.Constant;
 using TourManagement_BE.Service.ContractManage;
 
 namespace TourManagement_BE.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ManageContractController : Controller
     {
         private readonly MyDBContext context;
@@ -40,6 +43,7 @@ namespace TourManagement_BE.Controllers
         }
 
         [HttpPost("CreateContractForTourBooking")]
+        [Authorize(Roles = Roles.TourOperator)]
         public async Task<IActionResult> CreateContract([FromForm] CreateContractRequest request)
         {
             var result = await _contractService.CreateContractAsync(request);
@@ -51,6 +55,7 @@ namespace TourManagement_BE.Controllers
         }
 
         [HttpPut("UpdateContractForTourBooking")]
+        [Authorize(Roles = Roles.TourOperator)]
         public async Task<IActionResult> UpdateContract([FromForm] UpdateTourContractRequest request)
         {
             var result = await _contractService.UpdateContractAsync(request);
@@ -62,6 +67,7 @@ namespace TourManagement_BE.Controllers
         }
 
         [HttpDelete("DeleteContractForTourBooking/{bookingId}")]
+        [Authorize(Roles = Roles.TourOperator)]
         public async Task<IActionResult> DeleteContract(int bookingId)
         {
             var result = await _contractService.DeleteContractAsync(bookingId);

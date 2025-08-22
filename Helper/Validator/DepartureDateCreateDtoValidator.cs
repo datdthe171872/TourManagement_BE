@@ -8,8 +8,8 @@ namespace TourManagement_BE.Helper.Validator
         public DepartureDateCreateDtoValidator()
         {
             RuleFor(x => x.DepartureDate1)
-                .Must(date => date.Date >= DateTime.UtcNow.Date)
-                .WithMessage("Ngày khởi hành không được nhỏ hơn ngày hiện tại.");
+            .Must(date => date.Date >= DateTime.UtcNow.Date.AddMonths(1))
+            .WithMessage("Ngày khởi hành phải lớn hơn ngày hiện tại ít nhất 1 tháng.");
         }
     }
 }

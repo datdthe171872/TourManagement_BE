@@ -6,27 +6,11 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TourManagement_BE.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class ChangeDateTimeEndDate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
-                name: "ExtraCharges",
-                columns: table => new
-                {
-                    ExtraChargeId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK__ExtraCha__23A84331F76C775E", x => x.ExtraChargeId);
-                });
-
             migrationBuilder.CreateTable(
                 name: "Languages",
                 columns: table => new
@@ -79,9 +63,11 @@ namespace TourManagement_BE.Migrations
                     Name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    DiscountPercentage = table.Column<decimal>(type: "decimal(5,2)", nullable: true, defaultValue: 0m),
-                    DurationInYears = table.Column<int>(type: "int", nullable: true, defaultValue: 1),
-                    MaxTours = table.Column<int>(type: "int", nullable: false),
+                    DiscountPercentage = table.Column<decimal>(type: "decimal(5,2)", nullable: true, defaultValue: 0.0m),
+                    MaxTour = table.Column<int>(type: "int", nullable: false),
+                    MaxImage = table.Column<int>(type: "int", nullable: false),
+                    MaxVideo = table.Column<bool>(type: "bit", nullable: false),
+                    TourGuideFunction = table.Column<bool>(type: "bit", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true)
                 },
                 constraints: table =>
@@ -112,6 +98,73 @@ namespace TourManagement_BE.Migrations
                         column: x => x.RoleId,
                         principalTable: "Roles",
                         principalColumn: "RoleId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ServicePackageFeatures",
+                columns: table => new
+                {
+                    FeatureId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PackageId = table.Column<int>(type: "int", nullable: false),
+                    FeatureName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    FeatureValue = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK__ServiceP__82230BC98B4657F8", x => x.FeatureId);
+                    table.ForeignKey(
+                        name: "FK__ServicePa__Packa__5CD6CB2B",
+                        column: x => x.PackageId,
+                        principalTable: "ServicePackages",
+                        principalColumn: "PackageId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Notifications",
+                columns: table => new
+                {
+                    NotificationId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Message = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    RelatedEntityId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    IsRead = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK__Notifica__20B2F72112345678", x => x.NotificationId);
+                    table.ForeignKey(
+                        name: "FK__Notificat__UserI__6555E2C9",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ResetPasswordTokens",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    Token = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsUsed = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ResetPasswordTokens", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ResetPasswordTokens_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -157,6 +210,7 @@ namespace TourManagement_BE.Migrations
                     Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     PaymentMethod = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     PaymentStatus = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true, defaultValue: "Pending"),
+                    ContentCode = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "(getdate())"),
                     IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true)
                 },
@@ -230,17 +284,20 @@ namespace TourManagement_BE.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Title = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    PriceOfAdults = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    PriceOfChildren = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    PriceOfInfants = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     DurationInDays = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     StartPoint = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     Transportation = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     TourOperatorId = table.Column<int>(type: "int", nullable: false),
                     MaxSlots = table.Column<int>(type: "int", nullable: false),
+                    MinSlots = table.Column<int>(type: "int", nullable: false),
                     SlotsBooked = table.Column<int>(type: "int", nullable: true, defaultValue: 0),
                     CreatedAt = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "(getdate())"),
-                    TourType = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false, defaultValue: "Shared"),
                     Note = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     TourStatus = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true, defaultValue: "Active"),
+                    TourAvartar = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true)
                 },
                 constraints: table =>
@@ -263,7 +320,7 @@ namespace TourManagement_BE.Migrations
                     PackageId = table.Column<int>(type: "int", nullable: false),
                     TransactionId = table.Column<int>(type: "int", nullable: false),
                     ActivationDate = table.Column<DateTime>(type: "datetime", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "datetime", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime", nullable: true),
                     NumOfToursUsed = table.Column<int>(type: "int", nullable: true, defaultValue: 0),
                     IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "(getdate())")
@@ -314,43 +371,6 @@ namespace TourManagement_BE.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Bookings",
-                columns: table => new
-                {
-                    BookingId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    TourId = table.Column<int>(type: "int", nullable: false),
-                    SelectedDepartureDate = table.Column<DateTime>(type: "datetime", nullable: false),
-                    BookingDate = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "(getdate())"),
-                    NumberOfAdults = table.Column<int>(type: "int", nullable: true, defaultValue: 0),
-                    NumberOfChildren = table.Column<int>(type: "int", nullable: true, defaultValue: 0),
-                    NumberOfInfants = table.Column<int>(type: "int", nullable: true, defaultValue: 0),
-                    NoteForTour = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    TotalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    DepositAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: true, defaultValue: 0m),
-                    RemainingAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: true, defaultValue: 0m),
-                    Contract = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    BookingStatus = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true, defaultValue: "Pending"),
-                    PaymentStatus = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true, defaultValue: "Pending"),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK__Bookings__73951AED69F9C654", x => x.BookingId);
-                    table.ForeignKey(
-                        name: "FK__Bookings__TourId__41EDCAC5",
-                        column: x => x.TourId,
-                        principalTable: "Tours",
-                        principalColumn: "TourId");
-                    table.ForeignKey(
-                        name: "FK__Bookings__UserId__42E1EEFE",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "UserId");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "DepartureDates",
                 columns: table => new
                 {
@@ -358,6 +378,7 @@ namespace TourManagement_BE.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     TourId = table.Column<int>(type: "int", nullable: false),
                     DepartureDate = table.Column<DateTime>(type: "datetime", nullable: false),
+                    IsCancelDate = table.Column<bool>(type: "bit", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true)
                 },
                 constraints: table =>
@@ -394,33 +415,6 @@ namespace TourManagement_BE.Migrations
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "UserId");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "TourCancellations",
-                columns: table => new
-                {
-                    CancellationId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    TourId = table.Column<int>(type: "int", nullable: false),
-                    CancelledBy = table.Column<int>(type: "int", nullable: false),
-                    CancelledAt = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "(getdate())"),
-                    Reason = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK__TourCanc__6A2D9A3A1E33ECEB", x => x.CancellationId);
-                    table.ForeignKey(
-                        name: "FK__TourCance__Cance__56E8E7AB",
-                        column: x => x.CancelledBy,
-                        principalTable: "Users",
-                        principalColumn: "UserId");
-                    table.ForeignKey(
-                        name: "FK__TourCance__TourI__57DD0BE4",
-                        column: x => x.TourId,
-                        principalTable: "Tours",
-                        principalColumn: "TourId");
                 });
 
             migrationBuilder.CreateTable(
@@ -517,30 +511,95 @@ namespace TourManagement_BE.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "BookingExtraCharges",
+                name: "Bookings",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    BookingId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    BookingId = table.Column<int>(type: "int", nullable: false),
-                    ExtraChargeId = table.Column<int>(type: "int", nullable: false),
-                    Content = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    Quantity = table.Column<int>(type: "int", nullable: true, defaultValue: 1),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    TourId = table.Column<int>(type: "int", nullable: false),
+                    DepartureDateId = table.Column<int>(type: "int", nullable: false),
+                    BookingDate = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "(getdate())"),
+                    NumberOfAdults = table.Column<int>(type: "int", nullable: true, defaultValue: 0),
+                    NumberOfChildren = table.Column<int>(type: "int", nullable: true, defaultValue: 0),
+                    NumberOfInfants = table.Column<int>(type: "int", nullable: true, defaultValue: 0),
+                    NoteForTour = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TotalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    Contract = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    BookingStatus = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true, defaultValue: "Pending"),
+                    PaymentStatus = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true, defaultValue: "Pending"),
                     IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK__BookingE__3214EC072D708871", x => x.Id);
+                    table.PrimaryKey("PK__Bookings__73951AED69F9C654", x => x.BookingId);
                     table.ForeignKey(
-                        name: "FK__BookingEx__Booki__40058253",
-                        column: x => x.BookingId,
-                        principalTable: "Bookings",
-                        principalColumn: "BookingId");
+                        name: "FK_Bookings_DepartureDates",
+                        column: x => x.DepartureDateId,
+                        principalTable: "DepartureDates",
+                        principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK__BookingEx__Extra__40F9A68C",
-                        column: x => x.ExtraChargeId,
-                        principalTable: "ExtraCharges",
-                        principalColumn: "ExtraChargeId");
+                        name: "FK__Bookings__TourId__41EDCAC5",
+                        column: x => x.TourId,
+                        principalTable: "Tours",
+                        principalColumn: "TourId");
+                    table.ForeignKey(
+                        name: "FK__Bookings__UserId__42E1EEFE",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TourGuideAssignments",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TourId = table.Column<int>(type: "int", nullable: false),
+                    TourGuideId = table.Column<int>(type: "int", nullable: false),
+                    DepartureDateId = table.Column<int>(type: "int", nullable: false),
+                    AssignedDate = table.Column<DateOnly>(type: "date", nullable: true, defaultValueSql: "(getdate())"),
+                    NoteId = table.Column<int>(type: "int", nullable: true),
+                    IsLeadGuide = table.Column<bool>(type: "bit", nullable: true, defaultValue: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK__TourGuid__3214EC073C3A4EB5", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_TourGuideAssignments_DepartureDates",
+                        column: x => x.DepartureDateId,
+                        principalTable: "DepartureDates",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK__TourGuide__TourG__5AB9788F",
+                        column: x => x.TourGuideId,
+                        principalTable: "TourGuides",
+                        principalColumn: "TourGuideId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ItineraryMedia",
+                columns: table => new
+                {
+                    MediaId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ItineraryId = table.Column<int>(type: "int", nullable: false),
+                    MediaUrl = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    MediaType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    Caption = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    UploadedAt = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "(getdate())"),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK__Itinerar__B2C2B5CFEA6D2966", x => x.MediaId);
+                    table.ForeignKey(
+                        name: "FK__Itinerary__Itine__4A8310C6",
+                        column: x => x.ItineraryId,
+                        principalTable: "TourItineraries",
+                        principalColumn: "ItineraryId");
                 });
 
             migrationBuilder.CreateTable(
@@ -552,7 +611,7 @@ namespace TourManagement_BE.Migrations
                     BookingId = table.Column<int>(type: "int", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    AmountPaid = table.Column<decimal>(type: "decimal(18,2)", nullable: true, defaultValue: 0m),
+                    AmountPaid = table.Column<decimal>(type: "decimal(18,2)", nullable: true, defaultValue: 0.0m),
                     PaymentMethod = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     PaymentStatus = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true, defaultValue: "Pending"),
                     PaymentDate = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "(getdate())"),
@@ -589,8 +648,7 @@ namespace TourManagement_BE.Migrations
                     BookingId = table.Column<int>(type: "int", nullable: false),
                     TourGuideId = table.Column<int>(type: "int", nullable: false),
                     ReportDate = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "(getdate())"),
-                    Summary = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    TotalExtraCost = table.Column<decimal>(type: "decimal(18,2)", nullable: true, defaultValue: 0m),
+                    TotalExtraCost = table.Column<decimal>(type: "decimal(18,2)", nullable: true, defaultValue: 0.0m),
                     Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     AttachmentUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true)
@@ -608,80 +666,6 @@ namespace TourManagement_BE.Migrations
                         column: x => x.TourGuideId,
                         principalTable: "TourGuides",
                         principalColumn: "TourGuideId");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "TourGuideAssignments",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    TourId = table.Column<int>(type: "int", nullable: false),
-                    BookingId = table.Column<int>(type: "int", nullable: false),
-                    TourGuideId = table.Column<int>(type: "int", nullable: false),
-                    AssignedDate = table.Column<DateOnly>(type: "date", nullable: true, defaultValueSql: "(getdate())"),
-                    NoteId = table.Column<int>(type: "int", nullable: true),
-                    IsLeadGuide = table.Column<bool>(type: "bit", nullable: true, defaultValue: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK__TourGuid__3214EC073C3A4EB5", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK__TourGuide__Booki__59C55456",
-                        column: x => x.BookingId,
-                        principalTable: "Bookings",
-                        principalColumn: "BookingId");
-                    table.ForeignKey(
-                        name: "FK__TourGuide__TourG__5AB9788F",
-                        column: x => x.TourGuideId,
-                        principalTable: "TourGuides",
-                        principalColumn: "TourGuideId");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ItineraryMedia",
-                columns: table => new
-                {
-                    MediaId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ItineraryId = table.Column<int>(type: "int", nullable: false),
-                    MediaUrl = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    MediaType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    Caption = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    UploadedAt = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "(getdate())"),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK__Itinerar__B2C2B5CFEA6D2966", x => x.MediaId);
-                    table.ForeignKey(
-                        name: "FK__Itinerary__Itine__4A8310C6",
-                        column: x => x.ItineraryId,
-                        principalTable: "TourItineraries",
-                        principalColumn: "ItineraryId");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "GuideNotes",
-                columns: table => new
-                {
-                    NoteId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    AssignmentId = table.Column<int>(type: "int", nullable: false),
-                    Title = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    Content = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "(getdate())"),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK__GuideNot__EACE355F7D9F9B80", x => x.NoteId);
-                    table.ForeignKey(
-                        name: "FK__GuideNote__Assig__47A6A41B",
-                        column: x => x.AssignmentId,
-                        principalTable: "TourGuideAssignments",
-                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -708,10 +692,51 @@ namespace TourManagement_BE.Migrations
                         principalTable: "TourGuideAssignments",
                         principalColumn: "Id");
                     table.ForeignKey(
+                        name: "FK__GuideRati__TourG__4A8310C6",
+                        column: x => x.TourGuideId,
+                        principalTable: "TourGuides",
+                        principalColumn: "TourGuideId");
+                    table.ForeignKey(
                         name: "FK__GuideRati__UserI__498EEC8D",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "UserId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "GuideNotes",
+                columns: table => new
+                {
+                    NoteId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ReportId = table.Column<int>(type: "int", nullable: false),
+                    AssignmentId = table.Column<int>(type: "int", nullable: false),
+                    BookingId = table.Column<int>(type: "int", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    Content = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ExtraCost = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "(getdate())"),
+                    DepartureDateId = table.Column<int>(type: "int", nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK__GuideNot__EACE355F7D9F9B80", x => x.NoteId);
+                    table.ForeignKey(
+                        name: "FK_GuideNotes_Bookings",
+                        column: x => x.BookingId,
+                        principalTable: "Bookings",
+                        principalColumn: "BookingId");
+                    table.ForeignKey(
+                        name: "FK_GuideNotes_TourAcceptanceReports",
+                        column: x => x.ReportId,
+                        principalTable: "TourAcceptanceReports",
+                        principalColumn: "ReportId");
+                    table.ForeignKey(
+                        name: "FK__GuideNote__Assig__47A6A41B",
+                        column: x => x.AssignmentId,
+                        principalTable: "TourGuideAssignments",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -736,14 +761,9 @@ namespace TourManagement_BE.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_BookingExtraCharges_BookingId",
-                table: "BookingExtraCharges",
-                column: "BookingId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_BookingExtraCharges_ExtraChargeId",
-                table: "BookingExtraCharges",
-                column: "ExtraChargeId");
+                name: "IX_Bookings_DepartureDateId",
+                table: "Bookings",
+                column: "DepartureDateId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Bookings_TourId",
@@ -781,9 +801,24 @@ namespace TourManagement_BE.Migrations
                 column: "AssignmentId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_GuideNotes_BookingId",
+                table: "GuideNotes",
+                column: "BookingId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_GuideNotes_ReportId",
+                table: "GuideNotes",
+                column: "ReportId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_GuideRatings_AssignmentId",
                 table: "GuideRatings",
                 column: "AssignmentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_GuideRatings_TourGuideId",
+                table: "GuideRatings",
+                column: "TourGuideId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_GuideRatings_UserId",
@@ -794,6 +829,11 @@ namespace TourManagement_BE.Migrations
                 name: "IX_ItineraryMedia_ItineraryId",
                 table: "ItineraryMedia",
                 column: "ItineraryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Notifications_UserId",
+                table: "Notifications",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Payments_BookingId",
@@ -836,6 +876,11 @@ namespace TourManagement_BE.Migrations
                 column: "TourOperatorId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ResetPasswordTokens_UserId",
+                table: "ResetPasswordTokens",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "UQ__Roles__8A2B616060CD7784",
                 table: "Roles",
                 column: "RoleName",
@@ -852,6 +897,11 @@ namespace TourManagement_BE.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ServicePackageFeatures_PackageId",
+                table: "ServicePackageFeatures",
+                column: "PackageId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_TourAcceptanceReports_BookingId",
                 table: "TourAcceptanceReports",
                 column: "BookingId");
@@ -862,24 +912,14 @@ namespace TourManagement_BE.Migrations
                 column: "TourGuideId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TourCancellations_CancelledBy",
-                table: "TourCancellations",
-                column: "CancelledBy");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_TourCancellations_TourId",
-                table: "TourCancellations",
-                column: "TourId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_TourExperiences_TourId",
                 table: "TourExperiences",
                 column: "TourId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TourGuideAssignments_BookingId",
+                name: "IX_TourGuideAssignments_DepartureDateId",
                 table: "TourGuideAssignments",
-                column: "BookingId");
+                column: "DepartureDateId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TourGuideAssignments_TourGuideId",
@@ -896,7 +936,7 @@ namespace TourManagement_BE.Migrations
                 table: "TourGuides",
                 column: "UserId",
                 unique: true,
-                filter: "[UserId] IS NOT NULL");
+                filter: "([UserId] IS NOT NULL)");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TourItineraries_TourId",
@@ -918,7 +958,7 @@ namespace TourManagement_BE.Migrations
                 table: "TourOperators",
                 column: "UserId",
                 unique: true,
-                filter: "[UserId] IS NOT NULL");
+                filter: "([UserId] IS NOT NULL)");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TourRatings_TourId",
@@ -951,12 +991,6 @@ namespace TourManagement_BE.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "BookingExtraCharges");
-
-            migrationBuilder.DropTable(
-                name: "DepartureDates");
-
-            migrationBuilder.DropTable(
                 name: "GuideLanguages");
 
             migrationBuilder.DropTable(
@@ -969,19 +1003,22 @@ namespace TourManagement_BE.Migrations
                 name: "ItineraryMedia");
 
             migrationBuilder.DropTable(
+                name: "Notifications");
+
+            migrationBuilder.DropTable(
                 name: "Payments");
 
             migrationBuilder.DropTable(
                 name: "PurchasedServicePackages");
 
             migrationBuilder.DropTable(
+                name: "ResetPasswordTokens");
+
+            migrationBuilder.DropTable(
                 name: "SavedTours");
 
             migrationBuilder.DropTable(
-                name: "TourAcceptanceReports");
-
-            migrationBuilder.DropTable(
-                name: "TourCancellations");
+                name: "ServicePackageFeatures");
 
             migrationBuilder.DropTable(
                 name: "TourExperiences");
@@ -994,9 +1031,6 @@ namespace TourManagement_BE.Migrations
 
             migrationBuilder.DropTable(
                 name: "TourRatings");
-
-            migrationBuilder.DropTable(
-                name: "ExtraCharges");
 
             migrationBuilder.DropTable(
                 name: "Languages");
@@ -1014,6 +1048,9 @@ namespace TourManagement_BE.Migrations
                 name: "PurchaseTransactions");
 
             migrationBuilder.DropTable(
+                name: "TourAcceptanceReports");
+
+            migrationBuilder.DropTable(
                 name: "TourGuideAssignments");
 
             migrationBuilder.DropTable(
@@ -1024,6 +1061,9 @@ namespace TourManagement_BE.Migrations
 
             migrationBuilder.DropTable(
                 name: "TourGuides");
+
+            migrationBuilder.DropTable(
+                name: "DepartureDates");
 
             migrationBuilder.DropTable(
                 name: "Tours");
