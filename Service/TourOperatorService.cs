@@ -182,7 +182,6 @@ public class TourOperatorService : ITourOperatorService
         _context.PurchasedServicePackages.Add(purchasedPackage);
         await _context.SaveChangesAsync();
 
-        // Xử lý thêm media nếu có MediaUrl
         var mediaList = new List<TourOperatorMediaResponse>();
         if (!string.IsNullOrWhiteSpace(request.MediaUrl))
         {
