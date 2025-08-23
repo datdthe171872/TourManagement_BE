@@ -1,16 +1,19 @@
 ﻿using AutoMapper;
 using CloudinaryDotNet;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TourManagement_BE.Data.Context;
 using TourManagement_BE.Data.DTO.Request.TourExperienceRequest;
 using TourManagement_BE.Data.Models;
+using TourManagement_BE.Helper.Constant;
 using TourManagement_BE.Repository.Interface;
 
 namespace TourManagement_BE.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = Roles.TourOperator)]
     public class TourExperienceController : Controller
     {
         private readonly MyDBContext context;

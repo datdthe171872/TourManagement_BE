@@ -1,5 +1,6 @@
-﻿using AutoMapper.QueryableExtensions;
-using AutoMapper;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TourManagement_BE.Data.Context;
@@ -13,6 +14,7 @@ namespace TourManagement_BE.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin")]
     public class AdminDashBoardController : Controller
     {
         private readonly MyDBContext context;
