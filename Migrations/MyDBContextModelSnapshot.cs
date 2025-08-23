@@ -419,7 +419,7 @@ namespace TourManagement_BE.Migrations
                     b.Property<decimal?>("AmountPaid")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(18, 2)")
-                        .HasDefaultValue(0m);
+                        .HasDefaultValue(0.0m);
 
                     b.Property<int>("BookingId")
                         .HasColumnType("int");
@@ -561,7 +561,7 @@ namespace TourManagement_BE.Migrations
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("(getdate())");
 
-                    b.Property<DateTime>("EndDate")
+                    b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime");
 
                     b.Property<bool>("IsActive")
@@ -699,7 +699,7 @@ namespace TourManagement_BE.Migrations
                     b.Property<decimal?>("DiscountPercentage")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(5, 2)")
-                        .HasDefaultValue(0m);
+                        .HasDefaultValue(0.0m);
 
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
@@ -758,7 +758,7 @@ namespace TourManagement_BE.Migrations
                     b.HasKey("FeatureId")
                         .HasName("PK__ServiceP__82230BC98B4657F8");
 
-                    b.HasIndex("PackageId");
+                    b.HasIndex(new[] { "PackageId" }, "IX_ServicePackageFeatures_PackageId");
 
                     b.ToTable("ServicePackageFeatures");
                 });
@@ -877,7 +877,7 @@ namespace TourManagement_BE.Migrations
                     b.Property<decimal?>("TotalExtraCost")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(18, 2)")
-                        .HasDefaultValue(0m);
+                        .HasDefaultValue(0.0m);
 
                     b.Property<int>("TourGuideId")
                         .HasColumnType("int");
