@@ -12,65 +12,78 @@ namespace TourManagement_BE.Controllers
     {
         private readonly IAuthService _authService;
         public AuthController(IAuthService authService)
-    {
-        _authService = authService;
-    }
+        {
+            _authService = authService;
+        }
 
-    [HttpPost("login")]
-    public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
-    {
-        try
+        [HttpPost("login")]
+        public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
         {
-            var response = await _authService.LoginAsync(request);
-            return Ok(response);
+            try
+            {
+                var response = await _authService.LoginAsync(request);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
-    }
 
-    [HttpPost("register")]
-    public async Task<ActionResult> Register([FromBody] RegisterRequest request)
-    {
-        try
+        [HttpPost("register")]
+        public async Task<ActionResult> Register([FromBody] RegisterRequest request)
         {
-            await _authService.RegisterAsync(request);
-            return Ok("Registration successful");
+            try
+            {
+                await _authService.RegisterAsync(request);
+                return Ok("Registration successful");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
-    }
 
-    [HttpPost("forgot-password")]
-    public async Task<ActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
-    {
-        try
+        [HttpPost("forgot-password")]
+        public async Task<ActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
         {
-            await _authService.ForgotPasswordAsync(request);
-            return Ok("Password reset email sent");
+            try
+            {
+                await _authService.ForgotPasswordAsync(request);
+                return Ok("Password reset email sent");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
-    }
 
-    [HttpPost("reset-password")]
-    public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
-    {
-        try
+        [HttpPost("reset-password")]
+        public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
         {
-            await _authService.ResetPasswordAsync(request);
-            return Ok("Password has been reset successfully");
+            try
+            {
+                await _authService.ResetPasswordAsync(request);
+                return Ok("Password has been reset successfully");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
-        catch (Exception ex)
+        [HttpPost("google")]
+        public async Task<IActionResult> GoogleLogin(string token)
         {
-            return BadRequest(ex.Message);
+            try
+            {
+                var response = await _authService.AuthWithGoogleAsync(token);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
     }
 }
-    }
 

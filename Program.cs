@@ -28,6 +28,7 @@ using TourManagement_BE.Helper;
 using Microsoft.Extensions.Options;
 using TourManagement_BE.BackgroundServices;
 using TourManagement_BE.Helper.Common;
+using TourManagement_BE.Helper.Constant;
 
 namespace TourManagement_BE
 {
@@ -60,7 +61,7 @@ namespace TourManagement_BE
                 fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.UpdateTourOperatorRequestValidator>();
                 fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.CreateBookingRequestValidator>();
                 fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.UpdateBookingRequestValidator>();
-              
+
                 fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.CreateDepartureDateRequestValidator>();
                 fv.RegisterValidatorsFromAssemblyContaining<Helper.Validator.UpdateDepartureDateRequestValidator>();
             });
@@ -270,41 +271,58 @@ namespace TourManagement_BE
 
             try
             {
-                // Check if Admin role exists, if not create it
-                var adminRole = context.Roles.FirstOrDefault(r => r.RoleName == "Admin");
-                if (adminRole == null)
-                {
-                    adminRole = new Data.Models.Role
-                    {
-                        RoleName = "Admin",
-                        IsActive = true
-                    };
-                    context.Roles.Add(adminRole);
-                    context.SaveChanges();
-                }
 
+                var adminRole = new Data.Models.Role
+                {
+                    RoleName = Roles.Admin,
+                    IsActive = true
+                };
+                context.Roles.Add(adminRole);
+
+                var customerRole = new Data.Models.Role
+                {
+                    RoleName = Roles.Customer,
+                    IsActive = true
+                };
+                context.Roles.Add(customerRole);
+
+                var tourGuideRole = new Data.Models.Role
+                {
+                    RoleName = Roles.TourGuide,
+                    IsActive = true
+                };
+                context.Roles.Add(tourGuideRole);
+
+                var opeRole = new Data.Models.Role
+                {
+                    RoleName = Roles.TourOperator,
+                    IsActive = true
+                };
+                context.Roles.Add(opeRole);
+
+                context.SaveChanges();
                 // Check if default admin user exists
                 var adminUser = context.Users.FirstOrDefault(u => u.UserName == "admin");
                 if (adminUser == null)
                 {
-                                         // Create default admin user
-                     adminUser = new Data.Models.User
-                     {
-                         UserName = "admin",
-                         Email = "admin@gmail.com",
-                         Password = PasswordHelper.HashPassword("123456"),
-                         Address = "System Admin",
-                         PhoneNumber = "0000000000",
-                         RoleId = adminRole.RoleId,
-                         IsActive = true
-                     };
+                    // Create default admin user
+                    adminUser = new Data.Models.User
+                    {
+                        UserName = "admin",
+                        Email = "admin@gmail.com",
+                        Password = PasswordHelper.HashPassword("123456"),
+                        Address = "System Admin",
+                        PhoneNumber = "0000000000",
+                        RoleId = adminRole.RoleId,
+                        IsActive = true
+                    };
                     context.Users.Add(adminUser);
                     context.SaveChanges();
 
-                                         Console.WriteLine("✅ Default admin account created successfully!");
-                     Console.WriteLine("Username: admin");
-                     Console.WriteLine("Password: 123456");
-                     Console.WriteLine("Email: admin@gmail.com");
+                    Console.WriteLine("✅ Default admin account created successfully!");
+                    Console.WriteLine("Username: admin");
+                    Console.WriteLine("Password: 123456");
+                    Console.WriteLine("Email: admin@gmail.com");
                 }
                 else
                 {

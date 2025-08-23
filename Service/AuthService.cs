@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using TourManagement_BE.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using Google.Apis.Auth;
 
 namespace TourManagement_BE.Service
 {
@@ -291,6 +292,54 @@ namespace TourManagement_BE.Service
                 // Log lỗi gửi email nhưng không throw exception vì password đã được reset thành công
                 // Có thể thêm logging service ở đây
                 Console.WriteLine($"Failed to send password reset confirmation email: {ex.Message}");
+            }
+        }
+        
+        public async Task<LoginResponse> AuthWithGoogleAsync (string TokenId)
+        {
+            try
+            {
+                // Xác thực token Google
+                var payload = await GoogleJsonWebSignature.ValidateAsync(TokenId);
+                string email = payload.Email;
+                string name = payload.Name;
+                string picture = payload.Picture;
+
+                // Kiểm tra user trong DB
+                var user = _context.Users
+                .Include(u => u.Role)
+                .Where(u => u.Email == email)
+                .FirstOrDefault(x => x.Email == email && x.IsActive ==true);
+                var role = _context.Roles.FirstOrDefault(x => x.RoleName == Roles.Customer);
+                if (user == null)
+                {
+                    // Nếu chưa có user, tự động đăng ký
+                    user = new User {
+                        Email = email, 
+                        UserName = name, 
+                        Avatar = picture,
+                        RoleId = role.RoleId,
+                        Password = "123456",
+                        IsActive = true,
+                    };
+                    await _context.Users.AddAsync(user);
+                    await _context.SaveChangesAsync();
+                }
+
+                // Sinh JWT
+                var token = _jwtHelper.GenerateToken(user.UserId.ToString(), user.Email, user.Role.RoleName);
+
+                return new LoginResponse
+                {
+                    Token = token,
+                    UserId = user.UserId.ToString(),
+                    Email = user.Email,
+                    RoleName = user.Role.RoleName,
+                };
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
             }
         }
     }
