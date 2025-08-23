@@ -39,7 +39,7 @@ namespace TourManagement_BE.Helper.Validator
             RuleFor(x => x.DepartureDates)
             .NotNull().WithMessage("Danh sách ngày khởi hành là bắt buộc.")
             .Must(list => list.Count > 0).WithMessage("Phải có ít nhất 1 ngày khởi hành.")
-            .Must(list => list.All(date => date.Date >= DateTime.UtcNow.Date.AddMonths(1)))
+            .Must(list => list.All(date => date.DepartureDate1.Date >= DateTime.UtcNow.Date.AddMonths(1)))
             .WithMessage("Mỗi ngày khởi hành phải lớn hơn ngày hiện tại ít nhất 1 tháng.");
 
 
