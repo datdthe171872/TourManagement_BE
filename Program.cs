@@ -306,6 +306,7 @@ namespace TourManagement_BE
                 }
                 // Check if default admin user exists
                 var adminUser = context.Users.FirstOrDefault(u => u.UserName == "admin");
+                var adRole = context.Roles.FirstOrDefault(x => x.RoleName == Roles.Admin);
                 if (adminUser == null)
                 {
                     // Create default admin user
@@ -316,7 +317,7 @@ namespace TourManagement_BE
                         Password = PasswordHelper.HashPassword("123456"),
                         Address = "System Admin",
                         PhoneNumber = "0000000000",
-                        RoleId = adminRole.RoleId,
+                        RoleId = adRole.RoleId,
                         IsActive = true
                     };
                     context.Users.Add(adminUser);
