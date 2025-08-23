@@ -271,36 +271,39 @@ namespace TourManagement_BE
 
             try
             {
-
-                var adminRole = new Data.Models.Role
+                var roles = context.Roles.ToList();
+                if(!roles.Any())
                 {
-                    RoleName = Roles.Admin,
-                    IsActive = true
-                };
-                context.Roles.Add(adminRole);
+                    var adminRole = new Data.Models.Role
+                    {
+                        RoleName = Roles.Admin,
+                        IsActive = true
+                    };
+                    context.Roles.Add(adminRole);
 
-                var customerRole = new Data.Models.Role
-                {
-                    RoleName = Roles.Customer,
-                    IsActive = true
-                };
-                context.Roles.Add(customerRole);
+                    var customerRole = new Data.Models.Role
+                    {
+                        RoleName = Roles.Customer,
+                        IsActive = true
+                    };
+                    context.Roles.Add(customerRole);
 
-                var tourGuideRole = new Data.Models.Role
-                {
-                    RoleName = Roles.TourGuide,
-                    IsActive = true
-                };
-                context.Roles.Add(tourGuideRole);
+                    var tourGuideRole = new Data.Models.Role
+                    {
+                        RoleName = Roles.TourGuide,
+                        IsActive = true
+                    };
+                    context.Roles.Add(tourGuideRole);
 
-                var opeRole = new Data.Models.Role
-                {
-                    RoleName = Roles.TourOperator,
-                    IsActive = true
-                };
-                context.Roles.Add(opeRole);
+                    var opeRole = new Data.Models.Role
+                    {
+                        RoleName = Roles.TourOperator,
+                        IsActive = true
+                    };
+                    context.Roles.Add(opeRole);
 
-                context.SaveChanges();
+                    context.SaveChanges();
+                }
                 // Check if default admin user exists
                 var adminUser = context.Users.FirstOrDefault(u => u.UserName == "admin");
                 if (adminUser == null)
