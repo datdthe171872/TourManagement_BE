@@ -152,36 +152,6 @@ public class TourOperatorService : ITourOperatorService
         _context.TourOperators.Add(tourOperator);
         await _context.SaveChangesAsync();
 
-        var transaction = new PurchaseTransaction
-        {
-            TourOperatorId = tourOperator.TourOperatorId,
-            PackageId = 1, 
-            Amount = 0, 
-            PaymentMethod = "System",
-            PaymentStatus = "Completed",
-            ContentCode = $"Package FREE",
-            CreatedAt = DateTime.UtcNow,
-            IsActive = true
-        };
-
-        _context.PurchaseTransactions.Add(transaction);
-        await _context.SaveChangesAsync();
-
-        var purchasedPackage = new PurchasedServicePackage
-        {
-            TourOperatorId = tourOperator.TourOperatorId,
-            PackageId = 1,
-            TransactionId = transaction.TransactionId,
-            ActivationDate = DateTime.UtcNow,
-            EndDate = null, 
-            NumOfToursUsed = 0,
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        _context.PurchasedServicePackages.Add(purchasedPackage);
-        await _context.SaveChangesAsync();
-
         // Xử lý thêm media nếu có MediaUrl
         var mediaList = new List<TourOperatorMediaResponse>();
         if (!string.IsNullOrWhiteSpace(request.MediaUrl))

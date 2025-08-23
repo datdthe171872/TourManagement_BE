@@ -19,28 +19,13 @@ namespace TourManagement_BE.Helper.Validator
                 .When(x => !string.IsNullOrWhiteSpace(x.Description));
 
             RuleFor(x => x.Price)
-                .GreaterThanOrEqualTo(10000)
-                .WithMessage("Giá phải >= 10000.");
+                .GreaterThanOrEqualTo(0)
+                .WithMessage("Giá phải >= 0.");
 
             RuleFor(x => x.DiscountPercentage)
                 .InclusiveBetween(0, 100)
                 .WithMessage("Phần trăm giảm giá phải từ 0 đến 100.")
                 .When(x => x.DiscountPercentage.HasValue);
-            RuleFor(x => x.MaxTour)
-                .GreaterThanOrEqualTo(0)
-                .WithMessage("Số tour tối đa phải >= 0.");
-
-            RuleFor(x => x.MaxImage)
-                .GreaterThanOrEqualTo(0)
-                .WithMessage("Số ảnh tối đa phải >= 0.");
-
-            RuleFor(x => x.MaxVideo)
-                .NotNull()
-                .WithMessage("Trường MaxVideo là bắt buộc.");
-
-            RuleFor(x => x.TourGuideFunction)
-                .NotNull()
-                .WithMessage("Trường TourGuideFunction là bắt buộc.");
         }
     }
 }

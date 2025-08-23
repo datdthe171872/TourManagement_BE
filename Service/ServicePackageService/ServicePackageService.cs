@@ -82,15 +82,6 @@ namespace TourManagement_BE.Service.ServicePackageService
 
             try
             {
-                bool nameExists = await _context.ServicePackages.AnyAsync(sp => sp.Name.ToLower() == request.Name.ToLower());
-
-                if (nameExists)
-                {
-                    result.Success = false;
-                    result.Message = "Tên gói dịch vụ đã tồn tại";
-                    return result;
-                }
-
                 var service = request.ToDto();
                 await _context.ServicePackages.AddAsync(service);
                 await _context.SaveChangesAsync();
@@ -300,50 +291,35 @@ namespace TourManagement_BE.Service.ServicePackageService
 
         public async Task<CheckSlotTourOperatorResponse> CheckSlotForTourOperatorAsync(int userId)
         {
-            try
-            {
-                var response = await _context.PurchasedServicePackages
-                    .Include(p => p.TourOperator)
-                        .ThenInclude(t => t.User)
-                    .Include(p => p.Package)
-                    .Where(p => p.TourOperator.User.UserId == userId &&
-                           (p.EndDate == null || p.EndDate > DateTime.UtcNow) &&
-                            p.IsActive)
-                    .OrderByDescending(p => p.ActivationDate)
-                    .Select(p => new CheckSlotTourOperatorResponse
-                    {
-                        PurchaseId = p.PurchaseId,
-                        TourOperatorId = p.TourOperatorId,
-                        TourOperatorName = p.TourOperator.User.UserName,
-                        PackageId = p.PackageId,
-                        PackageName = p.Package.Name,
-                        TransactionId = p.TransactionId,
-                        ActivationDate = p.ActivationDate,
-                        EndDate = p.EndDate,
-                        NumOfToursUsed = p.NumOfToursUsed,
-                        MaxTour = p.Package.MaxTour,
-                        MaxImage = p.Package.MaxImage,
-                        MaxVideo = p.Package.MaxVideo,
-                        TourGuideFunction = p.Package.TourGuideFunction,
-                        IsActive = p.IsActive,
-                        CreatedAt = p.CreatedAt
-                    })
-                    .FirstOrDefaultAsync();
-
-                if (response == null)
+            return await _context.PurchasedServicePackages
+                .Include(p => p.TourOperator)
+                    .ThenInclude(t => t.User)
+                .Include(p => p.Package)
+                .Where(p => p.TourOperator.User.UserId == userId &&
+                        p.EndDate > DateTime.UtcNow &&
+                        p.IsActive)
+                .OrderByDescending(p => p.ActivationDate)
+                .Select(p => new CheckSlotTourOperatorResponse
                 {
-                    throw new KeyNotFoundException("No active service package found for this user.");
-                }
-
-                return response;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[CheckSlotForTourOperatorAsync] Lỗi với userId {userId}: {ex.Message}");
-                throw;
-            }
+                    PurchaseId = p.PurchaseId,
+                    TourOperatorId = p.TourOperatorId,
+                    TourOperatorName = p.TourOperator.User.UserName,
+                    PackageId = p.PackageId,
+                    PackageName = p.Package.Name,
+                    TransactionId = p.TransactionId,
+                    ActivationDate = p.ActivationDate,
+                    EndDate = p.EndDate,
+                    NumOfToursUsed = p.NumOfToursUsed,
+                    MaxTour = p.Package.MaxTour,
+                    MaxImage = p.Package.MaxImage,
+                    MaxVideo = p.Package.MaxVideo,
+                    TourGuideFunction = p.Package.TourGuideFunction,
+                    IsActive = p.IsActive,
+                    CreatedAt = p.CreatedAt
+                })
+                .FirstOrDefaultAsync()
+                ?? throw new KeyNotFoundException("No active service package found for this user.");
         }
-
 
         private static ListServicePackageResponse MapToResponse(ServicePackage package)
         {

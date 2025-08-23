@@ -16,7 +16,7 @@
 
         public DateTime ActivationDate { get; set; }
 
-        public DateTime? EndDate { get; set; }
+        public DateTime EndDate { get; set; }
 
         public int? NumOfToursUsed { get; set; }
 

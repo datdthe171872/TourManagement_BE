@@ -23,7 +23,6 @@ namespace TourManagement_BE.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class TourController : Controller
     {
         private readonly MyDBContext context;
@@ -347,7 +346,6 @@ namespace TourManagement_BE.Controllers
 
 
         [HttpPost("Create Tour")]
-        [Authorize(Roles = Roles.TourOperator)]
         public async Task<IActionResult> CreateTour([FromForm] TourCreateRequest request)
         {
 
@@ -929,7 +927,7 @@ namespace TourManagement_BE.Controllers
 
             return Ok(new { message = "Tour updated successfully." });
         }*/
-        [Authorize(Roles = Roles.TourOperator)]
+
         public async Task<IActionResult> UpdateTour([FromForm] TourUpdateRequest request)
         {
             var tour = context.Tours
@@ -1296,7 +1294,6 @@ namespace TourManagement_BE.Controllers
 
 
         [HttpPatch("ToggleTourStatus/{tourid}")]
-        [Authorize(Roles = Roles.TourOperator)]
         public async Task<IActionResult> ToggleTourStatus(int tourid)
         {
             var tour = await context.Tours.FindAsync(tourid);

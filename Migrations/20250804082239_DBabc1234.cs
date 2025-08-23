@@ -6,11 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TourManagement_BE.Migrations
 {
     /// <inheritdoc />
-<<<<<<<< HEAD:Migrations/20250804082239_DBabc1234.cs
     public partial class DBabc1234 : Migration
-========
-    public partial class ChangeDateTimeEndDate : Migration
->>>>>>>> origin/ConditionDeleteTour_CheckPurchaseService:Migrations/20250822153917_ChangeDateTimeEndDate.cs
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -67,11 +63,7 @@ namespace TourManagement_BE.Migrations
                     Name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-<<<<<<<< HEAD:Migrations/20250804082239_DBabc1234.cs
                     DiscountPercentage = table.Column<decimal>(type: "decimal(5,2)", nullable: true, defaultValue: 0m),
-========
-                    DiscountPercentage = table.Column<decimal>(type: "decimal(5,2)", nullable: true, defaultValue: 0.0m),
->>>>>>>> origin/ConditionDeleteTour_CheckPurchaseService:Migrations/20250822153917_ChangeDateTimeEndDate.cs
                     MaxTour = table.Column<int>(type: "int", nullable: false),
                     MaxImage = table.Column<int>(type: "int", nullable: false),
                     MaxVideo = table.Column<bool>(type: "bit", nullable: false),
@@ -161,11 +153,7 @@ namespace TourManagement_BE.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     Token = table.Column<string>(type: "nvarchar(max)", nullable: false),
-<<<<<<<< HEAD:Migrations/20250804082239_DBabc1234.cs
                     ExpiryDate = table.Column<DateTime>(type: "datetime2(7)", nullable: false),
-========
-                    ExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: false),
->>>>>>>> origin/ConditionDeleteTour_CheckPurchaseService:Migrations/20250822153917_ChangeDateTimeEndDate.cs
                     IsUsed = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -332,7 +320,7 @@ namespace TourManagement_BE.Migrations
                     PackageId = table.Column<int>(type: "int", nullable: false),
                     TransactionId = table.Column<int>(type: "int", nullable: false),
                     ActivationDate = table.Column<DateTime>(type: "datetime", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "datetime", nullable: true),
+                    EndDate = table.Column<DateTime>(type: "datetime", nullable: false),
                     NumOfToursUsed = table.Column<int>(type: "int", nullable: true, defaultValue: 0),
                     IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "(getdate())")
@@ -623,7 +611,7 @@ namespace TourManagement_BE.Migrations
                     BookingId = table.Column<int>(type: "int", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    AmountPaid = table.Column<decimal>(type: "decimal(18,2)", nullable: true, defaultValue: 0.0m),
+                    AmountPaid = table.Column<decimal>(type: "decimal(18,2)", nullable: true, defaultValue: 0m),
                     PaymentMethod = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     PaymentStatus = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true, defaultValue: "Pending"),
                     PaymentDate = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "(getdate())"),
@@ -660,11 +648,7 @@ namespace TourManagement_BE.Migrations
                     BookingId = table.Column<int>(type: "int", nullable: false),
                     TourGuideId = table.Column<int>(type: "int", nullable: false),
                     ReportDate = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "(getdate())"),
-<<<<<<<< HEAD:Migrations/20250804082239_DBabc1234.cs
                     TotalExtraCost = table.Column<decimal>(type: "decimal(18,2)", nullable: true, defaultValue: 0m),
-========
-                    TotalExtraCost = table.Column<decimal>(type: "decimal(18,2)", nullable: true, defaultValue: 0.0m),
->>>>>>>> origin/ConditionDeleteTour_CheckPurchaseService:Migrations/20250822153917_ChangeDateTimeEndDate.cs
                     Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     AttachmentUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true)

@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using TourManagement_BE.Data.Context;
 using TourManagement_BE.Data.DTO.Request.AccountRequest;
 using TourManagement_BE.Data.DTO.Response.AccountResponse;
@@ -10,7 +9,6 @@ namespace TourManagement_BE.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin")]
     public class AccountController : Controller
     {
         private readonly MyDBContext context;
