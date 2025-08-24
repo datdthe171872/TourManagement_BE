@@ -54,7 +54,7 @@ public class DepartureDatesController : ControllerBase
         {
             return BadRequest(new
             {
-                Message = "Không thể tạo ngày khởi hành. Vui lòng kiểm tra lại thông tin tour và ngày bắt đầu."
+                Message = "Không thể tạo ngày khởi hành. Vui lòng kiểm tra lại thông tin tour và đảm bảo ngày khởi hành cách hôm nay ít nhất 1 tháng."
             });
         }
 

@@ -15,6 +15,8 @@ public class CreateDepartureDateRequestValidator : AbstractValidator<CreateDepar
             .NotEmpty()
             .WithMessage("Ngày bắt đầu không được để trống")
             .Must(date => date.Date > DateTime.Now.Date)
-            .WithMessage("Ngày bắt đầu phải là ngày trong tương lai");
+            .WithMessage("Ngày bắt đầu phải là ngày trong tương lai")
+            .Must(date => date.Date >= DateTime.Now.Date.AddMonths(1))
+            .WithMessage("Ngày khởi hành phải cách hôm nay ít nhất 1 tháng");
     }
 } 

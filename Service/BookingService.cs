@@ -81,8 +81,14 @@ namespace TourManagement_BE.Service
             int totalPeople = request.NumberOfAdults + request.NumberOfChildren + request.NumberOfInfants;
             int slotsBooked = tour.SlotsBooked ?? 0;
             int availableSlots = tour.MaxSlots - slotsBooked;
+            
+            // Kiểm tra nếu Tour đã full MaxSlot
+            if (slotsBooked >= tour.MaxSlots)
+                throw new Exception($"Tour '{tour.Title}' đã đạt giới hạn tối đa số lượng người ({tour.MaxSlots} người). Không thể đặt thêm.");
+            
+            // Kiểm tra nếu số người đặt vượt quá slot còn lại
             if (totalPeople > availableSlots)
-                throw new Exception($"Not enough slots. Available: {availableSlots}, Requested: {totalPeople}");
+                throw new Exception($"Tour '{tour.Title}' chỉ còn {availableSlots} slot trống. Bạn đang đặt {totalPeople} người. Vui lòng giảm số lượng người hoặc chọn Tour khác.");
 
             decimal totalPrice = request.NumberOfAdults * tour.PriceOfAdults
                                + request.NumberOfChildren * tour.PriceOfChildren
@@ -147,6 +153,31 @@ namespace TourManagement_BE.Service
                 .Include(b => b.Tour).ThenInclude(t => t.TourOperator)
                 .FirstOrDefaultAsync(x => x.BookingId == request.BookingId);
             if (booking == null) return null;
+            
+            // Lấy thông tin Tour để kiểm tra slot availability
+            var tour = await _context.Tours.FirstOrDefaultAsync(t => t.TourId == booking.TourId);
+            if (tour == null)
+                throw new Exception("Tour not found");
+            
+            // Tính toán số người hiện tại và số người mới
+            int currentTotalPeople = (booking.NumberOfAdults ?? 0) + (booking.NumberOfChildren ?? 0) + (booking.NumberOfInfants ?? 0);
+            int newTotalPeople = request.NumberOfAdults + request.NumberOfChildren + request.NumberOfInfants;
+            
+            // Tính toán slot còn lại sau khi trừ đi số người hiện tại
+            int slotsBooked = tour.SlotsBooked ?? 0;
+            int availableSlots = tour.MaxSlots - slotsBooked + currentTotalPeople;
+            
+            // Kiểm tra nếu Tour đã full MaxSlot
+            if (slotsBooked >= tour.MaxSlots)
+                throw new Exception($"Tour '{tour.Title}' đã đạt giới hạn tối đa số lượng người ({tour.MaxSlots} người). Không thể cập nhật booking.");
+            
+            // Kiểm tra nếu số người mới vượt quá slot còn lại
+            if (newTotalPeople > availableSlots)
+                throw new Exception($"Tour '{tour.Title}' chỉ còn {availableSlots} slot trống. Bạn đang đặt {newTotalPeople} người. Vui lòng giảm số lượng người hoặc chọn Tour khác.");
+            
+            // Cập nhật số slot đã book
+            tour.SlotsBooked = slotsBooked - currentTotalPeople + newTotalPeople;
+            
             // Không update BookingStatus, PaymentStatus nữa
             booking.DepartureDateId = request.DepartureDateId;
             booking.NumberOfAdults = request.NumberOfAdults;
@@ -156,6 +187,7 @@ namespace TourManagement_BE.Service
                 booking.NoteForTour = request.NoteForTour;
             if (request.Contract != null)
                 booking.Contract = request.Contract;
+            
             await _context.SaveChangesAsync();
             return new BookingResponse
             {
@@ -182,8 +214,19 @@ namespace TourManagement_BE.Service
 
         public async Task<bool> SoftDeleteBookingAsync(int bookingId, int userId)
         {
-            var booking = await _context.Bookings.FirstOrDefaultAsync(x => x.BookingId == bookingId && x.UserId == userId);
+            var booking = await _context.Bookings
+                .Include(b => b.Tour)
+                .FirstOrDefaultAsync(x => x.BookingId == bookingId && x.UserId == userId);
             if (booking == null) return false;
+            
+            // Release slots back to the tour
+            var tour = booking.Tour;
+            if (tour != null)
+            {
+                int totalPeople = (booking.NumberOfAdults ?? 0) + (booking.NumberOfChildren ?? 0) + (booking.NumberOfInfants ?? 0);
+                tour.SlotsBooked = Math.Max(0, (tour.SlotsBooked ?? 0) - totalPeople);
+            }
+            
             booking.IsActive = false;
             await _context.SaveChangesAsync();
             return true;

@@ -26,16 +26,27 @@ namespace TourManagement_BE.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateAssignment([FromBody] CreateTourGuideAssignmentRequest request)
         {
-            // Kiểm tra xem tour guide đã được assign cho departure date này chưa
+            // Lấy ngày của departure date hiện tại
+            var currentDepartureDate = await _context.DepartureDates
+                .Where(d => d.Id == request.DepartureDateId && d.IsActive)
+                .Select(d => d.DepartureDate1.Date)
+                .FirstOrDefaultAsync();
+            
+            if (currentDepartureDate == default)
+            {
+                return BadRequest("Departure date không tồn tại hoặc không hợp lệ");
+            }
+
+            // Kiểm tra xem tour guide đã được assign cho ngày này chưa (bất kỳ departure date nào)
             var existingAssignment = await _context.TourGuideAssignments
-                .FirstOrDefaultAsync(a => a.TourId == request.TourId && 
-                                        a.DepartureDateId == request.DepartureDateId && 
+                .Include(a => a.DepartureDate)
+                .FirstOrDefaultAsync(a => a.DepartureDate.DepartureDate1.Date == currentDepartureDate && 
                                         a.TourGuideId == request.TourGuideId && 
                                         a.IsActive);
             
             if (existingAssignment != null)
             {
-                return BadRequest("Tour guide đã được assign cho departure date này");
+                return BadRequest($"TourGuide này đã được gán vào TourId {existingAssignment.TourId} trong ngày {currentDepartureDate:dd/MM/yyyy} rồi");
             }
 
             var assignment = new TourGuideAssignment
@@ -60,22 +71,33 @@ namespace TourManagement_BE.Controllers
                 return BadRequest("Danh sách tour guide không được để trống");
             }
 
+            // Lấy ngày của departure date hiện tại
+            var currentDepartureDate = await _context.DepartureDates
+                .Where(d => d.Id == request.DepartureDateId && d.IsActive)
+                .Select(d => d.DepartureDate1.Date)
+                .FirstOrDefaultAsync();
+            
+            if (currentDepartureDate == default)
+            {
+                return BadRequest("Departure date không tồn tại hoặc không hợp lệ");
+            }
+
             var assignments = new List<TourGuideAssignment>();
             var existingAssignments = await _context.TourGuideAssignments
-                .Where(a => a.TourId == request.TourId && 
-                           a.DepartureDateId == request.DepartureDateId && 
+                .Include(a => a.DepartureDate)
+                .Where(a => a.DepartureDate.DepartureDate1.Date == currentDepartureDate && 
                            a.IsActive)
                 .ToListAsync();
 
             foreach (var tourGuide in request.TourGuides)
             {
-                // Kiểm tra xem tour guide đã được assign chưa
+                // Kiểm tra xem tour guide đã được assign cho ngày này chưa
                 var existingAssignment = existingAssignments
                     .FirstOrDefault(a => a.TourGuideId == tourGuide.TourGuideId);
                 
                 if (existingAssignment != null)
                 {
-                    continue; // Bỏ qua nếu đã được assign
+                    continue; // Bỏ qua nếu đã được assign cho ngày này
                 }
 
                 var assignment = new TourGuideAssignment

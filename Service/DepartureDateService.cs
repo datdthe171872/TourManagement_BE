@@ -29,6 +29,10 @@ public class DepartureDateService : IDepartureDateService
         if (request.StartDate.Date <= DateTime.Now.Date)
             return false;
 
+        // Kiểm tra ngày khởi hành phải cách hôm nay ít nhất 1 tháng
+        if (request.StartDate.Date < DateTime.Now.Date.AddMonths(1))
+            return false;
+
         // Parse DurationInDays để lấy số ngày
         if (!int.TryParse(tour.DurationInDays, out int durationInDays))
             return false;
