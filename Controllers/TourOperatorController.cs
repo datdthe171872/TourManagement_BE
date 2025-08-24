@@ -207,7 +207,11 @@ public class TourOperatorController : ControllerBase
                 RoleName = "Tour Guide"
             };
             await _authService.RegisterAsync(registerRequest, tourOperator.TourOperatorId);
-            return Ok("TourGuide registration successful");
+            return Ok(new { 
+                message = "TourGuide registration successful. Please check email for verification link.",
+                email = request.Email,
+                note = "Tour Guide account will be activated after email verification."
+            });
         }
         catch (Exception ex)
         {

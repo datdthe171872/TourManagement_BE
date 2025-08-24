@@ -8,6 +8,7 @@ namespace TourManagement_BE.Repository.Interface
     {
         Task<User> GetUserByEmailAsync(string email);
         Task<User> GetUserByIdAsync(int userId);
+        Task<User> GetUserByIdForVerificationAsync(int userId);
         Task AddUserAsync(User user);
         Task<Role> GetRoleByNameAsync(string roleName);
         Task AddResetPasswordTokenAsync(ResetPasswordToken token);

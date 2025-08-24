@@ -30,6 +30,24 @@ namespace TourManagement_BE
 
             builder.Services.AddCors(options =>
             {
+                options.AddPolicy("AllowFrontend",
+                    policy =>
+                    {
+                        policy
+                            .WithOrigins(
+                                "http://localhost:3000",    // React default
+                                "http://localhost:5000",    // Alternative port
+                                "http://localhost:8080",    // Alternative port
+                                "http://localhost:4200",    // Angular default
+                                "http://localhost:5173"     // Vite default
+                            )
+                            .AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .AllowCredentials()
+                            .WithExposedHeaders("Content-Disposition"); // For file downloads
+                    });
+
+                // Fallback policy for development
                 options.AddPolicy("AllowAll",
                     policy =>
                     {
@@ -175,7 +193,7 @@ namespace TourManagement_BE
             }
 
             app.UseHttpsRedirection();
-            app.UseCors("AllowAll");
+            app.UseCors("AllowFrontend"); // Changed to AllowFrontend
             app.UseStaticFiles();
             app.UseAuthentication();
             app.UseAuthorization();

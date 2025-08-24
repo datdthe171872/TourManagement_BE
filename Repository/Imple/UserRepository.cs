@@ -28,6 +28,13 @@ namespace TourManagement_BE.Repository.Imple
                 .FirstOrDefaultAsync(u => u.UserId == userId && u.IsActive);
         }
 
+        public async Task<User> GetUserByIdForVerificationAsync(int userId)
+        {
+            return await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.UserId == userId);
+        }
+
         public async Task AddUserAsync(User user)
         {
             await _context.Users.AddAsync(user);

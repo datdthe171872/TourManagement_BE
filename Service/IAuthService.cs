@@ -10,5 +10,6 @@ namespace TourManagement_BE.Service
         Task RegisterAsync(RegisterRequest request, int? tourOperatorId = null);
         Task ForgotPasswordAsync(ForgotPasswordRequest request);
         Task ResetPasswordAsync(ResetPasswordRequest request);
+        Task<VerifyEmailResponse> VerifyEmailAsync(string token);
     }
 }

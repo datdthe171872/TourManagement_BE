@@ -71,6 +71,24 @@ namespace TourManagement_BE.Controllers
             return BadRequest(ex.Message);
         }
     }
+
+    [HttpPost("verify-email")]
+    public async Task<ActionResult<VerifyEmailResponse>> VerifyEmail([FromBody] VerifyEmailRequest request)
+    {
+        try
+        {
+            var response = await _authService.VerifyEmailAsync(request.Token);
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
 }
     }
 
