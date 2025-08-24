@@ -65,6 +65,16 @@ public class DepartureDatesController : ControllerBase
             });
         }
 
+        // Kiểm tra ngày khởi hành phải cách hôm nay ít nhất 1 tháng
+        var minimumDate = DateTime.Now.Date.AddMonths(1);
+        if (request.StartDate.Date < minimumDate)
+        {
+            return BadRequest(new
+            {
+                Message = $"Ngày khởi hành phải cách hôm nay ít nhất 1 tháng. Ngày sớm nhất có thể chọn là: {minimumDate:dd/MM/yyyy}"
+            });
+        }
+
         var result = await _departureDateService.CreateDepartureDatesAsync(request, userId);
         
         if (result == null)

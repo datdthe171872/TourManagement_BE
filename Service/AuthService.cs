@@ -38,10 +38,17 @@ namespace TourManagement_BE.Service
 
         public async Task<LoginResponse> LoginAsync(LoginRequest request)
         {
-            var user = await _userRepository.GetUserByEmailAsync(request.Email);
+            var user = await _userRepository.GetUserByEmailIncludeInactiveAsync(request.Email);
+
             if (user == null || !PasswordHelper.VerifyPassword(request.Password, user.Password))
             {
-                throw new Exception("Invalid email or password");
+                throw new Exception("Email hoặc mật khẩu không đúng");
+            }
+
+            // Kiểm tra xem tài khoản đã được xác thực email chưa
+            if (!user.IsActive)
+            {
+                throw new Exception("Tài khoản của bạn chưa được kích hoạt. Vui lòng kiểm tra email và xác thực tài khoản trước khi đăng nhập.");
             }
 
             var token = _jwtHelper.GenerateToken(user.UserId.ToString(), user.Email, user.Role.RoleName);
@@ -57,30 +64,17 @@ namespace TourManagement_BE.Service
         public async Task RegisterAsync(RegisterRequest request, int? tourOperatorId = null)
         {
             // Check for any existing users with the same email (both active and inactive)
-            var existingUsers = await _context.Users
-                .Include(u => u.Role)
-                .Where(u => u.Email == request.Email)
-                .ToListAsync();
+            var existingUser = await _userRepository.GetUserByEmailIncludeInactiveAsync(request.Email);
             
-            // Special handling for Tour Guide registration
-            if (request.RoleName == Roles.TourGuide)
+            // Check if email already exists
+            if (existingUser != null)
             {
-                // Check if there's any active user with the same email
-                var activeUser = existingUsers.FirstOrDefault(u => u.IsActive);
-                if (activeUser != null)
+                // Kiểm tra xem email đã được kích hoạt chưa
+                if (existingUser.IsActive)
                 {
-                    throw new Exception("Email already exists and is active");
+                    throw new Exception("Đã tồn tại email này");
                 }
-                
-               
-            }
-            else
-            {
-                // For other roles, check if email exists regardless of status
-                if (existingUsers.Any())
-                {
-                    throw new Exception("Email already exists");
-                }
+                // Nếu email tồn tại nhưng chưa kích hoạt (IsActive = false), cho phép đăng ký lại
             }
 
             var role = await _userRepository.GetRoleByNameAsync(request.RoleName);
@@ -89,29 +83,123 @@ namespace TourManagement_BE.Service
                 throw new Exception("Invalid role. Must be one of: " + string.Join(", ", Roles.AllRoles));
             }
 
-            var user = _mapper.Map<User>(request);
-            user.Password = PasswordHelper.HashPassword(request.Password);
-            user.RoleId = role.RoleId;
-            user.IsActive = true;
-            await _context.Users.AddAsync(user);
-            await _context.SaveChangesAsync();
+            User createdUser;
+            
+            if (existingUser != null && !existingUser.IsActive)
+            {
+                // Cập nhật user đã có (email tồn tại nhưng chưa kích hoạt)
+                existingUser.UserName = request.UserName;
+                existingUser.Password = PasswordHelper.HashPassword(request.Password);
+                existingUser.RoleId = role.RoleId;
+                existingUser.Address = request.Address;
+                existingUser.PhoneNumber = request.PhoneNumber;
+                existingUser.Avatar = request.Avatar;
+                existingUser.IsActive = false; // Vẫn để false cho đến khi xác thực email
+                
+                await _userRepository.UpdateUserAsync(existingUser);
+                createdUser = existingUser;
+            }
+            else
+            {
+                // Tạo user mới (email chưa tồn tại)
+                var user = _mapper.Map<User>(request);
+                user.Password = PasswordHelper.HashPassword(request.Password);
+                user.RoleId = role.RoleId;
+                user.IsActive = false; // Tạo tài khoản với IsActive = false cho email verification
+                
+                await _context.Users.AddAsync(user);
+                await _context.SaveChangesAsync();
+                
+                // Lấy lại userId vừa tạo
+                createdUser = await _userRepository.GetUserByEmailIncludeInactiveAsync(request.Email);
+            }
 
-            // Lấy lại userId vừa tạo
-            var createdUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email && u.IsActive);
+            // Tạo email verification token
+            var verificationToken = Guid.NewGuid().ToString();
+            var expiry = DateTime.UtcNow.AddHours(24); // Token có hiệu lực 24 giờ
+            var tokenEntity = new ResetPasswordToken
+            {
+                UserId = createdUser.UserId,
+                Token = verificationToken,
+                ExpiryDate = expiry,
+                IsUsed = false
+            };
+            await _userRepository.AddResetPasswordTokenAsync(tokenEntity);
+
+            // Gửi email verification
+            try
+            {
+                var verificationLink = $"http://localhost:3000/verify-email?token={verificationToken}";
+                var subject = "Xác thực Email - Tour Management System";
+                var body = $@"
+                    <html>
+                    <body>
+                        <h2>Xác thực Email - Tour Management System</h2>
+                        <p>Xin chào {request.UserName},</p>
+                        <p>Cảm ơn bạn đã đăng ký tài khoản tại Tour Management System.</p>
+                        <p>Để kích hoạt tài khoản, vui lòng click vào nút bên dưới:</p>
+                        <p>
+                            <a href='{verificationLink}' style='background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>
+                                Xác thực Email
+                            </a>
+                        </p>
+                        <p>Hoặc copy và paste link này vào trình duyệt:</p>
+                        <p>{verificationLink}</p>
+                        <p><strong>Link này sẽ hết hạn sau 24 giờ.</strong></p>
+                        <p>Nếu bạn không thực hiện đăng ký này, vui lòng bỏ qua email này.</p>
+                        <p>Trân trọng,<br>Đội ngũ Tour Management System</p>
+                    </body>
+                    </html>";
+
+                await _emailHelper.SendEmailAsync(request.Email, subject, body);
+            }
+            catch (Exception ex)
+            {
+                // Nếu gửi email thất bại, xóa token đã tạo
+                _context.ResetPasswordTokens.Remove(tokenEntity);
+                await _context.SaveChangesAsync();
+                
+                // Nếu là user mới, xóa luôn user
+                if (existingUser == null)
+                {
+                    var newUser = await _userRepository.GetUserByEmailIncludeInactiveAsync(request.Email);
+                    if (newUser != null)
+                    {
+                        _context.Users.Remove(newUser);
+                        await _context.SaveChangesAsync();
+                    }
+                }
+                
+                throw new Exception($"Đăng ký thất bại do không thể gửi email xác thực: {ex.Message}");
+            }
 
             // Tạo notification khi đăng ký thành công
             await _notificationService.CreateRegistrationSuccessNotificationAsync(createdUser.UserId);
 
             if (request.RoleName == Roles.TourGuide)
             {
-                var tourGuide = new TourGuide
+                // Kiểm tra xem đã có TourGuide record chưa
+                var existingTourGuide = await _context.TourGuides
+                    .FirstOrDefaultAsync(tg => tg.UserId == createdUser.UserId);
+                
+                if (existingTourGuide == null)
                 {
-                    UserId = createdUser.UserId,
-                    TourOperatorId = tourOperatorId,
-                    IsActive = true
-                };
-                _context.TourGuides.Add(tourGuide);
-                await _context.SaveChangesAsync();
+                    var tourGuide = new TourGuide
+                    {
+                        UserId = createdUser.UserId,
+                        TourOperatorId = tourOperatorId,
+                        IsActive = true
+                    };
+                    _context.TourGuides.Add(tourGuide);
+                    await _context.SaveChangesAsync();
+                }
+                else
+                {
+                    // Cập nhật TourGuide record nếu đã có
+                    existingTourGuide.TourOperatorId = tourOperatorId;
+                    existingTourGuide.IsActive = true;
+                    await _context.SaveChangesAsync();
+                }
 
                 // Send email to tour guide with password
                 try
@@ -121,11 +209,11 @@ namespace TourManagement_BE.Service
                         <html>
                         <body>
                             <h2>Tour Guide Account Created Successfully</h2>
-                            <p>Hello {request.UserName},</p>
+                            <p>Hello {createdUser.UserName},</p>
                             <p>Your tour guide account has been created successfully by the tour operator.</p>
                             <p><strong>Login Credentials:</strong></p>
                             <ul>
-                                <li><strong>Email:</strong> {request.Email}</li>
+                                <li><strong>Email:</strong> {createdUser.Email}</li>
                                 <li><strong>Password:</strong> {request.Password}</li>
                             </ul>
                             <p>Please use these credentials to log in to your account.</p>
@@ -134,7 +222,7 @@ namespace TourManagement_BE.Service
                         </body>
                         </html>";
 
-                    await _emailHelper.SendEmailAsync(request.Email, subject, body);
+                    await _emailHelper.SendEmailAsync(createdUser.Email, subject, body);
                 }
                 catch (Exception ex)
                 {
@@ -154,7 +242,7 @@ namespace TourManagement_BE.Service
                         await _notificationService.CreateNotificationAsync(
                             tourOperator.User.UserId,
                             "Tour Guide Registration Success",
-                            $"Tour guide {request.UserName} has been registered successfully.",
+                            $"Tour guide {createdUser.UserName} has been registered successfully.",
                             "TourGuideRegistration"
                         );
                     }
@@ -340,6 +428,129 @@ namespace TourManagement_BE.Service
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task VerifyEmailAsync(VerifyEmailRequest request)
+        {
+            var tokenEntity = await _userRepository.GetResetPasswordTokenAsync(request.Token);
+            if (tokenEntity == null)
+            {
+                throw new Exception("Token không hợp lệ hoặc đã hết hạn");
+            }
+
+            var user = await _userRepository.GetUserByIdAsync(tokenEntity.UserId);
+            if (user == null)
+            {
+                throw new Exception("Không tìm thấy người dùng");
+            }
+
+            // Kích hoạt tài khoản
+            user.IsActive = true;
+            await _userRepository.UpdateUserAsync(user);
+
+            // Đánh dấu token đã sử dụng
+            await _userRepository.SetResetPasswordTokenUsedAsync(tokenEntity.Id);
+
+            // Nếu là Tour Guide, cập nhật TourGuide record
+            if (user.Role.RoleName == Roles.TourGuide)
+            {
+                var tourGuide = await _context.TourGuides
+                    .FirstOrDefaultAsync(tg => tg.UserId == user.UserId);
+                if (tourGuide != null)
+                {
+                    tourGuide.IsActive = true;
+                    await _context.SaveChangesAsync();
+                }
+            }
+
+            // Gửi email thông báo xác thực thành công
+            try
+            {
+                var subject = "Xác thực Email Thành công - Tour Management System";
+                var body = $@"
+                    <html>
+                    <body>
+                        <h2>Xác thực Email Thành công</h2>
+                        <p>Xin chào {user.UserName},</p>
+                        <p>Tài khoản của bạn đã được xác thực thành công!</p>
+                        <p>Bây giờ bạn có thể đăng nhập và sử dụng đầy đủ các tính năng của hệ thống.</p>
+                        <p>Trân trọng,<br>Đội ngũ Tour Management System</p>
+                    </body>
+                    </html>";
+
+                await _emailHelper.SendEmailAsync(user.Email, subject, body);
+            }
+            catch (Exception ex)
+            {
+                // Log lỗi gửi email nhưng không throw exception vì tài khoản đã được kích hoạt thành công
+                Console.WriteLine($"Failed to send email verification success email: {ex.Message}");
+            }
+        }
+
+        public async Task ResendVerificationAsync(ResendVerificationRequest request)
+        {
+            var user = await _userRepository.GetUserByEmailIncludeInactiveAsync(request.Email);
+            if (user == null || user.IsActive)
+            {
+                throw new Exception("Không tìm thấy tài khoản chưa xác thực với email này");
+            }
+
+            // Xóa token cũ nếu có
+            var existingTokens = await _context.ResetPasswordTokens
+                .Where(t => t.UserId == user.UserId && !t.IsUsed)
+                .ToListAsync();
+            
+            if (existingTokens.Any())
+            {
+                _context.ResetPasswordTokens.RemoveRange(existingTokens);
+                await _context.SaveChangesAsync();
+            }
+
+            // Tạo token mới
+            var verificationToken = Guid.NewGuid().ToString();
+            var expiry = DateTime.UtcNow.AddHours(24);
+            var tokenEntity = new ResetPasswordToken
+            {
+                UserId = user.UserId,
+                Token = verificationToken,
+                ExpiryDate = expiry,
+                IsUsed = false
+            };
+            await _userRepository.AddResetPasswordTokenAsync(tokenEntity);
+
+            // Gửi email verification mới
+            try
+            {
+                var verificationLink = $"http://localhost:3000/verify-email?token={verificationToken}";
+                var subject = "Gửi lại Email Xác thực - Tour Management System";
+                var body = $@"
+                    <html>
+                    <body>
+                        <h2>Gửi lại Email Xác thực</h2>
+                        <p>Xin chào {user.UserName},</p>
+                        <p>Bạn đã yêu cầu gửi lại email xác thực cho tài khoản Tour Management System.</p>
+                        <p>Để kích hoạt tài khoản, vui lòng click vào nút bên dưới:</p>
+                        <p>
+                            <a href='{verificationLink}' style='background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>
+                                Xác thực Email
+                            </a>
+                        </p>
+                        <p>Hoặc copy và paste link này vào trình duyệt:</p>
+                        <p>{verificationLink}</p>
+                        <p><strong>Link này sẽ hết hạn sau 24 giờ.</strong></p>
+                        <p>Trân trọng,<br>Đội ngũ Tour Management System</p>
+                    </body>
+                    </html>";
+
+                await _emailHelper.SendEmailAsync(user.Email, subject, body);
+            }
+            catch (Exception ex)
+            {
+                // Xóa token nếu gửi email thất bại
+                _context.ResetPasswordTokens.Remove(tokenEntity);
+                await _context.SaveChangesAsync();
+                throw new Exception($"Không thể gửi email xác thực: {ex.Message}");
             }
         }
     }

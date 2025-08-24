@@ -21,11 +21,18 @@ namespace TourManagement_BE.Repository.Imple
                 .FirstOrDefaultAsync(u => u.Email == email && u.IsActive);
         }
 
+        public async Task<User> GetUserByEmailIncludeInactiveAsync(string email)
+        {
+            return await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.Email == email);
+        }
+
         public async Task<User> GetUserByIdAsync(int userId)
         {
             return await _context.Users
                 .Include(u => u.Role)
-                .FirstOrDefaultAsync(u => u.UserId == userId && u.IsActive);
+                .FirstOrDefaultAsync(u => u.UserId == userId);
         }
 
         public async Task AddUserAsync(User user)

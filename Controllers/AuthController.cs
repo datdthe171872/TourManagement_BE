@@ -84,6 +84,34 @@ namespace TourManagement_BE.Controllers
                 return BadRequest(new { error = ex.Message });
             }
         }
+
+        [HttpPost("verify-email")]
+        public async Task<ActionResult> VerifyEmail([FromBody] VerifyEmailRequest request)
+        {
+            try
+            {
+                await _authService.VerifyEmailAsync(request);
+                return Ok("Email verified successfully. Your account is now active.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("resend-verification")]
+        public async Task<ActionResult> ResendVerification([FromBody] ResendVerificationRequest request)
+        {
+            try
+            {
+                await _authService.ResendVerificationAsync(request);
+                return Ok("Verification email has been sent. Please check your inbox.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }
 
