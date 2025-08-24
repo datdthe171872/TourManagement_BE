@@ -74,22 +74,27 @@ namespace TourManagement_BE.Service
         {
             var tour = await _context.Tours.FirstOrDefaultAsync(t => t.TourId == request.TourId);
             if (tour == null)
-                throw new Exception("Tour not found");
+                throw new Exception("Không tìm thấy tour. Vui lòng kiểm tra lại thông tin tour.");
 
             var departure = await _context.DepartureDates.FirstOrDefaultAsync(d => d.Id == request.DepartureDateId && d.TourId == request.TourId && d.IsActive);
             if (departure == null)
-                throw new Exception("Departure date not found or not active for this tour");
+                throw new Exception("Không tìm thấy ngày khởi hành hoặc ngày khởi hành không hoạt động cho tour này. Vui lòng kiểm tra lại thông tin.");
 
             // Only allow booking if PaymentDeadline (DepartureDate - 21 days) is today or later
             var paymentDeadline = departure.DepartureDate1.AddDays(-21);
             if (paymentDeadline.Date < DateTime.UtcNow.Date)
-                throw new Exception("Không thể đặt tour vì đã qua hạn thanh toán (PaymentDeadline)");
+                throw new Exception($"Không thể đặt tour vì đã qua hạn thanh toán. Hạn thanh toán là: {paymentDeadline:dd/MM/yyyy}, Ngày khởi hành: {departure.DepartureDate1:dd/MM/yyyy}. Vui lòng chọn ngày khởi hành khác.");
 
             int totalPeople = request.NumberOfAdults + request.NumberOfChildren + request.NumberOfInfants;
             int slotsBooked = tour.SlotsBooked ?? 0;
             int availableSlots = tour.MaxSlots - slotsBooked;
             if (totalPeople > availableSlots)
-                throw new Exception($"Not enough slots. Available: {availableSlots}, Requested: {totalPeople}");
+            {
+                var message = availableSlots <= 0 
+                    ? $"Rất tiếc! Tour này đã hết chỗ (MaxSlot: {tour.MaxSlots}, Đã đặt: {slotsBooked}). Vui lòng chọn tour khác hoặc liên hệ với chúng tôi để được hỗ trợ."
+                    : $"Rất tiếc! Tour này chỉ còn {availableSlots} chỗ trống, nhưng bạn yêu cầu {totalPeople} chỗ. Vui lòng giảm số lượng người hoặc chọn tour khác.";
+                throw new Exception(message);
+            }
 
             decimal totalPrice = request.NumberOfAdults * tour.PriceOfAdults
                                + request.NumberOfChildren * tour.PriceOfChildren
