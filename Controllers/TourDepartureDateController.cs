@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using CloudinaryDotNet;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TourManagement_BE.Data.Context;
@@ -13,7 +12,6 @@ namespace TourManagement_BE.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = Roles.TourOperator)]
     public class TourDepartureDateController : Controller
     {
         private readonly MyDBContext context;
