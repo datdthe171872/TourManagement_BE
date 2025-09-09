@@ -159,7 +159,7 @@ namespace TourManagement_BE.Service.AccountManagement
             await _context.SaveChangesAsync();
 
             result.Success = true;
-            result.Message = "User status updated successfully.";
+            result.Message = "Trạng thái người dùng đã được cập nhật thành công.";
             result.Account = new ListAccountResponse
             {
                 UserId = user.UserId,
@@ -183,7 +183,7 @@ namespace TourManagement_BE.Service.AccountManagement
             if (user == null)
             {
                 result.Success = false;
-                result.Message = "User not found.";
+                result.Message = "Không tìm thấy người dùng.";
                 return result;
             }
 
@@ -191,7 +191,7 @@ namespace TourManagement_BE.Service.AccountManagement
             await _context.SaveChangesAsync();
 
             result.Success = true;
-            result.Message = "User status updated successfully.";
+            result.Message = "Trạng thái người dùng đã được cập nhật thành công.";
             result.Account = new ListAccountResponse
             {
                 UserId = user.UserId,

@@ -47,23 +47,23 @@ namespace TourManagement_BE.Controllers
             try
             {
                 if (touroperatorid <= 0)
-                    return BadRequest("Invalid tour operator ID.");
+                    return BadRequest("touroperatorID không hợp lệ.");
 
                 if (pageNumber <= 0 || pageSize <= 0)
-                    return BadRequest("Page number and page size must be greater than 0.");
+                    return BadRequest("Số trang và kích thước trang phải lớn hơn 0.");
 
                 var result = await _tourService.TourOperatorFullTourListPagingAsync(touroperatorid, pageNumber, pageSize);
 
                 if (result == null || !result.Data.Any())
                 {
-                    return NotFound("No tours found for this tour operator.");
+                    return NotFound("Không tìm thấy tour nào cho công ty lữ hành này.");
                 }
 
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, $"Lỗi máy chủ nội bộ: {ex.Message}");
             }
         }
 
@@ -73,26 +73,26 @@ namespace TourManagement_BE.Controllers
             try
             {
                 if (touroperatorid <= 0)
-                    return BadRequest("Invalid tour operator ID.");
+                    return BadRequest("touroperatorID không hợp lệ.");
 
                 if (string.IsNullOrWhiteSpace(keyword))
-                    return BadRequest("Search keyword cannot be empty.");
+                    return BadRequest("Từ khóa tìm kiếm không được để trống.");
 
                 if (pageNumber <= 0 || pageSize <= 0)
-                    return BadRequest("Page number and page size must be greater than 0.");
+                    return BadRequest("Số trang và kích thước trang phải lớn hơn 0.");
 
                 var result = await _tourService.SearchPagingTourOperatorFullTourListAsync(touroperatorid, keyword, pageNumber, pageSize);
 
                 if (result == null || !result.Data.Any())
                 {
-                    return NotFound("No tours found matching the search criteria.");
+                    return NotFound("Không tìm thấy tour nào phù hợp với tiêu chí tìm kiếm.");
                 }
 
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, $"Lỗi máy chủ nội bộ: {ex.Message}");
             }
         }
 
@@ -110,7 +110,7 @@ namespace TourManagement_BE.Controllers
             try
             {
                 if (touroperatorid <= 0)
-                    return BadRequest("Invalid tour operator ID.");
+                    return BadRequest("touroperatorID không hợp lệ."); 
 
                 var filter = new TourFilterRequest
                 {
@@ -126,14 +126,14 @@ namespace TourManagement_BE.Controllers
 
                 if (result == null || !result.Data.Any())
                 {
-                    return NotFound("No tours found matching the filter criteria.");
+                    return NotFound("Không tìm thấy tour nào phù hợp với tiêu chí lọc.");
                 }
 
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, $"Lỗi server: {ex.Message}");
             }
         }
 
@@ -144,7 +144,7 @@ namespace TourManagement_BE.Controllers
 
             if (!tours.Any())
             {
-                return NotFound("Not Found.");
+                return NotFound("Không tìm thấy.");
             }
 
             return Ok(tours);
@@ -157,7 +157,7 @@ namespace TourManagement_BE.Controllers
             var result = await _tourService.ListAllForTourOperatorPagingAsync(userid, pageNumber, pageSize);
             if (result == null || !result.Data.Any())
             {
-                return NotFound("Not Found.");
+                return NotFound("Không tìm thấy.");
             }
             return Ok(result);
         }
@@ -168,7 +168,7 @@ namespace TourManagement_BE.Controllers
             var tours = await _tourService.SearchForOperatorAsync(userid, keyword);
             if (tours == null || !tours.Any())
             {
-                return NotFound("No tours found.");
+                return NotFound("Không tìm thấy tour nào.");
             }
             return Ok(tours);
         }
@@ -179,7 +179,7 @@ namespace TourManagement_BE.Controllers
             var result = await _tourService.SearchPagingForOperatorAsync(userid, keyword, pageNumber, pageSize);
             if (result == null || !result.Data.Any())
             {
-                return NotFound("No tours found.");
+                return NotFound("Không tìm thấy tour nào.");
             }
             return Ok(result);
         }
@@ -238,7 +238,7 @@ namespace TourManagement_BE.Controllers
             var tour = await _tourService.GetDetailForOperatorAsync(tourid, forUpdate);
             if (tour == null)
             {
-                return NotFound("Tour not found.");
+                return NotFound("Không tìm thấy tour nào.");
             }
             return Ok(tour);
         }
@@ -249,7 +249,7 @@ namespace TourManagement_BE.Controllers
             var tours = await _tourService.ListAllForCustomerAsync();
             if (tours == null || !tours.Any())
             {
-                return NotFound("Not Found.");
+                return NotFound("Không tìm thấy.");
             }
             return Ok(tours);
         }
@@ -268,7 +268,7 @@ namespace TourManagement_BE.Controllers
             var tours = await _tourService.SearchForCustomerAsync(keyword);
             if (tours == null || !tours.Any())
             {
-                return NotFound("No tours found.");
+                return NotFound("Không tìm thấy tour nào.");
             }
             return Ok(tours);
         }
@@ -279,7 +279,7 @@ namespace TourManagement_BE.Controllers
             var result = await _tourService.SearchPagingForCustomerAsync(keyword, pageNumber, pageSize);
             if (result == null || !result.Data.Any())
             {
-                return NotFound("No tours found.");
+                return NotFound("Không tìm thấy tour nào.");
             }
             return Ok(result);
         } 
@@ -338,7 +338,7 @@ namespace TourManagement_BE.Controllers
             var tour = await _tourService.GetDetailForCustomerAsync(tourid);
             if (tour == null)
             {
-                return NotFound("Tour not found.");
+                return NotFound("Không tìm thấy tour nào.");
             }
             return Ok(tour);
         }
@@ -422,20 +422,20 @@ namespace TourManagement_BE.Controllers
 
             if (request.TourAvartarFile == null || request.TourAvartarFile.Length == 0)
             {
-                return BadRequest("Tour avatar is required.");
+                return BadRequest("Cần phải có ảnh đại diện của tour.");
             }
 
             // Kiểm tra kích thước file (ví dụ: tối đa 10MB)
             if (request.TourAvartarFile.Length > 10 * 1024 * 1024)
             {
-                return BadRequest("Tour avatar file size exceeds 10MB limit.");
+                return BadRequest("Kích thước tệp ảnh đại diện của tour du lịch vượt quá giới hạn 10MB.");
             }
 
             // Kiểm tra loại file (chỉ cho phép ảnh)
             var contentTypeTourAvatar = request.TourAvartarFile.ContentType;
             if (!contentTypeTourAvatar.StartsWith("image/"))
             {
-                return BadRequest("Only image files are allowed for tour avatar.");
+                return BadRequest("Chỉ được phép sử dụng tệp hình ảnh làm ảnh đại diện cho tour du lịch.");
             }
 
             // Upload lên Cloudinary
@@ -453,28 +453,28 @@ namespace TourManagement_BE.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error uploading tour avatar: {ex.Message}");
+                return StatusCode(500, $"Lỗi khi tải ảnh đại diện của tour: {ex.Message}");
             }
 
             // DepartureDates
-            if (request.DepartureDates != null)
-            {
-                foreach (var d in request.DepartureDates)
-                {
+            //if (request.DepartureDates != null)
+            //{
+            //    foreach (var d in request.DepartureDates)
+            //    {
 
-                    if (d.DepartureDate1.Date < DateTime.UtcNow.AddHours(7).Date)
-                    {
-                        return BadRequest($"Departure date {d.DepartureDate1:yyyy-MM-dd} cannot be earlier than today.");
-                    }
+            //        if (d.DepartureDate1.Date < DateTime.UtcNow.AddHours(7).Date)
+            //        {
+            //            return BadRequest($"Departure date {d.DepartureDate1:yyyy-MM-dd} cannot be earlier than today.");
+            //        }
 
-                    tour.DepartureDates.Add(new DepartureDate
-                    {
-                        DepartureDate1 = d.DepartureDate1,
-                        IsCancelDate = false,
-                        IsActive = true
-                    });
-                }
-            }
+            //        tour.DepartureDates.Add(new DepartureDate
+            //        {
+            //            DepartureDate1 = d.DepartureDate1,
+            //            IsCancelDate = false,
+            //            IsActive = true
+            //        });
+            //    }
+            //}
 
 
             // TourExperiences
@@ -511,10 +511,10 @@ namespace TourManagement_BE.Controllers
                         foreach (var m in i.ItineraryMedia)
                         {
                             if (m.MediaFile == null || m.MediaFile.Length == 0)
-                                return BadRequest("ItineraryMedia file is required.");
+                                return BadRequest("Cần phải có tệp ItineraryMedia.");
 
                             if (m.MediaFile.Length > 100 * 1024 * 1024)
-                                return BadRequest("ItineraryMedia file size exceeds 100MB.");
+                                return BadRequest("Kích thước tệp ItineraryMedia vượt quá 100MB.");
 
                             // Kiểm tra loại thật sự của file dựa trên content-type
                             string contentType = m.MediaFile.ContentType;
@@ -523,16 +523,16 @@ namespace TourManagement_BE.Controllers
                             string declaredType = m.MediaType?.ToLower().Trim();
 
                             if (isImage && declaredType != "image")
-                                return BadRequest("The uploaded file is an image, but MediaType was set to video.");
+                                return BadRequest("Tệp được tải lên là một hình ảnh, nhưng MediaType được đặt thành video.");
 
                             if (isVideo && declaredType != "video")
-                                return BadRequest("The uploaded file is a video, but MediaType was set to image.");
+                                return BadRequest("Tệp được tải lên là video, nhưng MediaType được đặt thành hình ảnh.");
 
                             if (!isImage && !isVideo)
-                                return BadRequest("Unsupported file type. Only image and video are allowed.");
+                                return BadRequest("Loại tệp không được hỗ trợ. Chỉ cho phép hình ảnh và video.");
 
                             if (isVideo && !slotInfo.MaxVideo)
-                                return BadRequest("Your service package does not allow uploading video in itinerary media.");
+                                return BadRequest("Gói dịch vụ của bạn không cho phép tải video lên phương tiện truyền thông hành trình.");
 
                             string uploadedUrl;
 
@@ -578,10 +578,10 @@ namespace TourManagement_BE.Controllers
                 foreach (var m in request.TourMedia)
                 {
                     if (m.MediaFile == null || m.MediaFile.Length == 0)
-                        return BadRequest("TourMedia file is required.");
+                        return BadRequest("Cần phải có tệp TourMedia.");
 
                     if (m.MediaFile.Length > 100 * 1024 * 1024)
-                        return BadRequest("TourMedia file size exceeds 100MB.");
+                        return BadRequest("Kích thước tệp TourMedia vượt quá 100MB.");
 
                     // Kiểm tra loại thật sự của file dựa trên content-type
                     string contentType = m.MediaFile.ContentType;
@@ -590,16 +590,16 @@ namespace TourManagement_BE.Controllers
                     string declaredType = m.MediaType?.ToLower().Trim();
 
                     if (isImage && declaredType != "image")
-                        return BadRequest("The uploaded file is an image, but MediaType was set to video.");
+                        return BadRequest("Tệp được tải lên là một hình ảnh, nhưng MediaType được đặt thành video.");
 
                     if (isVideo && declaredType != "video")
-                        return BadRequest("The uploaded file is a video, but MediaType was set to image.");
+                        return BadRequest("Tệp được tải lên là video, nhưng MediaType được đặt thành hình ảnh.");
 
                     if (!isImage && !isVideo)
-                        return BadRequest("Unsupported file type. Only image and video are allowed.");
+                        return BadRequest("Loại tệp không được hỗ trợ. Chỉ cho phép hình ảnh và video.");
 
                     if (isVideo && !slotInfo.MaxVideo)
-                        return BadRequest("Your service package does not allow uploading video in tour media.");
+                        return BadRequest("Gói dịch vụ của bạn không cho phép tải video lên phương tiện truyền thông du lịch.");
 
                     string uploadedUrl;
 
@@ -636,7 +636,7 @@ namespace TourManagement_BE.Controllers
 
             if (slotInfo.MaxImage > 0 && totalImageCount > slotInfo.MaxImage)
             {
-                return BadRequest($"You can only upload up to {slotInfo.MaxImage} images per tour.");
+                return BadRequest($"Bạn chỉ có thể tải lên tối đa {slotInfo.MaxImage} hình ảnh cho mỗi chuyến tham quan.");
             }
 
             context.Tours.Add(tour);
@@ -655,11 +655,11 @@ namespace TourManagement_BE.Controllers
                 }
 
 
-                return Ok(new { message = "Tour created successfully.", tourId = tour.TourId });
+                return Ok(new { message = "Chuyến tham quan đã được tạo thành công.", tourId = tour.TourId });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, $"Lỗi máy chủ nội bộ: {ex.Message}");
             }
         }
 
@@ -964,14 +964,14 @@ namespace TourManagement_BE.Controllers
                 // Kiểm tra kích thước file (ví dụ: tối đa 10MB)
                 if (request.TourAvartarFile.Length > 10 * 1024 * 1024)
                 {
-                    return BadRequest("Tour avatar file size exceeds 10MB limit.");
+                    return BadRequest("Kích thước tệp ảnh đại diện của tour du lịch vượt quá giới hạn 10MB.");
                 }
 
                 // Kiểm tra loại file (chỉ cho phép ảnh)
                 var contentTypeTourAvatar = request.TourAvartarFile.ContentType;
                 if (!contentTypeTourAvatar.StartsWith("image/"))
                 {
-                    return BadRequest("Only image files are allowed for tour avatar.");
+                    return BadRequest("Chỉ được phép sử dụng tệp hình ảnh làm ảnh đại diện cho tour du lịch.");
                 }
 
                 // Upload lên Cloudinary
@@ -989,12 +989,12 @@ namespace TourManagement_BE.Controllers
                 }
                 catch (Exception ex)
                 {
-                    return StatusCode(500, $"Error uploading tour avatar: {ex.Message}");
+                    return StatusCode(500, $"Lỗi khi tải ảnh đại diện của tour: {ex.Message}");
                 }
             }
 
 
-            // Update DepartureDates
+            /*// Update DepartureDates
 
             if (request.DepartureDates != null)
             {
@@ -1062,7 +1062,7 @@ namespace TourManagement_BE.Controllers
                         existing.IsActive = d.IsActive;
                     }
                 }
-            }
+            }*/
 
             // Update TourExperiences
             if (request.TourExperiences != null)
@@ -1093,7 +1093,7 @@ namespace TourManagement_BE.Controllers
                         }
                         else
                         {
-                            return BadRequest($"TourExperience with ID {e.Id} not found.");
+                            return BadRequest($"TourExperience có ID {e.Id} không tìm thấy.");
                         }
                     }
                 }
@@ -1138,7 +1138,7 @@ namespace TourManagement_BE.Controllers
                                             tour.TourItineraries.SelectMany(ti => ti.ItineraryMedia).Count(im => im.IsActive && im.MediaType == "image");
 
                                         if (slotInfo.MaxImage > 0 && totalImages >= slotInfo.MaxImage)
-                                            return BadRequest("Exceeded the image upload limit of the current package.");
+                                            return BadRequest("Vượt quá giới hạn tải lên hình ảnh của gói hiện tại.");
                                     }
 
                                     // Upload media
@@ -1183,7 +1183,7 @@ namespace TourManagement_BE.Controllers
                                             tour.TourItineraries.SelectMany(ti => ti.ItineraryMedia).Count(im => im.IsActive && im.MediaType == "image");
 
                                         if (slotInfo.MaxImage > 0 && totalImages >= slotInfo.MaxImage)
-                                            return BadRequest("Exceeded the image upload limit of the current package.");
+                                            return BadRequest("Vượt quá giới hạn tải lên hình ảnh của gói hiện tại.");
                                     }
 
                                     var uploadedUrl = await UploadMediaFile(m.MediaFile, m.MediaType, slotInfo);
@@ -1233,17 +1233,17 @@ namespace TourManagement_BE.Controllers
                         if (m.MediaType.Equals("image", StringComparison.OrdinalIgnoreCase) &&
                             slotInfo.MaxImage > 0 && currentImages >= slotInfo.MaxImage)
                         {
-                            return BadRequest("Exceeded the image upload limit of the current package.");
+                            return BadRequest("Vượt quá giới hạn tải lên hình ảnh của gói hiện tại.");
                         }
 
                         if (m.MediaType.Equals("video", StringComparison.OrdinalIgnoreCase) &&
                             !slotInfo.MaxVideo)
                         {
-                            return BadRequest("Current service package does not allow uploading videos.");
+                            return BadRequest("Gói dịch vụ hiện tại không cho phép tải video lên.");
                         }
 
                         if (m.MediaFile == null || m.MediaFile.Length == 0)
-                            return BadRequest("Media file is required for new TourMedia.");
+                            return BadRequest("Tệp phương tiện là bắt buộc đối với TourMedia mới.");
 
                         try
                         {
@@ -1265,7 +1265,7 @@ namespace TourManagement_BE.Controllers
                     {
                         var existing = tour.TourMedia.FirstOrDefault(x => x.Id == m.Id);
                         if (existing == null)
-                            return BadRequest($"TourMedia with ID {m.Id} not found.");
+                            return BadRequest($"TourMedia với ID {m.Id} không tìm thấy.");
 
                         if (m.MediaFile != null && m.MediaFile.Length > 0)
                         {
@@ -1287,7 +1287,7 @@ namespace TourManagement_BE.Controllers
             }
             await context.SaveChangesAsync();
 
-            return Ok(new { message = "Tour updated successfully." });
+            return Ok(new { message = "Tour đã được cập nhật thành công." });
         }
 
 
@@ -1323,7 +1323,7 @@ namespace TourManagement_BE.Controllers
                 throw new ArgumentException("Media file is required.");
 
             if (mediaFile.Length > 100 * 1024 * 1024)
-                throw new ArgumentException("Media file size exceeds 100MB.");
+                throw new ArgumentException("Kích thước tệp phương tiện vượt quá 100MB.");
 
             string contentType = mediaFile.ContentType;
             bool isImage = contentType.StartsWith("image/");
@@ -1331,16 +1331,16 @@ namespace TourManagement_BE.Controllers
             string declaredType = mediaType?.ToLower().Trim();
 
             if (isImage && declaredType != "image")
-                throw new ArgumentException("The uploaded file is an image, but MediaType was set to video.");
+                throw new ArgumentException("Tệp được tải lên là một hình ảnh, nhưng MediaType được đặt thành video.");
 
             if (isVideo && declaredType != "video")
-                throw new ArgumentException("The uploaded file is a video, but MediaType was set to image.");
+                throw new ArgumentException("Tệp được tải lên là video, nhưng MediaType được đặt thành hình ảnh.");
 
             if (!isImage && !isVideo)
-                throw new ArgumentException("Unsupported file type. Only image and video are allowed.");
+                throw new ArgumentException("Loại tệp không được hỗ trợ. Chỉ cho phép hình ảnh và video.");
 
             if (isVideo && !slotInfo.MaxVideo)
-                throw new ArgumentException("Current service package does not allow uploading videos.");
+                throw new ArgumentException("Gói dịch vụ hiện tại không cho phép tải video lên.");
 
             string uploadedUrl;
             string folder = isVideo ? "ProjectSEP490/Tour/TourItineraryMedia/Video"
