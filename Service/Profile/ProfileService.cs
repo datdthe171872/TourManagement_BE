@@ -65,7 +65,7 @@ namespace TourManagement_BE.Service.Profile
             if (user == null)
             {
                 result.Success = false;
-                result.Message = "User not found.";
+                result.Message = "Không tìm thấy người dùng.";
                 return result;
             }
 
@@ -80,7 +80,7 @@ namespace TourManagement_BE.Service.Profile
                 if (!emailAttribute.IsValid(request.Email))
                 {
                     result.Success = false;
-                    result.Message = "Invalid email format.";
+                    result.Message = "Định dạng email không hợp lệ.";
                     return result;
                 }
 
@@ -88,7 +88,7 @@ namespace TourManagement_BE.Service.Profile
                 if (emailExists)
                 {
                     result.Success = false;
-                    result.Message = "Email is already in use by another user.";
+                    result.Message = "Email đã được người dùng khác sử dụng.";
                     return result;
                 }
 
@@ -111,7 +111,7 @@ namespace TourManagement_BE.Service.Profile
                 if (request.AvatarFile.Length > 5 * 1024 * 1024)
                 {
                     result.Success = false;
-                    result.Message = "Maximum image size is 5MB.";
+                    result.Message = "Kích thước hình ảnh tối đa là 5MB.";
                     return result;
                 }
 
@@ -122,7 +122,7 @@ namespace TourManagement_BE.Service.Profile
                 if (!allowedExtensions.Contains(fileExtension))
                 {
                     result.Success = false;
-                    result.Message = "Only image files are allowed (JPG, JPEG, PNG, GIF).";
+                    result.Message = "Chỉ cho phép các tệp hình ảnh (JPG, JPEG, PNG, GIF).";
                     return result;
                 }
 
@@ -131,7 +131,7 @@ namespace TourManagement_BE.Service.Profile
                 if (!allowedContentTypes.Contains(request.AvatarFile.ContentType.ToLowerInvariant()))
                 {
                     result.Success = false;
-                    result.Message = "Invalid file type. Only image files are allowed.";
+                    result.Message = "Loại tệp không hợp lệ. Chỉ cho phép tệp hình ảnh.";
                     return result;
                 }
 
@@ -150,7 +150,7 @@ namespace TourManagement_BE.Service.Profile
                 catch (Exception ex)
                 {
                     result.Success = false;
-                    result.Message = $"Error uploading image: {ex.Message}";
+                    result.Message = $"Lỗi {ex.Message}";
                     return result;
                 }
             }
@@ -158,7 +158,7 @@ namespace TourManagement_BE.Service.Profile
             await _context.SaveChangesAsync();
 
             result.Success = true;
-            result.Message = "Profile updated successfully.";
+            result.Message = "Hồ sơ đã được cập nhật thành công.";
             result.UserProfile = await GetUserProfileAsync(request.UserId);
             return result;
         }

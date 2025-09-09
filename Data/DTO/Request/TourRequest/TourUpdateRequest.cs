@@ -37,7 +37,7 @@ namespace TourManagement_BE.Data.DTO.Request.TourRequest
 
         public bool IsActive { get; set; }
 
-        public List<DepartureDateDto> ? DepartureDates { get; set; } = new();
+        //public List<DepartureDateDto> ? DepartureDates { get; set; } = new();
 
         public List<TourExperienceDto> ? TourExperiences { get; set; } = new();
 

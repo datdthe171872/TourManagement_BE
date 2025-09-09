@@ -46,14 +46,14 @@ namespace TourManagement_BE.Service.ContractManage
                 if (booking == null)
                 {
                     result.Success = false;
-                    result.Message = "Booking not found.";
+                    result.Message = "Không tìm thấy đặt chỗ.";
                     return result;
                 }
 
                 if (request.Contract == null || request.Contract.Length == 0)
                 {
                     result.Success = false;
-                    result.Message = "Contract file is required.";
+                    result.Message = "Cần phải có hồ sơ hợp đồng.";
                     return result;
                 }
 
@@ -68,7 +68,7 @@ namespace TourManagement_BE.Service.ContractManage
                 await _context.SaveChangesAsync();
 
                 result.Success = true;
-                result.Message = "Contract created successfully.";
+                result.Message = "Hợp đồng đã được tạo thành công.";
                 result.Contract = _mapper.Map<ContractTourBookingResponse>(booking);
 
                 return result;
@@ -76,7 +76,7 @@ namespace TourManagement_BE.Service.ContractManage
             catch (Exception ex)
             {
                 result.Success = false;
-                result.Message = $"Create Contract Fail: {ex.Message}";
+                result.Message = $"Tạo bị lỗi: {ex.Message}";
                 return result;
             }
         }
@@ -90,18 +90,18 @@ namespace TourManagement_BE.Service.ContractManage
                 var booking = await _context.Bookings.FindAsync(request.BookingId);
                 if (booking == null)
                 {
-                    return new OperationResult { Success = false, Message = "Booking not found." };
+                    return new OperationResult { Success = false, Message = "Không tìm thấy đặt chỗ." };
                 }
 
                 if (request.Contract == null || request.Contract.Length == 0)
                 {
-                    return new OperationResult { Success = false, Message = "Contract file is required." };
+                    return new OperationResult { Success = false, Message = "Cần phải có hồ sơ hợp đồng." };
                 }
 
                 const long maxFileSize = 10 * 1024 * 1024;
                 if (request.Contract.Length > maxFileSize)
                 {
-                    return new OperationResult { Success = false, Message = "Contract file size must not exceed 10MB." };
+                    return new OperationResult { Success = false, Message = "Kích thước tệp hợp đồng không được vượt quá 10MB." };
                 }
 
                 if (_cloudinary == null)
@@ -118,7 +118,7 @@ namespace TourManagement_BE.Service.ContractManage
                 var uploadResult = await _cloudinary.UploadAsync(uploadParams);
                 if (uploadResult == null || uploadResult.SecureUrl == null)
                 {
-                    return new OperationResult { Success = false, Message = "Cloudinary upload failed (uploadResult is null)." };
+                    return new OperationResult { Success = false, Message = "Tải lên Cloudinary không thành công (uploadResult là null)." };
                 }
 
                 booking.Contract = uploadResult.SecureUrl.ToString();
@@ -126,19 +126,19 @@ namespace TourManagement_BE.Service.ContractManage
 
                 if (_mapper == null)
                 {
-                    return new OperationResult { Success = false, Message = "Mapper is not initialized (_mapper is null)." };
+                    return new OperationResult { Success = false, Message = "Mapper chưa được khởi tạo (_mapper là null)." };
                 }
 
                 return new OperationResult
                 {
                     Success = true,
-                    Message = "Contract updated successfully.",
+                    Message = "Hợp đồng đã được cập nhật thành công.",
                     Contract = _mapper.Map<ContractTourBookingResponse>(booking)
                 };
             }
             catch (Exception ex)
             {
-                return new OperationResult { Success = false, Message = $"Update Contract Fail: {ex.Message}" };
+                return new OperationResult { Success = false, Message = $"Cập nhật hợp đồng thất bại: {ex.Message}" };
             }
         }
 
@@ -152,14 +152,14 @@ namespace TourManagement_BE.Service.ContractManage
                 if (booking == null)
                 {
                     result.Success = false;
-                    result.Message = "Booking not found.";
+                    result.Message = "Không tìm thấy đặt chỗ.";
                     return result;
                 }
 
                 if (string.IsNullOrEmpty(booking.Contract))
                 {
                     result.Success = false;
-                    result.Message = "No contract to delete.";
+                    result.Message = "Không có hợp đồng nào để xóa.";
                     return result;
                 }
 
@@ -167,7 +167,7 @@ namespace TourManagement_BE.Service.ContractManage
                 await _context.SaveChangesAsync();
 
                 result.Success = true;
-                result.Message = "Contract deleted successfully.";
+                result.Message = "Hợp đồng đã được xóa thành công.";
                 result.Contract = _mapper.Map<ContractTourBookingResponse>(booking);
 
                 return result;
@@ -175,7 +175,7 @@ namespace TourManagement_BE.Service.ContractManage
             catch (Exception ex)
             {
                 result.Success = false;
-                result.Message = $"Delete Contract Fail: {ex.Message}";
+                result.Message = $"Xóa hợp đồng không thành công: {ex.Message}";
                 return result;
             }
         }

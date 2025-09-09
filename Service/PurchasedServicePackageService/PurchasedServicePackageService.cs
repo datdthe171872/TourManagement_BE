@@ -76,7 +76,7 @@ namespace TourManagement_BE.Service.PurchasedServicePackageService
 
             var servicePackage = await _context.ServicePackages
                 .FindAsync(request.PackageId)
-                ?? throw new KeyNotFoundException("Service package not found");
+                ?? throw new KeyNotFoundException("Không tìm thấy gói dịch vụ");
 
             var timeNow = DateTime.UtcNow.AddHours(7);
 

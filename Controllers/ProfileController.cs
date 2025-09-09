@@ -29,7 +29,7 @@ namespace TourManagement_BE.Controllers
             var userProfile = await _profileService.GetUserProfileAsync(userId);
             if (userProfile == null)
             {
-                return NotFound("User not found.");
+                return NotFound("Không tìm thấy người dùng.");
             }
             return Ok(userProfile);
         }

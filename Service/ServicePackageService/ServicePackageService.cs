@@ -96,12 +96,12 @@ namespace TourManagement_BE.Service.ServicePackageService
                 await _context.SaveChangesAsync();
 
                 result.Data = service;
-                result.Message = "Service package created successfully";
+                result.Message = "Gói dịch vụ đã được tạo thành công";
             }
             catch (Exception ex)
             {
                 result.Success = false;
-                result.Message = $"Failed to create service package: {ex.Message}";
+                result.Message = $"Không tạo được gói dịch vụ: {ex.Message}";
             }
 
             return result;
@@ -119,7 +119,7 @@ namespace TourManagement_BE.Service.ServicePackageService
                 if (!packageExists)
                 {
                     result.Success = false;
-                    result.Message = $"ServicePackage with ID {request.PackageId} not found";
+                    result.Message = $"ServicePackage với ID {request.PackageId} không tìm thấy";
                     return result;
                 }
 
@@ -135,12 +135,12 @@ namespace TourManagement_BE.Service.ServicePackageService
                 await _context.SaveChangesAsync();
 
                 result.Data = newFeature;
-                result.Message = "Feature added successfully";
+                result.Message = "Tính năng đã được thêm thành công";
             }
             catch (Exception ex)
             {
                 result.Success = false;
-                result.Message = $"Failed to add feature: {ex.Message}";
+                result.Message = $"Không thêm được tính năng: {ex.Message}";
             }
 
             return result;
@@ -158,7 +158,7 @@ namespace TourManagement_BE.Service.ServicePackageService
                 if (service == null)
                 {
                     result.Success = false;
-                    result.Message = "Service Package not found";
+                    result.Message = "Không tìm thấy gói dịch vụ";
                     return result;
                 }
 
@@ -175,12 +175,12 @@ namespace TourManagement_BE.Service.ServicePackageService
                 await _context.SaveChangesAsync();
 
                 result.Data = service;
-                result.Message = "Service package updated successfully";
+                result.Message = "Gói dịch vụ đã được cập nhật thành công";
             }
             catch (Exception ex)
             {
                 result.Success = false;
-                result.Message = $"Failed to update service package: {ex.Message}";
+                result.Message = $"Không cập nhật được gói dịch vụ: {ex.Message}";
             }
 
             return result;
@@ -198,7 +198,7 @@ namespace TourManagement_BE.Service.ServicePackageService
                 if (feature == null)
                 {
                     result.Success = false;
-                    result.Message = $"Feature with ID {request.FeatureId} not found";
+                    result.Message = $"Tính năng có ID {request.FeatureId} không tìm thấy";
                     return result;
                 }
 
@@ -209,12 +209,12 @@ namespace TourManagement_BE.Service.ServicePackageService
                 await _context.SaveChangesAsync();
 
                 result.Data = feature;
-                result.Message = "Feature updated successfully";
+                result.Message = "Tính năng đã được cập nhật thành công";
             }
             catch (Exception ex)
             {
                 result.Success = false;
-                result.Message = $"Failed to update feature: {ex.Message}";
+                result.Message = $"Không cập nhật được tính năng: {ex.Message}";
             }
 
             return result;
@@ -230,7 +230,7 @@ namespace TourManagement_BE.Service.ServicePackageService
                 if (service == null)
                 {
                     result.Success = false;
-                    result.Message = "Service package not found";
+                    result.Message = "Không tìm thấy gói dịch vụ";
                     return result;
                 }
 
@@ -244,7 +244,7 @@ namespace TourManagement_BE.Service.ServicePackageService
             catch (Exception ex)
             {
                 result.Success = false;
-                result.Message = $"Failed to toggle status: {ex.Message}";
+                result.Message = $"Lỗi: {ex.Message}";
             }
 
             return result;
@@ -260,7 +260,7 @@ namespace TourManagement_BE.Service.ServicePackageService
                 if (feature == null)
                 {
                     result.Success = false;
-                    result.Message = "Service package feature not found";
+                    result.Message = "Không tìm thấy tính năng gói dịch vụ";
                     return result;
                 }
 
@@ -274,7 +274,7 @@ namespace TourManagement_BE.Service.ServicePackageService
             catch (Exception ex)
             {
                 result.Success = false;
-                result.Message = $"Failed to toggle feature status: {ex.Message}";
+                result.Message = $"Không thể chuyển đổi trạng thái tính năng: {ex.Message}";
             }
 
             return result;
@@ -286,7 +286,7 @@ namespace TourManagement_BE.Service.ServicePackageService
                 .Where(u => u.PackageId == packageId && u.IsActive)
                 .Select(u => MapToResponse(u))
                 .FirstOrDefaultAsync()
-                ?? throw new KeyNotFoundException("Service package not found or inactive");
+                ?? throw new KeyNotFoundException("Gói dịch vụ không tìm thấy hoặc không hoạt động");
         }
 
         public async Task<ListServicePackageResponse> GetDetailForAdminAsync(int packageId)
@@ -295,7 +295,7 @@ namespace TourManagement_BE.Service.ServicePackageService
                 .Where(u => u.PackageId == packageId)
                 .Select(u => MapToResponse(u))
                 .FirstOrDefaultAsync()
-                ?? throw new KeyNotFoundException("Service package not found");
+                ?? throw new KeyNotFoundException("Không tìm thấy gói dịch vụ");
         }
 
         public async Task<CheckSlotTourOperatorResponse> CheckSlotForTourOperatorAsync(int userId)
@@ -332,7 +332,7 @@ namespace TourManagement_BE.Service.ServicePackageService
 
                 if (response == null)
                 {
-                    throw new KeyNotFoundException("No active service package found for this user.");
+                    throw new KeyNotFoundException("Không tìm thấy gói dịch vụ nào đang hoạt động cho người dùng này.");
                 }
 
                 return response;
