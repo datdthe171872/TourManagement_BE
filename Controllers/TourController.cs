@@ -665,267 +665,6 @@ namespace TourManagement_BE.Controllers
 
 
         [HttpPut("UpdateTour")]
-        /*public async Task<IActionResult> UpdateTour([FromForm] TourUpdateRequest request)
-        {
-            var tour = context.Tours
-                .Include(t => t.DepartureDates)
-                .Include(t => t.TourExperiences)
-                .Include(t => t.TourMedia)
-                .Include(t => t.TourItineraries).ThenInclude(t => t.ItineraryMedia)
-                .FirstOrDefault(u => u.TourId == request.TourId);
-            if (tour == null)
-            {
-                return NotFound("Tour not found.");
-            }
-
-            tour.Title = request.Title;           
-            tour.Description = request.Description;
-            tour.PriceOfAdults = request.PriceOfAdults;
-            tour.PriceOfChildren = request.PriceOfChildren;
-            tour.PriceOfInfants = request.PriceOfInfants;
-            tour.DurationInDays = request.DurationInDays;
-            tour.StartPoint = request.StartPoint;
-            tour.Transportation = request.Transportation;
-            tour.MaxSlots = request.MaxSlots;
-            tour.MinSlots = request.MinSlots;
-            tour.Note = request.Note;
-            tour.TourStatus = request.TourStatus;
-            tour.IsActive = request.IsActive;
-
-            // Update DepartureDates
-
-            if (request.DepartureDates != null)
-            {
-                var today = DateTime.UtcNow.AddHours(7).Date;
-
-                foreach (var d in request.DepartureDates)
-                {
-                    var existing = tour.DepartureDates.FirstOrDefault(x => x.Id == d.Id);
-                    if (existing == null)
-                    {
-                        return BadRequest($"DepartureDate with ID {d.Id} not exist.");
-                    }
-
-                    if (existing.DepartureDate1.Date < today)
-                    {
-                        return BadRequest($"DepartureDate ID {d.Id} is in the past. You cannot update it.");
-                    }
-
-
-                    var hasActiveBooking = await context.Bookings
-                        .AnyAsync(b => b.DepartureDateId == existing.Id && b.BookingStatus != "Cancelled");
-
-                    if (hasActiveBooking)
-                    {
-                        return BadRequest($"DepartureDate ID {d.Id} already has active bookings. You cannot update it.");
-                    }
-
-                    if (d.DepartureDate1.Date <= today)
-                    {
-                        return BadRequest($"The new departure date of ID {d.Id} must be greater than today.");
-                    }
-
-                    var isDuplicated = tour.DepartureDates.Any(x => x.Id != d.Id
-                                                                 && x.IsActive
-                                                                 && x.DepartureDate1.Date == d.DepartureDate1.Date);
-                    if (isDuplicated)
-                    {
-                        return BadRequest($"DepartureDate {d.DepartureDate1:yyyy-MM-dd} already exists in this tour.");
-                    }
-
-                    existing.DepartureDate1 = d.DepartureDate1;
-                    existing.IsActive = d.IsActive;
-                }
-            }
-
-            // Update TourExperiences
-            if (request.TourExperiences != null)
-            {
-                foreach (var e in request.TourExperiences)
-                {
-                    var existing = tour.TourExperiences.FirstOrDefault(x => x.Id == e.Id);
-                    if (existing != null)
-                    {
-                        existing.Content = e.Content;
-                        existing.IsActive = e.IsActive;
-                    }
-                    else
-                    {
-                        return BadRequest($"TourExperience with ID {e.Id} not found.");
-                    }
-                }
-            }
-
-            // Update TourItineraries
-            if (request.TourItineraries != null)
-            {
-                foreach (var i in request.TourItineraries)
-                {
-                    var existingItinerary = tour.TourItineraries
-                        .FirstOrDefault(x => x.ItineraryId == i.ItineraryId);
-
-                    if (existingItinerary != null)
-                    {
-                        existingItinerary.DayNumber = i.DayNumber;
-                        existingItinerary.Title = i.Title;
-                        existingItinerary.Description = i.Description;
-                        existingItinerary.IsActive = i.IsActive;
-
-                        // Update ItineraryMedia
-                        if (i.ItineraryMedia != null)
-                        {
-                            foreach (var m in i.ItineraryMedia)
-                            {
-                                var existingMedia = existingItinerary.ItineraryMedia
-                                    .FirstOrDefault(x => x.MediaId == m.MediaId);
-
-                                if (existingMedia != null)
-                                {
-                                    // Nếu có file mới, kiểm tra & upload
-                                    if (m.MediaFile != null && m.MediaFile.Length > 0)
-                                    {
-                                        if (m.MediaFile.Length > 100 * 1024 * 1024)
-                                            return BadRequest("ItineraryMedia file size exceeds 100MB.");
-
-                                        string contentType = m.MediaFile.ContentType;
-                                        bool isImage = contentType.StartsWith("image/");
-                                        bool isVideo = contentType.StartsWith("video/");
-                                        string declaredType = m.MediaType?.ToLower().Trim();
-
-                                        if (isImage && declaredType != "image")
-                                            return BadRequest($"The uploaded file is an image, but MediaType was set to {declaredType}.");
-
-                                        if (isVideo && declaredType != "video")
-                                            return BadRequest($"The uploaded file is a video, but MediaType was set to {declaredType}.");
-
-                                        if (!isImage && !isVideo)
-                                            return BadRequest("Unsupported file type. Only image and video are allowed.");
-
-                                        var tourOperatorId = existingItinerary.Tour.TourOperatorId;
-                                        var slotInfo = await _slotCheckService.CheckRemainingSlotsAsync(tourOperatorId);
-                                        if (slotInfo == null)
-                                            return BadRequest("No active service package found.");
-
-                                        if (isVideo && !slotInfo.PostVideo)
-                                            return BadRequest("Current service plans do not allow uploading videos in media itinerary.");
-
-                                        string uploadedUrl;
-
-                                        if (isVideo)
-                                        {
-                                            var uploadParams = new VideoUploadParams
-                                            {
-                                                File = new FileDescription(m.MediaFile.FileName, m.MediaFile.OpenReadStream()),
-                                                Folder = "ProjectSEP490/Tour/TourItineraryMedia/Video"
-                                            };
-                                            var uploadResult = await _cloudinary.UploadAsync(uploadParams);
-                                            uploadedUrl = uploadResult.SecureUrl.ToString();
-                                        }
-                                        else
-                                        {
-                                            var uploadParams = new ImageUploadParams
-                                            {
-                                                File = new FileDescription(m.MediaFile.FileName, m.MediaFile.OpenReadStream()),
-                                                Folder = "ProjectSEP490/Tour/TourItineraryMedia/Image"
-                                            };
-                                            var uploadResult = await _cloudinary.UploadAsync(uploadParams);
-                                            uploadedUrl = uploadResult.SecureUrl.ToString();
-                                        }
-
-                                        existingMedia.MediaUrl = uploadedUrl;
-                                        existingMedia.UploadedAt = DateTime.UtcNow.AddHours(7);
-                                    }
-
-                                    existingMedia.MediaType = m.MediaType;
-                                    existingMedia.Caption = m.Caption;
-                                    existingMedia.IsActive = m.IsActive;
-                                }
-                                else
-                                {
-                                    return BadRequest($"ItineraryMedia with ID {m.MediaId} not found.");
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        return BadRequest($"TourItinerary with ID {i.ItineraryId} not found.");
-                    }
-                }
-            }
-
-            // Update TourMedia
-            if (request.TourMedia != null)
-            {
-                foreach (var m in request.TourMedia)
-                {
-                    var existing = tour.TourMedia.FirstOrDefault(x => x.Id == m.Id);
-                    if (existing == null)
-                        return BadRequest($"TourMedia with ID {m.Id} not found.");
-
-                    if (m.MediaFile != null && m.MediaFile.Length > 0)
-                    {
-                        if (m.MediaFile.Length > 100 * 1024 * 1024)
-                            return BadRequest("TourMedia file size exceeds 100MB.");
-
-                        string contentType = m.MediaFile.ContentType;
-                        bool isImage = contentType.StartsWith("image/");
-                        bool isVideo = contentType.StartsWith("video/");
-                        string declaredType = m.MediaType?.ToLower().Trim();
-
-                        if (isImage && declaredType != "image")
-                            return BadRequest($"The uploaded file is an image, but MediaType was set to {declaredType}.");
-
-                        if (isVideo && declaredType != "video")
-                            return BadRequest($"The uploaded file is a video, but MediaType was set to {declaredType}.");
-
-                        if (!isImage && !isVideo)
-                            return BadRequest("Unsupported file type. Only image and video are allowed.");
-
-                        var tourOperatorId = tour.TourOperatorId;
-                        var slotInfo = await _slotCheckService.CheckRemainingSlotsAsync(tourOperatorId);
-                        if (slotInfo == null)
-                            return BadRequest("No active service package found.");
-
-                        if (isVideo && !slotInfo.PostVideo)
-                            return BadRequest("Current service package does not allow uploading videos in tour media.");
-
-                        string uploadedUrl;
-
-                        if (isVideo)
-                        {
-                            var uploadParams = new VideoUploadParams
-                            {
-                                File = new FileDescription(m.MediaFile.FileName, m.MediaFile.OpenReadStream()),
-                                Folder = "ProjectSEP490/Tour/TourMedia/Video"
-                            };
-                            var uploadResult = await _cloudinary.UploadAsync(uploadParams);
-                            uploadedUrl = uploadResult.SecureUrl.ToString();
-                        }
-                        else
-                        {
-                            var uploadParams = new ImageUploadParams
-                            {
-                                File = new FileDescription(m.MediaFile.FileName, m.MediaFile.OpenReadStream()),
-                                Folder = "ProjectSEP490/Tour/TourMedia/Image"
-                            };
-                            var uploadResult = await _cloudinary.UploadAsync(uploadParams);
-                            uploadedUrl = uploadResult.SecureUrl.ToString();
-                        }
-                        existing.MediaUrl = uploadedUrl;
-                    }
-
-                    existing.MediaType = m.MediaType;
-                    existing.IsActive = m.IsActive;
-                }
-            }
-
-
-
-            await context.SaveChangesAsync();
-
-            return Ok(new { message = "Tour updated successfully." });
-        }*/
         public async Task<IActionResult> UpdateTour([FromForm] TourUpdateRequest request)
         {
             var tour = context.Tours
@@ -1065,164 +804,334 @@ namespace TourManagement_BE.Controllers
             }*/
 
             // Update TourExperiences
+            //if (request.TourExperiences != null)
+            //{
+            //    //var slotInfo = await _slotCheckService.CheckRemainingSlotsAsync(tour.TourOperatorId);
+
+            //    foreach (var e in request.TourExperiences)
+            //    {
+            //        if (e.Id == 0) // Thêm mới
+            //        {
+            //            // Kiểm tra giới hạn package
+            //            int currentActive = tour.TourExperiences.Count(te => te.IsActive);
+
+            //            // Thêm mới
+            //            tour.TourExperiences.Add(new TourExperience
+            //            {
+            //                Content = e.Content,
+            //                IsActive = e.IsActive
+            //            });
+            //        }
+            //        else // Update existing
+            //        {
+            //            var existing = tour.TourExperiences.FirstOrDefault(x => x.Id == e.Id);
+            //            if (existing != null)
+            //            {
+            //                existing.Content = e.Content;
+            //                existing.IsActive = e.IsActive;
+            //            }
+            //            else
+            //            {
+            //                return BadRequest($"TourExperience có ID {e.Id} không tìm thấy.");
+            //            }
+            //        }
+            //    }
+            //}
+
             if (request.TourExperiences != null)
             {
-                //var slotInfo = await _slotCheckService.CheckRemainingSlotsAsync(tour.TourOperatorId);
+                var existingExperiences = tour.TourExperiences.ToList();
 
+                // Xóa những cái không còn trong request
+                var requestIds = request.TourExperiences.Where(e => e.Id > 0).Select(e => e.Id).ToList();
+                var toDelete = existingExperiences.Where(e => !requestIds.Contains(e.Id)).ToList();
+
+                foreach (var del in toDelete)
+                {
+                    context.TourExperiences.Remove(del);
+                }
+
+                // Thêm mới hoặc update
                 foreach (var e in request.TourExperiences)
                 {
                     if (e.Id == 0) // Thêm mới
                     {
-                        // Kiểm tra giới hạn package
-                        int currentActive = tour.TourExperiences.Count(te => te.IsActive);
-
-                        // Thêm mới
                         tour.TourExperiences.Add(new TourExperience
                         {
                             Content = e.Content,
                             IsActive = e.IsActive
                         });
                     }
-                    else // Update existing
+                    else // Update
                     {
-                        var existing = tour.TourExperiences.FirstOrDefault(x => x.Id == e.Id);
+                        var existing = existingExperiences.FirstOrDefault(x => x.Id == e.Id);
                         if (existing != null)
                         {
                             existing.Content = e.Content;
                             existing.IsActive = e.IsActive;
                         }
-                        else
-                        {
-                            return BadRequest($"TourExperience có ID {e.Id} không tìm thấy.");
-                        }
                     }
                 }
             }
 
+
             // Update TourItineraries
+            //if (request.TourItineraries != null)
+            //{
+            //    var existingItineraries = tour.TourItineraries.ToList();
+
+            //    var requestIds = request.TourItineraries.Where(i => i.ItineraryId > 0).Select(i => i.ItineraryId).ToList();
+
+            //    // Những itinerary nào có trong DB nhưng không còn trong request => xóa
+            //    var toDelete = existingItineraries.Where(i => !requestIds.Contains(i.ItineraryId)).ToList();
+            //    foreach (var del in toDelete)
+            //    {
+            //        context.TourItineraries.Remove(del);
+            //    }
+
+            //    foreach (var i in request.TourItineraries)
+            //    {
+            //        if (i.ItineraryId == 0) // Thêm mới TourItinerary
+            //        {
+            //            // Kiểm tra giới hạn số ngày theo gói
+            //            int currentActive = tour.TourItineraries.Count(ti => ti.IsActive);
+
+            //            if (!int.TryParse(tour.DurationInDays, out var maxDays))
+            //                return BadRequest("DurationInDays của tour không hợp lệ.");
+
+            //            if (tour.TourItineraries.Count >= maxDays)
+            //                return BadRequest($"Tour đã đủ {maxDays} ngày lịch trình. Không thể thêm mới.");
+
+            //            var newItinerary = new TourItinerary
+            //            {
+            //                DayNumber = i.DayNumber,
+            //                Title = i.Title,
+            //                Description = i.Description,
+            //                CreatedAt = DateTime.UtcNow.AddHours(7),
+            //                IsActive = i.IsActive
+            //            };
+
+            //            // Thêm ItineraryMedia nếu có
+            //            if (i.ItineraryMedia != null)
+            //            {
+            //                foreach (var m in i.ItineraryMedia)
+            //                {
+            //                    if (m.MediaId == 0 && m.MediaFile != null)
+            //                    {
+            //                        // Kiểm tra giới hạn ảnh
+            //                        if (m.MediaType.ToLower() == "image")
+            //                        {
+            //                            int totalImages = tour.TourMedia.Count(x => x.IsActive && x.MediaType == "image") +
+            //                                tour.TourItineraries.SelectMany(ti => ti.ItineraryMedia).Count(im => im.IsActive && im.MediaType == "image");
+
+            //                            if (slotInfo.MaxImage > 0 && totalImages >= slotInfo.MaxImage)
+            //                                return BadRequest("Vượt quá giới hạn tải lên hình ảnh của gói hiện tại.");
+            //                        }
+
+            //                        // Upload media
+            //                        var uploadedUrl = await UploadMediaFile(m.MediaFile, m.MediaType, slotInfo);
+
+            //                        newItinerary.ItineraryMedia.Add(new ItineraryMedia
+            //                        {
+            //                            MediaUrl = uploadedUrl,
+            //                            MediaType = m.MediaType,
+            //                            Caption = m.Caption,
+            //                            UploadedAt = DateTime.UtcNow.AddHours(7),
+            //                            IsActive = m.IsActive
+            //                        });
+            //                    }
+            //                }
+            //            }
+
+            //            tour.TourItineraries.Add(newItinerary);
+            //        }
+            //        else // Cập nhật TourItinerary đã có
+            //        {
+            //            var existingItinerary = tour.TourItineraries.FirstOrDefault(x => x.ItineraryId == i.ItineraryId);
+            //            if (existingItinerary == null)
+            //                return BadRequest($"TourItinerary với ID {i.ItineraryId} không tồn tại.");
+
+            //            existingItinerary.DayNumber = i.DayNumber;
+            //            existingItinerary.Title = i.Title;
+            //            existingItinerary.Description = i.Description;
+            //            existingItinerary.IsActive = i.IsActive;
+
+            //            // Update ItineraryMedia
+            //            if (i.ItineraryMedia != null)
+            //            {
+
+
+            //                foreach (var m in i.ItineraryMedia)
+            //                {
+            //                    if (m.MediaId == 0 && m.MediaFile != null)
+            //                    {
+            //                        // Kiểm tra giới hạn ảnh
+            //                        if (m.MediaType.ToLower() == "image")
+            //                        {
+            //                            int totalImages = tour.TourMedia.Count(x => x.IsActive && x.MediaType == "image") +
+            //                                tour.TourItineraries.SelectMany(ti => ti.ItineraryMedia).Count(im => im.IsActive && im.MediaType == "image");
+
+            //                            if (slotInfo.MaxImage > 0 && totalImages >= slotInfo.MaxImage)
+            //                                return BadRequest("Vượt quá giới hạn tải lên hình ảnh của gói hiện tại.");
+            //                        }
+
+            //                        var uploadedUrl = await UploadMediaFile(m.MediaFile, m.MediaType, slotInfo);
+
+            //                        existingItinerary.ItineraryMedia.Add(new ItineraryMedia
+            //                        {
+            //                            MediaUrl = uploadedUrl,
+            //                            MediaType = m.MediaType,
+            //                            Caption = m.Caption,
+            //                            UploadedAt = DateTime.UtcNow.AddHours(7),
+            //                            IsActive = m.IsActive
+            //                        });
+            //                    }
+            //                    else if (m.MediaId > 0)
+            //                    {
+            //                        var existingMedia = existingItinerary.ItineraryMedia.FirstOrDefault(x => x.MediaId == m.MediaId);
+            //                        if (existingMedia == null)
+            //                            return BadRequest($"ItineraryMedia với ID {m.MediaId} không tồn tại.");
+
+            //                        if (m.MediaFile != null && m.MediaFile.Length > 0)
+            //                        {
+            //                            var uploadedUrl = await UploadMediaFile(m.MediaFile, m.MediaType, slotInfo);
+            //                            existingMedia.MediaUrl = uploadedUrl;
+            //                            existingMedia.UploadedAt = DateTime.UtcNow.AddHours(7);
+            //                        }
+
+            //                        existingMedia.MediaType = m.MediaType;
+            //                        existingMedia.Caption = m.Caption;
+            //                        existingMedia.IsActive = m.IsActive;
+            //                    }
+            //                }
+            //            }
+            //        }
+            //    }
+            //}
+
             if (request.TourItineraries != null)
             {
+                var existingItineraries = tour.TourItineraries.ToList();
+                var requestIds = request.TourItineraries.Where(i => i.ItineraryId > 0).Select(i => i.ItineraryId).ToList();
+
+                // Xoá itinerary không còn trong request
+                var toDelete = existingItineraries.Where(i => !requestIds.Contains(i.ItineraryId)).ToList();
+                foreach (var del in toDelete)
+                    context.TourItineraries.Remove(del);
+
                 foreach (var i in request.TourItineraries)
                 {
-                    if (i.ItineraryId == 0) // Thêm mới TourItinerary
-                    {
-                        // Kiểm tra giới hạn số ngày theo gói
-                        int currentActive = tour.TourItineraries.Count(ti => ti.IsActive);
+                    TourItinerary itinerary;
 
+                    if (i.ItineraryId == 0)
+                    {
+                        // Kiểm tra giới hạn số ngày
                         if (!int.TryParse(tour.DurationInDays, out var maxDays))
                             return BadRequest("DurationInDays của tour không hợp lệ.");
 
                         if (tour.TourItineraries.Count >= maxDays)
                             return BadRequest($"Tour đã đủ {maxDays} ngày lịch trình. Không thể thêm mới.");
 
-                        var newItinerary = new TourItinerary
+                        itinerary = new TourItinerary
                         {
                             DayNumber = i.DayNumber,
                             Title = i.Title,
                             Description = i.Description,
                             CreatedAt = DateTime.UtcNow.AddHours(7),
-                            IsActive = i.IsActive
+                            IsActive = i.IsActive,
+                            ItineraryMedia = new List<ItineraryMedia>()
                         };
 
-                        // Thêm ItineraryMedia nếu có
-                        if (i.ItineraryMedia != null)
-                        {
-                            foreach (var m in i.ItineraryMedia)
-                            {
-                                if (m.MediaId == 0 && m.MediaFile != null)
-                                {
-                                    // Kiểm tra giới hạn ảnh
-                                    if (m.MediaType.ToLower() == "image")
-                                    {
-                                        int totalImages = tour.TourMedia.Count(x => x.IsActive && x.MediaType == "image") +
-                                            tour.TourItineraries.SelectMany(ti => ti.ItineraryMedia).Count(im => im.IsActive && im.MediaType == "image");
-
-                                        if (slotInfo.MaxImage > 0 && totalImages >= slotInfo.MaxImage)
-                                            return BadRequest("Vượt quá giới hạn tải lên hình ảnh của gói hiện tại.");
-                                    }
-
-                                    // Upload media
-                                    var uploadedUrl = await UploadMediaFile(m.MediaFile, m.MediaType, slotInfo);
-
-                                    newItinerary.ItineraryMedia.Add(new ItineraryMedia
-                                    {
-                                        MediaUrl = uploadedUrl,
-                                        MediaType = m.MediaType,
-                                        Caption = m.Caption,
-                                        UploadedAt = DateTime.UtcNow.AddHours(7),
-                                        IsActive = m.IsActive
-                                    });
-                                }
-                            }
-                        }
-
-                        tour.TourItineraries.Add(newItinerary);
+                        tour.TourItineraries.Add(itinerary);
                     }
-                    else // Cập nhật TourItinerary đã có
+                    else
                     {
-                        var existingItinerary = tour.TourItineraries.FirstOrDefault(x => x.ItineraryId == i.ItineraryId);
-                        if (existingItinerary == null)
+                        itinerary = tour.TourItineraries.FirstOrDefault(x => x.ItineraryId == i.ItineraryId);
+                        if (itinerary == null)
                             return BadRequest($"TourItinerary với ID {i.ItineraryId} không tồn tại.");
 
-                        existingItinerary.DayNumber = i.DayNumber;
-                        existingItinerary.Title = i.Title;
-                        existingItinerary.Description = i.Description;
-                        existingItinerary.IsActive = i.IsActive;
+                        itinerary.DayNumber = i.DayNumber;
+                        itinerary.Title = i.Title;
+                        itinerary.Description = i.Description;
+                        itinerary.IsActive = i.IsActive;
+                    }
 
-                        // Update ItineraryMedia
-                        if (i.ItineraryMedia != null)
+                    // ---- Xử lý ItineraryMedia ----
+                    if (i.ItineraryMedia != null)
+                    {
+                        var existingMedias = itinerary.ItineraryMedia.ToList();
+                        var requestMediaIds = i.ItineraryMedia.Where(m => m.MediaId > 0).Select(m => m.MediaId).ToList();
+
+                        // Xoá media không còn trong request
+                        var mediasToDelete = existingMedias.Where(m => !requestMediaIds.Contains(m.MediaId)).ToList();
+                        foreach (var del in mediasToDelete)
+                            context.ItineraryMedia.Remove(del);
+
+                        foreach (var m in i.ItineraryMedia)
                         {
-                            foreach (var m in i.ItineraryMedia)
+                            if (m.MediaId == 0 && m.MediaFile != null)
                             {
-                                if (m.MediaId == 0 && m.MediaFile != null)
+                                // Kiểm tra giới hạn ảnh
+                                if (m.MediaType.ToLower() == "image")
                                 {
-                                    // Kiểm tra giới hạn ảnh
-                                    if (m.MediaType.ToLower() == "image")
-                                    {
-                                        int totalImages = tour.TourMedia.Count(x => x.IsActive && x.MediaType == "image") +
-                                            tour.TourItineraries.SelectMany(ti => ti.ItineraryMedia).Count(im => im.IsActive && im.MediaType == "image");
+                                    int totalImages = tour.TourMedia.Count(x => x.IsActive && x.MediaType == "image") +
+                                                      tour.TourItineraries.SelectMany(ti => ti.ItineraryMedia)
+                                                                          .Count(im => im.IsActive && im.MediaType == "image");
 
-                                        if (slotInfo.MaxImage > 0 && totalImages >= slotInfo.MaxImage)
-                                            return BadRequest("Vượt quá giới hạn tải lên hình ảnh của gói hiện tại.");
-                                    }
+                                    if (slotInfo.MaxImage > 0 && totalImages >= slotInfo.MaxImage)
+                                        return BadRequest("Vượt quá giới hạn tải lên hình ảnh của gói hiện tại.");
+                                }
 
+                                // Upload file mới
+                                var uploadedUrl = await UploadMediaFile(m.MediaFile, m.MediaType, slotInfo);
+
+                                itinerary.ItineraryMedia.Add(new ItineraryMedia
+                                {
+                                    MediaUrl = uploadedUrl,
+                                    MediaType = m.MediaType,
+                                    Caption = m.Caption,
+                                    UploadedAt = DateTime.UtcNow.AddHours(7),
+                                    IsActive = m.IsActive
+                                });
+                            }
+                            else if (m.MediaId > 0)
+                            {
+                                var existingMedia = itinerary.ItineraryMedia.FirstOrDefault(x => x.MediaId == m.MediaId);
+                                if (existingMedia == null)
+                                    return BadRequest($"ItineraryMedia với ID {m.MediaId} không tồn tại.");
+
+                                // Nếu có file mới thì upload lại
+                                if (m.MediaFile != null && m.MediaFile.Length > 0)
+                                {
                                     var uploadedUrl = await UploadMediaFile(m.MediaFile, m.MediaType, slotInfo);
-
-                                    existingItinerary.ItineraryMedia.Add(new ItineraryMedia
-                                    {
-                                        MediaUrl = uploadedUrl,
-                                        MediaType = m.MediaType,
-                                        Caption = m.Caption,
-                                        UploadedAt = DateTime.UtcNow.AddHours(7),
-                                        IsActive = m.IsActive
-                                    });
+                                    existingMedia.MediaUrl = uploadedUrl;
+                                    existingMedia.UploadedAt = DateTime.UtcNow.AddHours(7);
                                 }
-                                else if (m.MediaId > 0)
-                                {
-                                    var existingMedia = existingItinerary.ItineraryMedia.FirstOrDefault(x => x.MediaId == m.MediaId);
-                                    if (existingMedia == null)
-                                        return BadRequest($"ItineraryMedia với ID {m.MediaId} không tồn tại.");
 
-                                    if (m.MediaFile != null && m.MediaFile.Length > 0)
-                                    {
-                                        var uploadedUrl = await UploadMediaFile(m.MediaFile, m.MediaType, slotInfo);
-                                        existingMedia.MediaUrl = uploadedUrl;
-                                        existingMedia.UploadedAt = DateTime.UtcNow.AddHours(7);
-                                    }
-
-                                    existingMedia.MediaType = m.MediaType;
-                                    existingMedia.Caption = m.Caption;
-                                    existingMedia.IsActive = m.IsActive;
-                                }
+                                existingMedia.MediaType = m.MediaType;
+                                existingMedia.Caption = m.Caption;
+                                existingMedia.IsActive = m.IsActive;
                             }
                         }
                     }
                 }
             }
 
+
             // Update TourMedia
             if (request.TourMedia != null)
             {
+
+                var existingMediaList = tour.TourMedia.ToList();
+                var requestIds = request.TourMedia.Where(m => m.Id > 0).Select(m => m.Id).ToList();
+
+                // Xóa những media không còn trong request
+                var toDelete = existingMediaList.Where(m => !requestIds.Contains(m.Id)).ToList();
+                foreach (var del in toDelete)
+                {
+                    context.TourMedia.Remove(del);
+                }
+
                 foreach (var m in request.TourMedia)
                 {
                     if (m.Id == 0) // Thêm mới

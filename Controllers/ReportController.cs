@@ -10,7 +10,6 @@ namespace TourManagement_BE.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class ReportController : ControllerBase
     {
         private readonly IReportService _reportService;

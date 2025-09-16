@@ -8,7 +8,6 @@ namespace TourManagement_BE.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Tour Operator")]
     public class DashBoardOperatorController : ControllerBase
     {
         private readonly IDashboardOperatorService _dashboardService;

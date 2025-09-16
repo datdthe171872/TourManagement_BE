@@ -36,12 +36,6 @@ namespace TourManagement_BE.Helper.Validator
             RuleFor(x => x.TourStatus)
                 .NotEmpty().WithMessage("Trạng thái tour là bắt buộc.");
 
-            RuleFor(x => x.DepartureDates)
-            .NotNull().WithMessage("Danh sách ngày khởi hành là bắt buộc.")
-            .Must(list => list.Count > 0).WithMessage("Phải có ít nhất 1 ngày khởi hành.")
-            .Must(list => list.All(date => date.DepartureDate1.Date >= DateTime.UtcNow.Date.AddMonths(1)))
-            .WithMessage("Mỗi ngày khởi hành phải lớn hơn ngày hiện tại ít nhất 1 tháng.");
-
 
             RuleFor(x => x.TourItineraries)
                 .Must((req, list) => CheckItineraryCount(req.DurationInDays, list))

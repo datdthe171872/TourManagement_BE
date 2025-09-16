@@ -13,7 +13,6 @@ namespace TourManagement_BE.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Tour Guide")]
     public class GuideNoteController : ControllerBase
     {
         private readonly IGuideNoteService _guideNoteService;

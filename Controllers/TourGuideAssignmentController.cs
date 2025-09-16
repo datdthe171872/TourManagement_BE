@@ -13,7 +13,6 @@ namespace TourManagement_BE.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Tour Operator")]
     public class TourGuideAssignmentController : ControllerBase
     {
         private readonly MyDBContext _context;

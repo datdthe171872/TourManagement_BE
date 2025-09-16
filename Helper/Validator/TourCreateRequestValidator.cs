@@ -29,17 +29,11 @@ namespace TourManagement_BE.Helper.Validator
             RuleFor(x => x.MinSlots)
                 .GreaterThan(0).WithMessage("Số chỗ tối thiểu phải lớn hơn 0.");
 
-            RuleFor(x => x.DepartureDates)
-                .NotNull().WithMessage("Danh sách ngày khởi hành là bắt buộc.")
-                .Must(list => list.Count > 0).WithMessage("Phải có ít nhất 1 ngày khởi hành.");
-
             RuleFor(x => x.TourItineraries)
                 .Must((req, list) => CheckListCount(req.DurationInDays, list))
                 .WithMessage(req => $"TourItineraries phải có đúng {req.DurationInDays} ngày lịch trình.");
 
             // Validate từng phần tử
-            RuleForEach(x => x.DepartureDates)
-                .SetValidator(new DepartureDateCreateDtoValidator());
 
             RuleForEach(x => x.TourExperiences)
                 .SetValidator(new TourExperienceCreateDtoValidator());

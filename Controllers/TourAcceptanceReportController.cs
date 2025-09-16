@@ -11,7 +11,6 @@ namespace TourManagement_BE.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Tour Guide")]
     public class TourAcceptanceReportController : ControllerBase
     {
         private readonly ITourAcceptanceReportService _reportService;
