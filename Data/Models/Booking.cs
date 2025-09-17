@@ -32,6 +32,9 @@ public partial class Booking
     public string? PaymentStatus { get; set; }
 
     public bool IsActive { get; set; }
+    public DateTime? CreateAt { get; set; }          
+    public DateTime? PaymentAt { get; set; }    
+    public string? PaymentImg { get; set; }
 
     public virtual DepartureDate DepartureDate { get; set; } = null!;
 
