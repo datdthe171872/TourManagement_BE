@@ -105,7 +105,7 @@ namespace TourManagement_BE.Controllers
                 
                 if (existingAssignment != null)
                 {
-                    continue; // Bỏ qua nếu đã được assign cho departure date này
+                    return BadRequest($"Tour guide {tourGuide.TourGuideId} đã được assign cho departure date này");
                 }
 
                 // Kiểm tra xem tour guide đã được gán vào bất kỳ Tour nào trong cùng ngày chưa
@@ -117,7 +117,7 @@ namespace TourManagement_BE.Controllers
 
                 if (existingAssignmentSameDay != null)
                 {
-                    continue; // Bỏ qua nếu đã được gán vào Tour khác trong cùng ngày
+                    return BadRequest($"TourGuide {tourGuide.TourGuideId} đã được gán vào TourId {existingAssignmentSameDay.TourId} rồi");
                 }
 
                 var assignment = new TourGuideAssignment
