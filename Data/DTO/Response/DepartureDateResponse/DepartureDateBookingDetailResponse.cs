@@ -29,6 +29,9 @@ namespace TourManagement_BE.Data.DTO.Response.DepartureDateResponse
         public DateTime BookingDate { get; set; }
         public string? Contract { get; set; }
         public string? NoteForTour { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? PaymentAt { get; set; }
+        public string? PaymentImg { get; set; }
     }
 
     public class GuestDetailInfo

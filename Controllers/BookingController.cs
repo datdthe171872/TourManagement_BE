@@ -281,5 +281,40 @@ namespace TourManagement_BE.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        // API 7: Update Booking Payment (Customer role only)
+        [HttpPut("update-paymentdate-img")]
+        [Authorize(Roles = Roles.Customer)]
+        public async Task<IActionResult> UpdateBookingPayment([FromForm] UpdateBookingPaymentRequest request)
+        {
+            try
+            {
+                if (request.PaymentImage == null || request.PaymentImage.Length == 0)
+                    return BadRequest("Vui lòng chọn ảnh thanh toán");
+
+                // Kiểm tra định dạng file
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+                var fileExtension = Path.GetExtension(request.PaymentImage.FileName).ToLower();
+                if (!allowedExtensions.Contains(fileExtension))
+                    return BadRequest("Chỉ chấp nhận file ảnh có định dạng .jpg, .jpeg hoặc .png");
+
+                // Kiểm tra kích thước file (ví dụ: max 5MB)
+                if (request.PaymentImage.Length > 5 * 1024 * 1024)
+                    return BadRequest("Kích thước file không được vượt quá 5MB");
+
+                var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+                if (userIdClaim == null)
+                    return Unauthorized("Không xác định được người dùng");
+                
+                int userId = int.Parse(userIdClaim.Value);
+                
+                var result = await _bookingService.UpdateBookingPaymentAsync(request, userId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 } 

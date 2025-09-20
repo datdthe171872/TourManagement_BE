@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TourManagement_BE.Data.Context;
 
@@ -11,9 +12,11 @@ using TourManagement_BE.Data.Context;
 namespace TourManagement_BE.Migrations
 {
     [DbContext(typeof(MyDBContext))]
-    partial class MyDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250919232519_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -104,7 +107,7 @@ namespace TourManagement_BE.Migrations
 
                     b.HasIndex(new[] { "UserId" }, "IX_Bookings_UserId");
 
-                    b.ToTable("Bookings", (string)null);
+                    b.ToTable("Bookings");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.DepartureDate", b =>
@@ -135,7 +138,7 @@ namespace TourManagement_BE.Migrations
 
                     b.HasIndex(new[] { "TourId" }, "IX_DepartureDates_TourId");
 
-                    b.ToTable("DepartureDates", (string)null);
+                    b.ToTable("DepartureDates");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.GuideLanguage", b =>
@@ -164,7 +167,7 @@ namespace TourManagement_BE.Migrations
 
                     b.HasIndex(new[] { "LanguageId" }, "IX_GuideLanguages_LanguageId");
 
-                    b.ToTable("GuideLanguages", (string)null);
+                    b.ToTable("GuideLanguages");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.GuideNote", b =>
@@ -216,7 +219,7 @@ namespace TourManagement_BE.Migrations
 
                     b.HasIndex(new[] { "ReportId" }, "IX_GuideNotes_ReportId");
 
-                    b.ToTable("GuideNotes", (string)null);
+                    b.ToTable("GuideNotes");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.GuideNoteMedia", b =>
@@ -250,7 +253,7 @@ namespace TourManagement_BE.Migrations
 
                     b.HasIndex(new[] { "NoteId" }, "IX_GuideNoteMedia_NoteId");
 
-                    b.ToTable("GuideNoteMedia", (string)null);
+                    b.ToTable("GuideNoteMedia");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.GuideRating", b =>
@@ -299,7 +302,7 @@ namespace TourManagement_BE.Migrations
 
                     b.HasIndex(new[] { "UserId" }, "IX_GuideRatings_UserId");
 
-                    b.ToTable("GuideRatings", (string)null);
+                    b.ToTable("GuideRatings");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.ItineraryMedia", b =>
@@ -341,7 +344,7 @@ namespace TourManagement_BE.Migrations
 
                     b.HasIndex(new[] { "ItineraryId" }, "IX_ItineraryMedia_ItineraryId");
 
-                    b.ToTable("ItineraryMedia", (string)null);
+                    b.ToTable("ItineraryMedia");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.Language", b =>
@@ -365,7 +368,7 @@ namespace TourManagement_BE.Migrations
                     b.HasKey("LanguageId")
                         .HasName("PK__Language__B93855AB17FB757D");
 
-                    b.ToTable("Languages", (string)null);
+                    b.ToTable("Languages");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.Notification", b =>
@@ -411,7 +414,7 @@ namespace TourManagement_BE.Migrations
 
                     b.HasIndex(new[] { "UserId" }, "IX_Notifications_UserId");
 
-                    b.ToTable("Notifications", (string)null);
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.Payment", b =>
@@ -472,7 +475,7 @@ namespace TourManagement_BE.Migrations
 
                     b.HasIndex(new[] { "UserId" }, "IX_Payments_UserId");
 
-                    b.ToTable("Payments", (string)null);
+                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.PaymentType", b =>
@@ -500,7 +503,7 @@ namespace TourManagement_BE.Migrations
                     b.HasKey("PaymentTypeId")
                         .HasName("PK__PaymentT__BA430B35A0EA8336");
 
-                    b.ToTable("PaymentTypes", (string)null);
+                    b.ToTable("PaymentTypes");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.PurchaseTransaction", b =>
@@ -551,7 +554,7 @@ namespace TourManagement_BE.Migrations
 
                     b.HasIndex(new[] { "TourOperatorId" }, "IX_PurchaseTransactions_TourOperatorId");
 
-                    b.ToTable("PurchaseTransactions", (string)null);
+                    b.ToTable("PurchaseTransactions");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.PurchasedServicePackage", b =>
@@ -601,7 +604,7 @@ namespace TourManagement_BE.Migrations
 
                     b.HasIndex(new[] { "TransactionId" }, "IX_PurchasedServicePackages_TransactionId");
 
-                    b.ToTable("PurchasedServicePackages", (string)null);
+                    b.ToTable("PurchasedServicePackages");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.ResetPasswordToken", b =>
@@ -630,7 +633,7 @@ namespace TourManagement_BE.Migrations
 
                     b.HasIndex(new[] { "UserId" }, "IX_ResetPasswordTokens_UserId");
 
-                    b.ToTable("ResetPasswordTokens", (string)null);
+                    b.ToTable("ResetPasswordTokens");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.Role", b =>
@@ -657,7 +660,7 @@ namespace TourManagement_BE.Migrations
                     b.HasIndex(new[] { "RoleName" }, "UQ__Roles__8A2B616060CD7784")
                         .IsUnique();
 
-                    b.ToTable("Roles", (string)null);
+                    b.ToTable("Roles");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.SavedTour", b =>
@@ -691,7 +694,7 @@ namespace TourManagement_BE.Migrations
 
                     b.HasIndex(new[] { "UserId" }, "IX_SavedTours_UserId");
 
-                    b.ToTable("SavedTours", (string)null);
+                    b.ToTable("SavedTours");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.ServicePackage", b =>
@@ -738,7 +741,7 @@ namespace TourManagement_BE.Migrations
                     b.HasKey("PackageId")
                         .HasName("PK__ServiceP__322035CC2CFB51A1");
 
-                    b.ToTable("ServicePackages", (string)null);
+                    b.ToTable("ServicePackages");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.ServicePackageFeature", b =>
@@ -769,7 +772,7 @@ namespace TourManagement_BE.Migrations
 
                     b.HasIndex("PackageId");
 
-                    b.ToTable("ServicePackageFeatures", (string)null);
+                    b.ToTable("ServicePackageFeatures");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.Tour", b =>
@@ -852,7 +855,7 @@ namespace TourManagement_BE.Migrations
 
                     b.HasIndex(new[] { "TourOperatorId" }, "IX_Tours_TourOperatorId");
 
-                    b.ToTable("Tours", (string)null);
+                    b.ToTable("Tours");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.TourAcceptanceReport", b =>
@@ -898,7 +901,7 @@ namespace TourManagement_BE.Migrations
 
                     b.HasIndex(new[] { "TourGuideId" }, "IX_TourAcceptanceReports_TourGuideId");
 
-                    b.ToTable("TourAcceptanceReports", (string)null);
+                    b.ToTable("TourAcceptanceReports");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.TourExperience", b =>
@@ -925,7 +928,7 @@ namespace TourManagement_BE.Migrations
 
                     b.HasIndex(new[] { "TourId" }, "IX_TourExperiences_TourId");
 
-                    b.ToTable("TourExperiences", (string)null);
+                    b.ToTable("TourExperiences");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.TourGuide", b =>
@@ -956,7 +959,7 @@ namespace TourManagement_BE.Migrations
                         .IsUnique()
                         .HasFilter("([UserId] IS NOT NULL)");
 
-                    b.ToTable("TourGuides", (string)null);
+                    b.ToTable("TourGuides");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.TourGuideAssignment", b =>
@@ -1001,7 +1004,7 @@ namespace TourManagement_BE.Migrations
 
                     b.HasIndex(new[] { "TourGuideId" }, "IX_TourGuideAssignments_TourGuideId");
 
-                    b.ToTable("TourGuideAssignments", (string)null);
+                    b.ToTable("TourGuideAssignments");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.TourItinerary", b =>
@@ -1041,7 +1044,7 @@ namespace TourManagement_BE.Migrations
 
                     b.HasIndex(new[] { "TourId" }, "IX_TourItineraries_TourId");
 
-                    b.ToTable("TourItineraries", (string)null);
+                    b.ToTable("TourItineraries");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.TourMedia", b =>
@@ -1073,7 +1076,7 @@ namespace TourManagement_BE.Migrations
 
                     b.HasIndex(new[] { "TourId" }, "IX_TourMedia_TourId");
 
-                    b.ToTable("TourMedia", (string)null);
+                    b.ToTable("TourMedia");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.TourOperator", b =>
@@ -1148,7 +1151,7 @@ namespace TourManagement_BE.Migrations
                         .IsUnique()
                         .HasFilter("([UserId] IS NOT NULL)");
 
-                    b.ToTable("TourOperators", (string)null);
+                    b.ToTable("TourOperators");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.TourOperatorMedia", b =>
@@ -1186,7 +1189,7 @@ namespace TourManagement_BE.Migrations
 
                     b.HasIndex(new[] { "TourOperatorId" }, "IX_TourOperatorMedia_TourOperatorId");
 
-                    b.ToTable("TourOperatorMedia", (string)null);
+                    b.ToTable("TourOperatorMedia");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.TourRating", b =>
@@ -1230,7 +1233,7 @@ namespace TourManagement_BE.Migrations
 
                     b.HasIndex(new[] { "UserId" }, "IX_TourRatings_UserId");
 
-                    b.ToTable("TourRatings", (string)null);
+                    b.ToTable("TourRatings");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.User", b =>
@@ -1282,7 +1285,7 @@ namespace TourManagement_BE.Migrations
 
                     b.HasIndex(new[] { "Email" }, "UQ__Users__A9D10534A733E8F8");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("TourManagement_BE.Data.Models.Booking", b =>

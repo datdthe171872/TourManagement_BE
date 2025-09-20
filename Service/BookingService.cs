@@ -65,7 +65,10 @@ namespace TourManagement_BE.Service
                     UserName = x.User != null ? x.User.UserName : null,
                     TourTitle = x.Tour != null ? x.Tour.Title : null,
                     CompanyName = x.Tour != null && x.Tour.TourOperator != null ? x.Tour.TourOperator.CompanyName : null,
-                    TourOperatorId = x.Tour != null ? x.Tour.TourOperatorId : (int?)null
+                    TourOperatorId = x.Tour != null ? x.Tour.TourOperatorId : (int?)null,
+                    CreateAt = x.CreateAt,
+                    PaymentAt = x.PaymentAt,
+                    PaymentImg = x.PaymentImg
                 }).ToList()
             };
         }
@@ -112,8 +115,10 @@ namespace TourManagement_BE.Service
                 TotalPrice = totalPrice,
                 BookingStatus = StatusConstants.Booking.Pending,
                 PaymentStatus = StatusConstants.Payment.Pending,
-                IsActive = true
+                IsActive = true,
+                CreateAt = DateTime.UtcNow
             };
+            Console.WriteLine($"DEBUG - Creating new booking with CreateAt: {booking.CreateAt}");
             _context.Bookings.Add(booking);
 
             // Update SlotsBooked
@@ -128,6 +133,8 @@ namespace TourManagement_BE.Service
                 .Include(b => b.Tour)
                     .ThenInclude(t => t.TourOperator)
                 .FirstOrDefaultAsync(b => b.BookingId == booking.BookingId);
+            
+            Console.WriteLine($"DEBUG - Retrieved booking with CreateAt: {bookingWithNav.CreateAt}");
 
             // Send emails to customer and tour operator
             try
@@ -187,7 +194,8 @@ namespace TourManagement_BE.Service
                 UserName = bookingWithNav.User != null ? bookingWithNav.User.UserName : null,
                 TourTitle = bookingWithNav.Tour != null ? bookingWithNav.Tour.Title : null,
                 CompanyName = bookingWithNav.Tour != null && bookingWithNav.Tour.TourOperator != null ? bookingWithNav.Tour.TourOperator.CompanyName : null,
-                TourOperatorId = bookingWithNav.Tour != null ? bookingWithNav.Tour.TourOperatorId : (int?)null
+                TourOperatorId = bookingWithNav.Tour != null ? bookingWithNav.Tour.TourOperatorId : (int?)null,
+                CreateAt = bookingWithNav.CreateAt
             };
         }
 
@@ -278,6 +286,7 @@ namespace TourManagement_BE.Service
                 .Include(b => b.DepartureDate)
                 .FirstOrDefaultAsync(b => b.BookingId == bookingId && b.IsActive);
             if (booking == null) return null;
+            Console.WriteLine($"DEBUG - GetBookingById - Booking CreateAt: {booking.CreateAt}");
             return new BookingResponse
             {
                 BookingId = booking.BookingId,
@@ -297,7 +306,10 @@ namespace TourManagement_BE.Service
                 UserName = booking.User != null ? booking.User.UserName : null,
                 TourTitle = booking.Tour != null ? booking.Tour.Title : null,
                 CompanyName = booking.Tour != null && booking.Tour.TourOperator != null ? booking.Tour.TourOperator.CompanyName : null,
-                TourOperatorId = booking.Tour != null ? booking.Tour.TourOperatorId : (int?)null
+                TourOperatorId = booking.Tour != null ? booking.Tour.TourOperatorId : (int?)null,
+                CreateAt = booking.CreateAt,
+                PaymentAt = booking.PaymentAt,
+                PaymentImg = booking.PaymentImg
             };
         }
 
@@ -411,7 +423,10 @@ namespace TourManagement_BE.Service
                     UserName = x.User != null ? x.User.UserName : null,
                     TourTitle = x.Tour != null ? x.Tour.Title : null,
                     CompanyName = x.Tour != null && x.Tour.TourOperator != null ? x.Tour.TourOperator.CompanyName : null,
-                    TourOperatorId = x.Tour != null ? x.Tour.TourOperatorId : (int?)null
+                    TourOperatorId = x.Tour != null ? x.Tour.TourOperatorId : (int?)null,
+                    CreateAt = x.CreateAt,
+                    PaymentAt = x.PaymentAt,
+                    PaymentImg = x.PaymentImg
                 }).ToList()
             };
         }
@@ -467,7 +482,10 @@ namespace TourManagement_BE.Service
                     UserName = x.User != null ? x.User.UserName : null,
                     TourTitle = x.Tour != null ? x.Tour.Title : null,
                     CompanyName = x.Tour != null && x.Tour.TourOperator != null ? x.Tour.TourOperator.CompanyName : null,
-                    TourOperatorId = x.Tour != null ? x.Tour.TourOperatorId : (int?)null
+                    TourOperatorId = x.Tour != null ? x.Tour.TourOperatorId : (int?)null,
+                    CreateAt = x.CreateAt,
+                    PaymentAt = x.PaymentAt,
+                    PaymentImg = x.PaymentImg
                 }).ToList()
             };
         }
@@ -670,7 +688,10 @@ namespace TourManagement_BE.Service
                 {
                     BookingDate = booking.BookingDate,
                     Contract = booking.Contract,
-                    NoteForTour = booking.NoteForTour
+                    NoteForTour = booking.NoteForTour,
+                    CreateAt = booking.CreateAt,
+                    PaymentAt = booking.PaymentAt,
+                    PaymentImg = booking.PaymentImg
                 },
                 Guest = new GuestInfo
                 {
@@ -1117,6 +1138,137 @@ namespace TourManagement_BE.Service
                 TourTitle = booking.Tour?.Title,
                 CompanyName = booking.Tour?.TourOperator?.CompanyName,
                 TourOperatorId = booking.Tour?.TourOperatorId
+            };
+        }
+
+        public async Task<BookingResponse> UpdateBookingPaymentAsync(UpdateBookingPaymentRequest request, int userId)
+        {
+            // First, check if the user is customer by getting their role
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.UserId == userId);
+
+            if (user == null)
+                throw new Exception("User not found");
+
+            if (user.Role.RoleName != "Customer")
+                throw new Exception("Only customers can update booking payment");
+
+            var booking = await _context.Bookings
+                .Include(b => b.User)
+                .Include(b => b.Tour).ThenInclude(t => t.TourOperator)
+                .FirstOrDefaultAsync(b => b.BookingId == request.BookingId && b.IsActive);
+
+            if (booking == null)
+                throw new Exception("Booking not found or inactive");
+
+            if (booking.UserId != userId)
+                throw new Exception("You don't have permission to update this booking's payment");
+
+            if (booking.BookingStatus == StatusConstants.Booking.Cancelled)
+                throw new Exception("Cannot update payment for cancelled booking");
+
+            // Handle payment image upload
+            string imageUrl = null;
+            if (request.PaymentImage != null)
+            {
+                // Generate unique filename
+                var extension = Path.GetExtension(request.PaymentImage.FileName);
+                var fileName = $"payment_{booking.BookingId}_{DateTime.UtcNow.Ticks}{extension}";
+                var uploadsFolder = Path.Combine("wwwroot", "uploads", "payments");
+
+                // Ensure directory exists
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                // Save file
+                var filePath = Path.Combine(uploadsFolder, fileName);
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await request.PaymentImage.CopyToAsync(fileStream);
+                }
+
+                // Set relative URL path
+                imageUrl = $"/uploads/payments/{fileName}";
+            }
+
+            // Update payment information
+            booking.PaymentAt = DateTime.UtcNow;
+            if (imageUrl != null)
+            {
+                booking.PaymentImg = imageUrl;
+            }
+            booking.PaymentStatus = StatusConstants.Payment.Pending;
+
+            await _context.SaveChangesAsync();
+
+            // Send notification to tour operator about new payment proof
+            var tourOperatorId = booking.Tour?.TourOperatorId;
+            if (tourOperatorId.HasValue)
+            {
+                var tourOperator = await _context.TourOperators
+                    .Include(to => to.User)
+                    .FirstOrDefaultAsync(to => to.TourOperatorId == tourOperatorId.Value);
+                
+                if (tourOperator != null)
+                {
+                    var tourOperatorUserId = tourOperator.User?.UserId ?? 0;
+                    if (tourOperatorUserId != 0)
+                    {
+                        await _notificationService.CreateNotificationAsync(
+                            tourOperatorUserId,
+                            "New Payment Proof Submitted",
+                            $"Customer has submitted payment proof for booking #{booking.BookingId}. Please review and update payment status.",
+                            "Payment",
+                            booking.BookingId.ToString()
+                        );
+
+                        // Send email to tour operator
+                        try
+                        {
+                            var tourOperatorEntity = await _context.TourOperators
+                                .Include(to => to.User)
+                                .FirstOrDefaultAsync(to => to.TourOperatorId == tourOperatorId.Value);
+                            var tourOpEmail = tourOperatorEntity?.User?.Email;
+                            var tourOpName = tourOperatorEntity?.CompanyName ?? "Tour Operator";
+                            if (!string.IsNullOrWhiteSpace(tourOpEmail))
+                            {
+                                await _emailService.SendTourOperatorNotificationEmailAsync(
+                                    tourOpEmail,
+                                    tourOpName,
+                                    booking.BookingId,
+                                    "Bằng chứng thanh toán mới",
+                                    $"Khách hàng {booking.User?.UserName} đã gửi bằng chứng thanh toán cho đặt tour #{booking.BookingId}. Vui lòng xem xét và cập nhật trạng thái thanh toán.");
+                            }
+                        }
+                        catch { }
+                    }
+                }
+            }
+
+            return new BookingResponse
+            {
+                BookingId = booking.BookingId,
+                UserId = booking.UserId,
+                TourId = booking.TourId,
+                DepartureDateId = booking.DepartureDateId,
+                BookingDate = booking.BookingDate,
+                NumberOfAdults = booking.NumberOfAdults ?? 0,
+                NumberOfChildren = booking.NumberOfChildren ?? 0,
+                NumberOfInfants = booking.NumberOfInfants ?? 0,
+                NoteForTour = booking.NoteForTour,
+                TotalPrice = booking.TotalPrice,
+                Contract = booking.Contract,
+                BookingStatus = booking.BookingStatus,
+                PaymentStatus = booking.PaymentStatus,
+                IsActive = booking.IsActive,
+                UserName = booking.User?.UserName,
+                TourTitle = booking.Tour?.Title,
+                CompanyName = booking.Tour?.TourOperator?.CompanyName,
+                TourOperatorId = booking.Tour?.TourOperatorId,
+                CreateAt = booking.CreateAt,
+                PaymentAt = booking.PaymentAt,
+                PaymentImg = booking.PaymentImg
             };
         }
     }

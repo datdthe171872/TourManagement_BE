@@ -86,6 +86,20 @@ public class DepartureDateService : IDepartureDateService
         return departureDate;
     }
 
+    // Helper method to calculate available slots for a departure date
+    private int CalculateAvailableSlots(DepartureDate departureDate)
+    {
+        if (departureDate == null || departureDate.Tour == null)
+            return 0;
+
+        var maxSlots = departureDate.Tour.MaxSlots;
+        var bookedSlots = departureDate.Bookings
+            .Where(b => b.IsActive)
+            .Sum(b => (b.NumberOfAdults ?? 0) + (b.NumberOfChildren ?? 0) + (b.NumberOfInfants ?? 0));
+
+        return Math.Max(0, maxSlots - bookedSlots);
+    }
+
     public async Task<List<DepartureDateResponse>> GetAllDepartureDatesAsync()
     {
         var departureDates = await _context.DepartureDates
@@ -101,8 +115,10 @@ public class DepartureDateService : IDepartureDateService
                 DepartureDate = dd.DepartureDate1,
                 IsActive = dd.IsActive,
                 IsCancelDate = dd.IsCancelDate,
-                TotalBookings = dd.Bookings.Count,
-                AvailableSlots = dd.Tour.MaxSlots - (dd.Tour.SlotsBooked ?? 0)
+                TotalBookings = dd.Bookings.Count(b => b.IsActive),
+                AvailableSlots = dd.Tour.MaxSlots - dd.Bookings
+    .Where(b => b.IsActive)
+    .Sum(b => (b.NumberOfAdults ?? 0) + (b.NumberOfChildren ?? 0) + (b.NumberOfInfants ?? 0))
             })
             .ToListAsync();
 
@@ -131,7 +147,9 @@ public class DepartureDateService : IDepartureDateService
                 IsActive = dd.IsActive,
                 IsCancelDate = dd.IsCancelDate,
                 TotalBookings = dd.Bookings.Count,
-                AvailableSlots = dd.Tour.MaxSlots - (dd.Tour.SlotsBooked ?? 0)
+                AvailableSlots = dd.Tour.MaxSlots - dd.Bookings
+    .Where(b => b.IsActive)
+    .Sum(b => (b.NumberOfAdults ?? 0) + (b.NumberOfChildren ?? 0) + (b.NumberOfInfants ?? 0))
             })
             .ToListAsync();
 
@@ -178,7 +196,9 @@ public class DepartureDateService : IDepartureDateService
                 IsActive = dd.IsActive,
                 IsCancelDate = dd.IsCancelDate,
                 TotalBookings = dd.Bookings.Count,
-                AvailableSlots = dd.Tour.MaxSlots - (dd.Tour.SlotsBooked ?? 0),
+                AvailableSlots = dd.Tour.MaxSlots - dd.Bookings
+    .Where(b => b.IsActive)
+    .Sum(b => (b.NumberOfAdults ?? 0) + (b.NumberOfChildren ?? 0) + (b.NumberOfInfants ?? 0)),
                 Bookings = dd.Bookings.Select(b => new BookingInfo
                 {
                     BookingId = b.BookingId,
@@ -238,7 +258,9 @@ public class DepartureDateService : IDepartureDateService
                 IsActive = dd.IsActive,
                 IsCancelDate = dd.IsCancelDate,
                 TotalBookings = dd.Bookings.Count,
-                AvailableSlots = dd.Tour.MaxSlots - (dd.Tour.SlotsBooked ?? 0)
+                AvailableSlots = dd.Tour.MaxSlots - dd.Bookings
+    .Where(b => b.IsActive)
+    .Sum(b => (b.NumberOfAdults ?? 0) + (b.NumberOfChildren ?? 0) + (b.NumberOfInfants ?? 0))
             })
             .ToListAsync();
 
@@ -443,7 +465,9 @@ public class DepartureDateService : IDepartureDateService
                 IsActive = dd.IsActive,
                 IsCancelDate = dd.IsCancelDate,
                 TotalBookings = dd.Bookings.Count,
-                AvailableSlots = dd.Tour.MaxSlots - (dd.Tour.SlotsBooked ?? 0)
+                AvailableSlots = dd.Tour.MaxSlots - dd.Bookings
+    .Where(b => b.IsActive)
+    .Sum(b => (b.NumberOfAdults ?? 0) + (b.NumberOfChildren ?? 0) + (b.NumberOfInfants ?? 0))
             })
             .ToListAsync();
 
@@ -530,7 +554,9 @@ public class DepartureDateService : IDepartureDateService
                 IsActive = dd.IsActive,
                 IsCancelDate = dd.IsCancelDate,
                 TotalBookings = dd.Bookings.Count,
-                AvailableSlots = dd.Tour.MaxSlots - (dd.Tour.SlotsBooked ?? 0)
+                AvailableSlots = dd.Tour.MaxSlots - dd.Bookings
+    .Where(b => b.IsActive)
+    .Sum(b => (b.NumberOfAdults ?? 0) + (b.NumberOfChildren ?? 0) + (b.NumberOfInfants ?? 0))
             })
             .ToListAsync();
 

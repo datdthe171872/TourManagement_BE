@@ -35,5 +35,8 @@ namespace TourManagement_BE.Service
         
         // Toggle booking visibility for Tour Operator
         Task<BookingResponse> ToggleBookingVisibilityAsync(int bookingId, int tourOperatorId);
+
+        // Update payment information
+        Task<BookingResponse> UpdateBookingPaymentAsync(UpdateBookingPaymentRequest request, int userId);
     }
 } 
