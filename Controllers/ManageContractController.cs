@@ -15,7 +15,7 @@ namespace TourManagement_BE.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+   
     public class ManageContractController : Controller
     {
         private readonly MyDBContext context;
@@ -43,7 +43,7 @@ namespace TourManagement_BE.Controllers
         }
 
         [HttpPost("CreateContractForTourBooking")]
-        [Authorize(Roles = Roles.TourOperator)]
+       
         public async Task<IActionResult> CreateContract([FromForm] CreateContractRequest request)
         {
             var result = await _contractService.CreateContractAsync(request);
@@ -55,7 +55,7 @@ namespace TourManagement_BE.Controllers
         }
 
         [HttpPut("UpdateContractForTourBooking")]
-        [Authorize(Roles = Roles.TourOperator)]
+        
         public async Task<IActionResult> UpdateContract([FromForm] UpdateTourContractRequest request)
         {
             var result = await _contractService.UpdateContractAsync(request);
@@ -67,7 +67,7 @@ namespace TourManagement_BE.Controllers
         }
 
         [HttpDelete("DeleteContractForTourBooking/{bookingId}")]
-        [Authorize(Roles = Roles.TourOperator)]
+    
         public async Task<IActionResult> DeleteContract(int bookingId)
         {
             var result = await _contractService.DeleteContractAsync(bookingId);

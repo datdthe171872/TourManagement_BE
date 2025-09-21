@@ -42,7 +42,7 @@ public class DepartureDatesController : ControllerBase
     /// <param name="request">Thông tin tạo ngày khởi hành</param>
     /// <returns>Kết quả tạo ngày khởi hành</returns>
     [HttpPost]
-    [Authorize(Roles = Roles.TourOperator)]
+    
     public async Task<IActionResult> CreateDepartureDates([FromBody] CreateDepartureDateRequest request)
     {
         // Lấy UserId từ JWT token
@@ -141,7 +141,7 @@ public class DepartureDatesController : ControllerBase
     /// <param name="request">Thông tin cập nhật ngày khởi hành</param>
     /// <returns>Kết quả cập nhật ngày khởi hành</returns>
     [HttpPut]
-    [Authorize(Roles = Roles.TourOperator)]
+    
     public async Task<IActionResult> UpdateDepartureDate([FromBody] UpdateDepartureDateRequest request)
     {
         // Lấy UserId từ JWT token
@@ -256,7 +256,7 @@ public class DepartureDatesController : ControllerBase
     /// </summary>
     /// <returns>Danh sách tất cả ngày khởi hành</returns>
     [HttpGet]
-    [Authorize]
+    
     public async Task<IActionResult> GetAllDepartureDates()
     {
         var departureDates = await _departureDateService.GetAllDepartureDatesAsync();
@@ -274,7 +274,7 @@ public class DepartureDatesController : ControllerBase
     /// <param name="tourId">ID của tour</param>
     /// <returns>Danh sách ngày khởi hành của tour</returns>
     [HttpGet("tour/{tourId}")]
-    [Authorize]
+    
     public async Task<IActionResult> GetDepartureDatesByTourId(int tourId)
     {
         if (tourId <= 0)
@@ -299,7 +299,7 @@ public class DepartureDatesController : ControllerBase
     /// </summary>
     /// <returns>Danh sách tất cả ngày khởi hành của TourOperator</returns>
     [HttpGet("operator")]
-    [Authorize(Roles = Roles.TourOperator)]
+    
     public async Task<IActionResult> GetDepartureDatesByTourOperator()
     {
         // Lấy UserId từ JWT token
@@ -354,7 +354,7 @@ public class DepartureDatesController : ControllerBase
     /// <param name="departureDateId">ID của ngày khởi hành</param>
     /// <returns>Thông tin ngày khởi hành và danh sách booking</returns>
     [HttpGet("departure-date/{departureDateId}/bookings")]
-    [Authorize(Roles = Roles.TourOperator + "," + Roles.TourGuide)]
+    
     public async Task<IActionResult> GetBookingsByDepartureDateId(int departureDateId)
     {
         if (departureDateId <= 0)
@@ -398,7 +398,7 @@ public class DepartureDatesController : ControllerBase
     /// <param name="departureDateId">ID của ngày khởi hành cần hủy</param>
     /// <returns>Kết quả hủy ngày khởi hành</returns>
     [HttpPut("{departureDateId}/cancel")]
-    [Authorize(Roles = Roles.TourOperator)]
+    
     public async Task<IActionResult> CancelDepartureDate(int departureDateId)
     {
         if (departureDateId <= 0)
@@ -442,7 +442,7 @@ public class DepartureDatesController : ControllerBase
     /// </summary>
     /// <returns>Danh sách ngày khởi hành đã bị hủy</returns>
     [HttpGet("operator/cancelled")]
-    [Authorize(Roles = Roles.TourOperator)]
+    
     public async Task<IActionResult> GetCancelledDepartureDatesByTourOperator()
     {
         // Lấy UserId từ JWT token
@@ -470,7 +470,7 @@ public class DepartureDatesController : ControllerBase
     /// <param name="departureDateId">ID của ngày khởi hành cần bật lại</param>
     /// <returns>Kết quả bật lại ngày khởi hành</returns>
     [HttpPut("{departureDateId}/reactivate")]
-    [Authorize(Roles = Roles.TourOperator)]
+   
     public async Task<IActionResult> ReactivateDepartureDate(int departureDateId)
     {
         if (departureDateId <= 0)
@@ -514,7 +514,7 @@ public class DepartureDatesController : ControllerBase
     /// </summary>
     /// <returns>Danh sách tất cả ngày khởi hành của TourGuide</returns>
     [HttpGet("guide")]
-    [Authorize(Roles = Roles.TourGuide)]
+    
     public async Task<IActionResult> GetDepartureDatesByTourGuide()
     {
         // Lấy UserId từ JWT token

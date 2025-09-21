@@ -23,9 +23,9 @@ namespace TourManagement_BE.Helper.Validator
             RuleFor(x => x.PriceOfInfants)
                 .GreaterThanOrEqualTo(0).WithMessage("Giá trẻ sơ sinh phải >= 0.");
 
-            RuleFor(x => x.DurationInDays)
-                .NotEmpty().WithMessage("Thời lượng tour là bắt buộc.")
-                .Matches(@"^\d+$").WithMessage("Thời lượng tour phải là số nguyên dương.");
+            // RuleFor(x => x.DurationInDays)
+            //     .NotEmpty().WithMessage("Thời lượng tour là bắt buộc.")
+            //     .Matches(@"^\d+$").WithMessage("Thời lượng tour phải là số nguyên dương.");
 
             RuleFor(x => x.MaxSlots)
                 .GreaterThan(0).WithMessage("Số chỗ tối đa phải lớn hơn 0.");
@@ -36,16 +36,11 @@ namespace TourManagement_BE.Helper.Validator
             RuleFor(x => x.TourStatus)
                 .NotEmpty().WithMessage("Trạng thái tour là bắt buộc.");
 
-            RuleFor(x => x.DepartureDates)
-            .NotNull().WithMessage("Danh sách ngày khởi hành là bắt buộc.")
-            .Must(list => list.Count > 0).WithMessage("Phải có ít nhất 1 ngày khởi hành.")
-            .Must(list => list.All(date => date.DepartureDate1.Date >= DateTime.UtcNow.Date.AddMonths(1)))
-            .WithMessage("Mỗi ngày khởi hành phải lớn hơn ngày hiện tại ít nhất 1 tháng.");
+          
 
-
-            RuleFor(x => x.TourItineraries)
-                .Must((req, list) => CheckItineraryCount(req.DurationInDays, list))
-                .WithMessage(req => $"Số ngày lịch trình không đúng với DurationInDays = {req.DurationInDays}.");
+            // RuleFor(x => x.TourItineraries)
+            //     .Must((req, list) => CheckItineraryCount(req.DurationInDays, list))
+            //     .WithMessage(req => $"Số ngày lịch trình không đúng với DurationInDays = {req.DurationInDays}.");
 
             // Validate từng phần tử
             /*RuleForEach(x => x.DepartureDates)

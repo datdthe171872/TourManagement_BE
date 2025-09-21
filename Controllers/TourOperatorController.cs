@@ -158,7 +158,7 @@ public class TourOperatorController : ControllerBase
     /// Lấy thông tin UserId, UserName, TourOperatorId, Email của Tour Operator đang đăng nhập
     /// </summary>
     [HttpGet("user-operator")]
-    [Authorize]
+  
     public async Task<IActionResult> GetUserOperatorList()
     {
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -185,7 +185,7 @@ public class TourOperatorController : ControllerBase
     }
 
     [HttpPost("register-tourguide")]
-    [Authorize(Roles = "Tour Operator")]
+    
     public async Task<IActionResult> RegisterTourGuide([FromBody] CreateTourGuideRequest request)
     {
         try
@@ -221,7 +221,7 @@ public class TourOperatorController : ControllerBase
     /// <param name="request">Thông tin tìm kiếm và phân trang</param>
     /// <returns>Danh sách tour guide</returns>
     [HttpGet("tourguides")]
-    [Authorize(Roles = "Tour Operator")]
+    
     public async Task<IActionResult> GetTourGuides([FromQuery] TourGuideSearchRequest request)
     {
         try
@@ -261,7 +261,7 @@ public class TourOperatorController : ControllerBase
     /// <param name="request">Thông tin cập nhật trạng thái tour guide</param>
     /// <returns>Kết quả cập nhật</returns>
     [HttpPut("tourguide-status")]
-    [Authorize(Roles = "Tour Operator")]
+    
     public async Task<IActionResult> UpdateTourGuideStatus([FromBody] UpdateTourGuideStatusRequest request)
     {
         try

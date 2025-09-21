@@ -19,7 +19,7 @@ namespace TourManagement_BE.Data.DTO.Request.TourRequest
 
         public decimal PriceOfInfants { get; set; }
 
-        public string DurationInDays { get; set; } = null!;
+        //public string DurationInDays { get; set; } = null!;
 
         public string? StartPoint { get; set; }
 
@@ -37,8 +37,7 @@ namespace TourManagement_BE.Data.DTO.Request.TourRequest
 
         public bool IsActive { get; set; }
 
-        public List<DepartureDateDto> ? DepartureDates { get; set; } = new();
-
+      
         public List<TourExperienceDto> ? TourExperiences { get; set; } = new();
 
         public List<TourItineraryDto> ? TourItineraries { get; set; } = new();

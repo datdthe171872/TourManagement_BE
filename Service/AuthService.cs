@@ -129,27 +129,20 @@ namespace TourManagement_BE.Service
             // Gửi email verification
             try
             {
-                var verificationLink = $"http://localhost:3000/verify-email?token={verificationToken}";
                 var subject = "Xác thực Email - Tour Management System";
-                var body = $@"
-                    <html>
-                    <body>
-                        <h2>Xác thực Email - Tour Management System</h2>
-                        <p>Xin chào {request.UserName},</p>
-                        <p>Cảm ơn bạn đã đăng ký tài khoản tại Tour Management System.</p>
-                        <p>Để kích hoạt tài khoản, vui lòng click vào nút bên dưới:</p>
-                        <p>
-                            <a href='{verificationLink}' style='background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>
-                                Xác thực Email
-                            </a>
-                        </p>
-                        <p>Hoặc copy và paste link này vào trình duyệt:</p>
-                        <p>{verificationLink}</p>
-                        <p><strong>Link này sẽ hết hạn sau 24 giờ.</strong></p>
-                        <p>Nếu bạn không thực hiện đăng ký này, vui lòng bỏ qua email này.</p>
-                        <p>Trân trọng,<br>Đội ngũ Tour Management System</p>
-                    </body>
-                    </html>";
+var body = $@"
+    <html>
+    <body>
+        <h2>Xác thực Email - Tour Management System</h2>
+        <p>Xin chào {request.UserName},</p>
+        <p>Cảm ơn bạn đã đăng ký tài khoản tại Tour Management System.</p>
+        <p>Để kích hoạt tài khoản, vui lòng nhập mã xác thực sau vào trang xác thực email:</p>
+        <div style='font-size: 22px; font-weight: bold; color: #007bff; margin: 20px 0;'>{verificationToken}</div>
+        <p><strong>Mã này sẽ hết hạn sau 24 giờ.</strong></p>
+        <p>Nếu bạn không thực hiện đăng ký này, vui lòng bỏ qua email này.</p>
+        <p>Trân trọng,<br>Đội ngũ Tour Management System</p>
+    </body>
+    </html>";
 
                 await _emailHelper.SendEmailAsync(request.Email, subject, body);
             }
@@ -286,7 +279,7 @@ namespace TourManagement_BE.Service
             };
             await _userRepository.AddResetPasswordTokenAsync(tokenEntity);
 
-            var resetLink = $"http://localhost:3000/reset-password?token={resetToken}";
+            var resetLink = $"http://localhost:5173/reset-password?token={resetToken}";
             var subject = "Password Reset Request - Tour Management System";
             var body = $@"
                 <html>
@@ -522,26 +515,19 @@ namespace TourManagement_BE.Service
             // Gửi email verification mới
             try
             {
-                var verificationLink = $"http://localhost:3000/verify-email?token={verificationToken}";
                 var subject = "Gửi lại Email Xác thực - Tour Management System";
-                var body = $@"
-                    <html>
-                    <body>
-                        <h2>Gửi lại Email Xác thực</h2>
-                        <p>Xin chào {user.UserName},</p>
-                        <p>Bạn đã yêu cầu gửi lại email xác thực cho tài khoản Tour Management System.</p>
-                        <p>Để kích hoạt tài khoản, vui lòng click vào nút bên dưới:</p>
-                        <p>
-                            <a href='{verificationLink}' style='background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>
-                                Xác thực Email
-                            </a>
-                        </p>
-                        <p>Hoặc copy và paste link này vào trình duyệt:</p>
-                        <p>{verificationLink}</p>
-                        <p><strong>Link này sẽ hết hạn sau 24 giờ.</strong></p>
-                        <p>Trân trọng,<br>Đội ngũ Tour Management System</p>
-                    </body>
-                    </html>";
+var body = $@"
+    <html>
+    <body>
+        <h2>Gửi lại Email Xác thực</h2>
+        <p>Xin chào {user.UserName},</p>
+        <p>Bạn đã yêu cầu gửi lại email xác thực cho tài khoản Tour Management System.</p>
+        <p>Để kích hoạt tài khoản, vui lòng nhập mã xác thực sau vào trang xác thực email:</p>
+        <div style='font-size: 22px; font-weight: bold; color: #007bff; margin: 20px 0;'>{verificationToken}</div>
+        <p><strong>Mã này sẽ hết hạn sau 24 giờ.</strong></p>
+        <p>Trân trọng,<br>Đội ngũ Tour Management System</p>
+    </body>
+    </html>";
 
                 await _emailHelper.SendEmailAsync(user.Email, subject, body);
             }

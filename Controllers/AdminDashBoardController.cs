@@ -14,7 +14,7 @@ namespace TourManagement_BE.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin")]
+    
     public class AdminDashBoardController : Controller
     {
         private readonly MyDBContext context;

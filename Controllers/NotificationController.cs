@@ -9,7 +9,7 @@ namespace TourManagement_BE.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+
 public class NotificationController : ControllerBase
 {
     private readonly INotificationService _notificationService;

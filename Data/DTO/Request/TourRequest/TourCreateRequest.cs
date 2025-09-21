@@ -35,7 +35,7 @@ namespace TourManagement_BE.Data.DTO.Request.TourRequest
         public IFormFile TourAvartarFile { get; set; } 
 
 
-        public List<DepartureDateCreateDto> DepartureDates { get; set; } = new();
+     
         public List<TourExperienceCreateDto> TourExperiences { get; set; } = new();
         public List<TourItineraryCreateDto> TourItineraries { get; set; } = new();
         public List<TourMediaCreateDto> TourMedia { get; set; } = new();

@@ -14,7 +14,7 @@ namespace TourManagement_BE.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Tour Operator")]
+   
     public class TourGuideAssignmentController : ControllerBase
     {
         private readonly MyDBContext _context;
@@ -73,7 +73,7 @@ namespace TourManagement_BE.Controllers
             return Ok("Assignment created successfully");
         }
 
-        [HttpPost("multiple")]
+       [HttpPost("multiple")]
         public async Task<IActionResult> CreateMultipleAssignments([FromBody] CreateMultipleTourGuideAssignmentRequest request)
         {
             if (request.TourGuides == null || !request.TourGuides.Any())
@@ -105,7 +105,7 @@ namespace TourManagement_BE.Controllers
                 
                 if (existingAssignment != null)
                 {
-                    continue; // Bỏ qua nếu đã được assign cho departure date này
+                    return BadRequest($"Tour guide {tourGuide.TourGuideId} đã được assign cho departure date này");
                 }
 
                 // Kiểm tra xem tour guide đã được gán vào bất kỳ Tour nào trong cùng ngày chưa
@@ -117,7 +117,7 @@ namespace TourManagement_BE.Controllers
 
                 if (existingAssignmentSameDay != null)
                 {
-                    continue; // Bỏ qua nếu đã được gán vào Tour khác trong cùng ngày
+                    return BadRequest($"TourGuide {tourGuide.TourGuideId} đã được gán vào ngày {existingAssignmentSameDay.DepartureDate.DepartureDate1.Date} rồi");
                 }
 
                 var assignment = new TourGuideAssignment
@@ -135,7 +135,7 @@ namespace TourManagement_BE.Controllers
             if (assignments.Any())
             {
                 _context.TourGuideAssignments.AddRange(assignments);
-                await _context.SaveChangesAsync();
+await _context.SaveChangesAsync();
             }
 
             return Ok(new { 
@@ -146,7 +146,7 @@ namespace TourManagement_BE.Controllers
         }
 
         [HttpGet("my-assignments")]
-        [Authorize(Roles = "Tour Guide")]
+        
         [ProducesResponseType(typeof(List<object>), 200)]
         public async Task<IActionResult> GetMyAssignments()
         {
@@ -218,7 +218,7 @@ namespace TourManagement_BE.Controllers
         }
 
         [HttpGet("test-auth")]
-        [Authorize]
+        
         public IActionResult TestAuth()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);

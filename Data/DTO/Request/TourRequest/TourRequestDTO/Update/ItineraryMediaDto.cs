@@ -4,7 +4,7 @@ namespace TourManagement_BE.Data.DTO.Request.TourRequest.TourRequestDTO.Update
 {
     public class ItineraryMediaDto
     {
-        public int MediaId { get; set; }
+        //public int MediaId { get; set; }
 
         public string? MediaUrl { get; set; } = null!;
 
