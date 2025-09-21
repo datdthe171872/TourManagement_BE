@@ -4,7 +4,7 @@ namespace TourManagement_BE.Data.DTO.Request.TourRequest.TourRequestDTO.Update
 {
     public class TourItineraryDto
     {
-        public int ItineraryId { get; set; }
+        //public int ItineraryId { get; set; }
         public int DayNumber { get; set; }
 
         public string Title { get; set; } = null!;

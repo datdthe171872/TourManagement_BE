@@ -13,7 +13,7 @@ namespace TourManagement_BE.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = Roles.TourOperator)]
+    
     public class TourExperienceController : Controller
     {
         private readonly MyDBContext context;

@@ -17,7 +17,7 @@ namespace TourManagement_BE.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] // Bỏ role restriction ở class level, để kiểm soát ở từng method
+    // Bỏ role restriction ở class level, để kiểm soát ở từng method
     public class GuideNoteController : ControllerBase
     {
         private readonly IGuideNoteService _guideNoteService;
@@ -37,7 +37,7 @@ namespace TourManagement_BE.Controllers
 
         // Lấy danh sách note của guide hiện tại
         [HttpGet("notes")]
-        [Authorize(Roles = "Tour Guide")]
+       
         public async Task<ActionResult<List<GuideNoteResponse>>> GetMyNotes()
         {
             try
@@ -91,7 +91,7 @@ namespace TourManagement_BE.Controllers
 
         // Thêm note mới với attachment cho TourGuide (kết hợp CreateNote + UploadAttachment)
         [HttpPost("notes-by-TourGuide")]
-        [Authorize(Roles = "Tour Guide")]
+        
         public async Task<ActionResult> CreateNoteWithAttachment([FromForm] CreateGuideNoteWithAttachmentRequest request)
         {
             try
@@ -118,7 +118,7 @@ namespace TourManagement_BE.Controllers
 
         // Sửa note
         [HttpPut("notes/{id}")]
-        [Authorize(Roles = "Tour Guide")]
+        
         public async Task<ActionResult> UpdateNote(int id, [FromBody] UpdateGuideNoteRequest request)
         {
             try
@@ -145,7 +145,7 @@ namespace TourManagement_BE.Controllers
 
         // Xoá note
         [HttpDelete("notes/{id}")]
-        [Authorize(Roles = "Tour Guide")]
+       
         public async Task<ActionResult> DeleteNote(int id)
         {
             try
@@ -172,7 +172,7 @@ namespace TourManagement_BE.Controllers
 
         // Lấy danh sách booking của TourGuide
         [HttpGet("my-bookings")]
-        [Authorize(Roles = "Tour Guide")]
+        
         public async Task<ActionResult<List<TourGuideBookingResponse>>> GetMyBookings()
         {
             try
@@ -259,7 +259,7 @@ namespace TourManagement_BE.Controllers
 
         // TourOperator lấy tất cả note của TourGuide
         [HttpGet("tour-operator/notes")]
-        [Authorize(Roles = "Tour Operator")]
+       
         public async Task<ActionResult<List<GuideNoteResponse>>> GetNotesByTourOperator()
         {
             try

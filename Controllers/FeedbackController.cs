@@ -58,7 +58,7 @@ public class FeedbackController : ControllerBase
     /// <param name="request">Thông tin tìm kiếm và phân trang</param>
     /// <returns>Danh sách feedback</returns>
     [HttpGet("admin")]
-    [Authorize(Roles = "Admin")]
+    
     public async Task<IActionResult> GetAdminFeedbacks([FromQuery] AdminFeedbackSearchRequest request)
     {
         try
@@ -88,7 +88,7 @@ public class FeedbackController : ControllerBase
     /// <param name="request">Thông tin tìm kiếm và phân trang</param>
     /// <returns>Danh sách feedback</returns>
     [HttpGet("tour-operator")]
-    [Authorize(Roles = "Tour Operator")]
+    
     public async Task<IActionResult> GetTourOperatorFeedbacks([FromQuery] TourOperatorFeedbackSearchRequest request)
     {
         try
@@ -127,7 +127,7 @@ public class FeedbackController : ControllerBase
     /// <param name="request">Thông tin feedback cần tạo</param>
     /// <returns>Thông tin feedback đã tạo</returns>
     [HttpPost]
-    [Authorize]
+   
     public async Task<IActionResult> CreateFeedback([FromForm] CreateFeedbackRequest request)
     {
         try
@@ -212,7 +212,7 @@ public class FeedbackController : ControllerBase
     /// </summary>
     /// <returns>Danh sách feedback của user</returns>
     [HttpGet("my-feedbacks")]
-    [Authorize]
+    
     public async Task<IActionResult> GetMyFeedbacks()
     {
         try
@@ -248,7 +248,7 @@ public class FeedbackController : ControllerBase
     /// <param name="request">Thông tin báo cáo</param>
     /// <returns>Kết quả báo cáo</returns>
     [HttpPost("report")]
-    [Authorize]
+    
     public async Task<IActionResult> ReportFeedback([FromBody] ReportFeedbackRequest request)
     {
         try
@@ -311,7 +311,7 @@ public class FeedbackController : ControllerBase
     /// <param name="request">Thông tin cập nhật trạng thái</param>
     /// <returns>Kết quả cập nhật</returns>
     [HttpPut("update-status")]
-    [Authorize(Roles = "Admin")]
+    
     public async Task<IActionResult> UpdateFeedbackStatus([FromBody] UpdateFeedbackStatusRequest request)
     {
         try

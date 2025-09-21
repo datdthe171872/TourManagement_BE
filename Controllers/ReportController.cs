@@ -10,7 +10,7 @@ namespace TourManagement_BE.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    
     public class ReportController : ControllerBase
     {
         private readonly IReportService _reportService;
@@ -24,7 +24,7 @@ namespace TourManagement_BE.Controllers
 
         // API cho Customer - Lấy báo cáo của chính mình
         [HttpGet("customer")]
-        [Authorize(Roles = "Customer")]
+        
         public async Task<ActionResult<List<ReportResponse>>> GetCustomerReports(
             [FromQuery] string? username = null)
         {
@@ -35,7 +35,7 @@ namespace TourManagement_BE.Controllers
 
         // API cho Tour Operator - Lấy báo cáo của các booking thuộc tour của operator
         [HttpGet("operator")]
-        [Authorize(Roles = "Tour Operator")]
+      
         public async Task<ActionResult<List<ReportResponse>>> GetOperatorReports(
             [FromQuery] string? username = null)
         {

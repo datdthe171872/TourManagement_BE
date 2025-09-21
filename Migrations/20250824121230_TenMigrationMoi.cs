@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TourManagement_BE.Migrations
 {
     /// <inheritdoc />
-    public partial class DBDat2 : Migration
+    public partial class TenMigrationMoi : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

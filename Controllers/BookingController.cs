@@ -15,7 +15,7 @@ namespace TourManagement_BE.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    
     public class BookingController : ControllerBase
     {
         private readonly IBookingService _bookingService;
@@ -71,7 +71,7 @@ namespace TourManagement_BE.Controllers
         }
 
         [HttpPut("customer-update")]
-        [Authorize(Roles = Roles.Customer)]
+       
         public async Task<IActionResult> UpdateBookingCustomer([FromBody] UpdateBookingCustomerRequest request)
         {
             var booking = await _bookingService.GetBookingByIdAsync(request.BookingId);
@@ -96,7 +96,7 @@ namespace TourManagement_BE.Controllers
         }
 
         [HttpPut("operator-update")]
-        [Authorize(Roles = Roles.TourOperator)]
+        
         public async Task<IActionResult> UpdateBookingOperator([FromBody] UpdateBookingOperatorRequest request)
         {
             var booking = await _bookingService.GetBookingByIdAsync(request.BookingId);
@@ -125,7 +125,7 @@ namespace TourManagement_BE.Controllers
         }
 
         [HttpPut("cancel/{bookingId}")]
-        [Authorize(Roles = Roles.Customer)]
+        
         public async Task<IActionResult> CancelBooking(int bookingId)
         {
             try
@@ -147,7 +147,7 @@ namespace TourManagement_BE.Controllers
 
         // API 1: Get bookings for Customer (Customer role only)
         [HttpGet("customer")]
-        [Authorize(Roles = Roles.Customer)]
+        
         public async Task<IActionResult> GetCustomerBookings([FromQuery] BookingSearchCustomerRequest request)
         {
             var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
@@ -164,7 +164,7 @@ namespace TourManagement_BE.Controllers
 
         // API 2: Get bookings for Tour Operator (Tour Operator role only)
         [HttpGet("tour-operator")]
-        [Authorize(Roles = Roles.TourOperator)]
+        
         public async Task<IActionResult> GetTourOperatorBookings([FromQuery] BookingSearchTourOperatorRequest request)
         {
             var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
@@ -183,7 +183,7 @@ namespace TourManagement_BE.Controllers
 
         // API 3: Get all bookings for Admin (Admin role only)
         [HttpGet("admin")]
-        [Authorize(Roles = Roles.Admin)]
+        
         public async Task<IActionResult> GetAllBookingsForAdmin([FromQuery] BookingSearchAdminRequest request)
         {
             var searchRequest = new BookingSearchRequest
@@ -197,7 +197,7 @@ namespace TourManagement_BE.Controllers
 
         // API 4: Update Payment Status (Tour Operator role only)
         [HttpPut("update-payment-status")]
-        [Authorize(Roles = Roles.TourOperator)]
+        
         public async Task<IActionResult> UpdatePaymentStatus([FromBody] UpdatePaymentStatusRequest request)
         {
             try
@@ -226,7 +226,7 @@ namespace TourManagement_BE.Controllers
 
         // API 5: Update Booking Status (Tour Operator role only)
         [HttpPut("update-booking-status")]
-        [Authorize(Roles = Roles.TourOperator)]
+        
         public async Task<IActionResult> UpdateBookingStatus([FromBody] UpdateBookingStatusRequest request)
         {
             try
@@ -255,7 +255,7 @@ namespace TourManagement_BE.Controllers
 
         // API 6: Toggle Booking Visibility (Tour Operator role only)
         [HttpPut("toggle-visibility/{bookingId}")]
-        [Authorize(Roles = Roles.TourOperator)]
+        
         public async Task<IActionResult> ToggleBookingVisibility(int bookingId)
         {
             try

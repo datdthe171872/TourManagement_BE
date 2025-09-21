@@ -11,9 +11,9 @@ class PaymentIMAP
     private static readonly HttpClient _httpClient = new HttpClient();
     private const string ImapHost = "imap.gmail.com";
     private const int ImapPort = 993;
-    private const string EmailAddress = "tranhuy2ca2@gmail.com";
-    private const string AppPassword = "uval aoqc acpe onrf";
-    private const string WebhookUrl = "https://localhost:7012/api/PurchasedServicePackages/payment-webhook";
+    private const string EmailAddress = "HieuNTHE171606@fpt.edu.vn";
+    private const string AppPassword = "oynh flrj ktme zbvz";
+    private const string WebhookUrl = "http://localhost:5298/api/PurchasedServicePackages/payment-webhook";
 
     public static async Task Main(string[] args)
     {

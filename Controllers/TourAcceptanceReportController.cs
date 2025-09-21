@@ -11,7 +11,7 @@ namespace TourManagement_BE.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Tour Guide")]
+    
     public class TourAcceptanceReportController : ControllerBase
     {
         private readonly ITourAcceptanceReportService _reportService;
@@ -50,7 +50,7 @@ namespace TourManagement_BE.Controllers
 
         // Lấy reports theo booking ID (có thể dùng cho admin/operator)
         [HttpGet("bookingforOperator/{bookingId}")]
-        [Authorize(Roles = "Admin,Tour Operator")]
+        
         public async Task<ActionResult<List<TourAcceptanceReportResponse>>> GetReportsByBookingId(int bookingId)
         {
             var reports = await _reportService.GetReportsByBookingIdAsync(bookingId);

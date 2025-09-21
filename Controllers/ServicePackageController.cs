@@ -8,7 +8,7 @@ namespace TourManagement_BE.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    
     public class ServicePackageController : ControllerBase
     {
         private readonly IServicePackageService _service;
@@ -75,7 +75,7 @@ namespace TourManagement_BE.Controllers
         }
 
         [HttpPost("CreateServicePackage")]
-        [Authorize(Roles = Roles.Admin)]
+        
         public async Task<IActionResult> CreateServicePackage([FromBody] CreateServicePackageRequest request)
         {
             try
@@ -90,7 +90,7 @@ namespace TourManagement_BE.Controllers
         }
 
         [HttpPost("AddServicePackageFeature")]
-        [Authorize(Roles = Roles.Admin)]
+        
         public async Task<IActionResult> AddServicePackageFeature([FromBody] AddServicePackageFeatureRequest request)
         {
             try
@@ -109,7 +109,7 @@ namespace TourManagement_BE.Controllers
         }
 
         [HttpPut("UpdateServicePackage")]
-        [Authorize(Roles = Roles.Admin)]
+        
         public async Task<IActionResult> UpdateServicePackage([FromBody] UpdateServicePackageRequest request)
         {
             try
@@ -128,7 +128,7 @@ namespace TourManagement_BE.Controllers
         }
 
         [HttpPut("UpdateServicePackageFeature")]
-        [Authorize(Roles = Roles.Admin)]
+        
         public async Task<IActionResult> UpdateServicePackageFeature([FromBody] UpdateServicePackageFeatureRequest request)
         {
             try
@@ -147,7 +147,7 @@ namespace TourManagement_BE.Controllers
         }
 
         [HttpPatch("ToggleServicePackageStatus/{packageId}")]
-        [Authorize(Roles = Roles.Admin)]
+        
         public async Task<IActionResult> ToggleServicePackageStatus(int packageId)
         {
             try
@@ -166,7 +166,7 @@ namespace TourManagement_BE.Controllers
         }
 
         [HttpPatch("ToggleServicePackageFeatureStatus/{featureid}")]
-        [Authorize(Roles = Roles.Admin)]
+        
         public async Task<IActionResult> ToggleServicePackageFeatureStatus(int featureid)
         {
             try

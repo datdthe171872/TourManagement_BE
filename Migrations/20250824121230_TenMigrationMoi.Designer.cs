@@ -12,8 +12,8 @@ using TourManagement_BE.Data.Context;
 namespace TourManagement_BE.Migrations
 {
     [DbContext(typeof(MyDBContext))]
-    [Migration("20250823180939_DBDat2")]
-    partial class DBDat2
+    [Migration("20250824121230_TenMigrationMoi")]
+    partial class TenMigrationMoi
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
