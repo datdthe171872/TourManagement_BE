@@ -29,6 +29,7 @@ using Microsoft.Extensions.Options;
 using TourManagement_BE.BackgroundServices;
 using TourManagement_BE.Helper.Common;
 using TourManagement_BE.Helper.Constant;
+using TourManagement_BE.Middleware;
 
 namespace TourManagement_BE
 {
@@ -238,6 +239,7 @@ namespace TourManagement_BE
                 app.UseSwaggerUI();
             }
 
+            app.UseExceptionMiddleware();
             app.UseHttpsRedirection();
             app.UseCors("AllowAll");
             app.UseStaticFiles();

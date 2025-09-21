@@ -8,6 +8,7 @@ using TourManagement_BE.Data.DTO.Request;
 using TourManagement_BE.Data.DTO.Response;
 using TourManagement_BE.Data.Models;
 using TourManagement_BE.Helper.Constant;
+using TourManagement_BE.Helper.Exceptions;
 
 namespace TourManagement_BE.Service
 {
@@ -16,12 +17,18 @@ namespace TourManagement_BE.Service
         private readonly MyDBContext _context;
         private readonly INotificationService _notificationService;
         private readonly IEmailService _emailService;
+        private readonly CloudinaryDotNet.Cloudinary _cloudinary;
 
-        public BookingService(MyDBContext context, INotificationService notificationService, IEmailService emailService)
+        public BookingService(
+            MyDBContext context, 
+            INotificationService notificationService, 
+            IEmailService emailService,
+            CloudinaryDotNet.Cloudinary cloudinary)
         {
             _context = context;
             _notificationService = notificationService;
             _emailService = emailService;
+            _cloudinary = cloudinary;
         }
 
         public async Task<BookingListResponse> GetBookingsAsync(BookingSearchRequest request)
@@ -77,26 +84,37 @@ namespace TourManagement_BE.Service
         {
             var tour = await _context.Tours.FirstOrDefaultAsync(t => t.TourId == request.TourId);
             if (tour == null)
-                throw new Exception("Không tìm thấy tour. Vui lòng kiểm tra lại thông tin tour.");
+            {
+                throw new BusinessException("Không tìm thấy tour. Vui lòng kiểm tra lại thông tin tour.");
+            }
 
             var departure = await _context.DepartureDates.FirstOrDefaultAsync(d => d.Id == request.DepartureDateId && d.TourId == request.TourId && d.IsActive);
             if (departure == null)
-                throw new Exception("Không tìm thấy ngày khởi hành hoặc ngày khởi hành không hoạt động cho tour này. Vui lòng kiểm tra lại thông tin.");
+            {
+                throw new BusinessException("Không tìm thấy ngày khởi hành hoặc ngày khởi hành không hoạt động cho tour này. Vui lòng kiểm tra lại thông tin.");
+            }
 
             // Only allow booking if PaymentDeadline (DepartureDate - 21 days) is today or later
             var paymentDeadline = departure.DepartureDate1.AddDays(-21);
             if (paymentDeadline.Date < DateTime.UtcNow.Date)
-                throw new Exception($"Không thể đặt tour vì đã qua hạn thanh toán. Hạn thanh toán là: {paymentDeadline:dd/MM/yyyy}, Ngày khởi hành: {departure.DepartureDate1:dd/MM/yyyy}. Vui lòng chọn ngày khởi hành khác.");
+            {
+                throw new BusinessException($"Không thể đặt tour vì đã qua hạn thanh toán. Hạn thanh toán là: {paymentDeadline:dd/MM/yyyy}, Ngày khởi hành: {departure.DepartureDate1:dd/MM/yyyy}. Vui lòng chọn ngày khởi hành khác.");
+            }
 
             int totalPeople = request.NumberOfAdults + request.NumberOfChildren + request.NumberOfInfants;
-            int slotsBooked = tour.SlotsBooked ?? 0;
+            
+            // Calculate booked slots for this specific departure date
+            var slotsBooked = await _context.Bookings
+                .Where(b => b.DepartureDateId == request.DepartureDateId && b.IsActive)
+                .SumAsync(b => (b.NumberOfAdults ?? 0) + (b.NumberOfChildren ?? 0) + (b.NumberOfInfants ?? 0));
+
             int availableSlots = tour.MaxSlots - slotsBooked;
             if (totalPeople > availableSlots)
             {
                 var message = availableSlots <= 0 
-                    ? $"Rất tiếc! Tour này đã hết chỗ (MaxSlot: {tour.MaxSlots}, Đã đặt: {slotsBooked}). Vui lòng chọn tour khác hoặc liên hệ với chúng tôi để được hỗ trợ."
-                    : $"Rất tiếc! Tour này chỉ còn {availableSlots} chỗ trống, nhưng bạn yêu cầu {totalPeople} chỗ. Vui lòng giảm số lượng người hoặc chọn tour khác.";
-                throw new Exception(message);
+                    ? $"Rất tiếc! Ngày khởi hành này đã hết chỗ (MaxSlot: {tour.MaxSlots}, Đã đặt: {slotsBooked}). Vui lòng chọn ngày khởi hành khác hoặc liên hệ với chúng tôi để được hỗ trợ."
+                    : $"Rất tiếc! Ngày khởí hành này chỉ còn {availableSlots} chỗ trống, nhưng bạn yêu cầu {totalPeople} chỗ. Vui lòng giảm số lượng người hoặc chọn ngày khởi hành khác.";
+                throw new BusinessException(message);
             }
 
             decimal totalPrice = request.NumberOfAdults * tour.PriceOfAdults
@@ -177,6 +195,7 @@ namespace TourManagement_BE.Service
 
             return new BookingResponse
             {
+                Success = true,
                 BookingId = bookingWithNav.BookingId,
                 UserId = bookingWithNav.UserId,
                 TourId = bookingWithNav.TourId,
@@ -1172,24 +1191,38 @@ namespace TourManagement_BE.Service
             string imageUrl = null;
             if (request.PaymentImage != null)
             {
-                // Generate unique filename
-                var extension = Path.GetExtension(request.PaymentImage.FileName);
-                var fileName = $"payment_{booking.BookingId}_{DateTime.UtcNow.Ticks}{extension}";
-                var uploadsFolder = Path.Combine("wwwroot", "uploads", "payments");
-
-                // Ensure directory exists
-                if (!Directory.Exists(uploadsFolder))
-                    Directory.CreateDirectory(uploadsFolder);
-
-                // Save file
-                var filePath = Path.Combine(uploadsFolder, fileName);
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                try
                 {
-                    await request.PaymentImage.CopyToAsync(fileStream);
-                }
+                    // Prepare upload parameters
+                    var uploadParams = new CloudinaryDotNet.Actions.ImageUploadParams
+                    {
+                        File = new CloudinaryDotNet.FileDescription(request.PaymentImage.FileName, request.PaymentImage.OpenReadStream()),
+                        Folder = "payments",
+                        PublicId = $"payment_{booking.BookingId}_{DateTime.UtcNow.Ticks}",
+                        // Thêm transformation nếu cần
+                        Transformation = new CloudinaryDotNet.Transformation()
+                            .Width(800)
+                            .Height(600)
+                            .Crop("limit")
+                            .Quality("auto")
+                            .FetchFormat("auto")
+                    };
 
-                // Set relative URL path
-                imageUrl = $"/uploads/payments/{fileName}";
+                    // Upload to Cloudinary
+                    var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+
+                    if (uploadResult.Error != null)
+                    {
+                        throw new BusinessException($"Lỗi khi tải ảnh lên: {uploadResult.Error.Message}");
+                    }
+
+                    // Get secure URL from Cloudinary
+                    imageUrl = uploadResult.SecureUrl.ToString();
+                }
+                catch (Exception ex)
+                {
+                    throw new BusinessException($"Không thể tải ảnh lên: {ex.Message}");
+                }
             }
 
             // Update payment information

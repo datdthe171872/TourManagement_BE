@@ -25,5 +25,7 @@ namespace TourManagement_BE.Data.DTO.Response
         public string? TourTitle { get; set; }
         public string? CompanyName { get; set; }
         public int? TourOperatorId { get; set; }
+        public string? ErrorMessage { get; set; }
+        public bool Success { get; set; } = true;
     }
 } 
